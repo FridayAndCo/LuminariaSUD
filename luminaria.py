@@ -1250,6 +1250,15 @@ class Game:
             self.cmd_search(arg)
         elif verb == "disarm":
             self.cmd_disarm()
+        elif verb in ("attack", "fight"):
+            # Web hotspot chip: engage the monster occupying this room
+            # (combat otherwise auto-starts on entry; this covers reloads
+            # or returns where the beast is still standing its ground).
+            monster = self._room().get("encounter", "None")
+            if monster == "None":
+                ui.warn("There is nothing here to fight.")
+            else:
+                self._combat(monster)
         elif verb in ("drink", "sip"):
             self.cmd_discovery("discovery_drink", "drink")
         elif verb in ("meditate", "pray"):
@@ -1337,29 +1346,54 @@ class Game:
         hotspots = []
         npc = E.NPC_REGISTRY.get(room_id)
         if npc is not None:
-            hotspots.append({"type": "npc", "name": npc.name})
+            # Every hotspot carries a label + (optional) cmd: the web shell
+            # renders cmd-carrying chips as buttons whose click fires that
+            # exact engine command. The terminal path never sees this.
+            hotspots.append({"type": "npc", "name": npc.name,
+                             "label": npc.name, "cmd": "talk"})
         enc = room.get("encounter", "None")
         if enc and enc != "None":
-            hotspots.append({"type": "monster", "name": enc})
-        if room.get("container") or room.get("chest"):
-            hotspots.append({"type": "container"})
+            hotspots.append({"type": "monster", "name": enc,
+                             "label": enc, "cmd": "attack"})
+        cont = room.get("container") or (room.get("chest") or {}).get("item")
+        if cont or room.get("chest"):
+            cname = cont or "chest"
+            hotspots.append({"type": "container", "name": cname,
+                             "label": cname, "cmd": "open"})
         if room.get("trap"):
-            hotspots.append({"type": "trap",
-                             "spotted": bool(room.get("trap_spotted")),
-                             "disarmed": bool(room.get("disarmed")),
-                             "kind": room.get("trap_type")})
+            spotted = bool(room.get("trap_spotted"))
+            disarmed = bool(room.get("disarmed"))
+            kind = room.get("trap_type")
+            h = {"type": "trap", "spotted": spotted, "disarmed": disarmed,
+                 "kind": kind}
+            if disarmed:
+                h["label"] = "trap (disarmed)"
+            elif spotted:
+                h["label"] = f"trap: {kind}"
+                h["cmd"] = "disarm"
+            else:
+                h["label"] = "something in the floor"
+            hotspots.append(h)
         corpse = room.get("corpse")
         if corpse:
+            if corpse.get("searched"):
+                clabel = f"corpse of the {corpse.get('monster', 'creature')} (picked clean)"
+            else:
+                clabel = f"corpse of the {corpse.get('monster', 'creature')}"
             hotspots.append({"type": "corpse", "monster": corpse.get("monster"),
-                             "searched": bool(corpse.get("searched"))})
+                             "searched": bool(corpse.get("searched")),
+                             "label": clabel,
+                             "cmd": None if corpse.get("searched") else "search corpse"})
         if room.get("shrine") or room.get("type") == "Shrine":
-            hotspots.append({"type": "shrine"})
+            hotspots.append({"type": "shrine", "label": "shrine", "cmd": "pray"})
         drop_counts = {}
         for d in (room.get("dropped_items") or []):
             drop_counts[d["name"]] = drop_counts.get(d["name"], 0) + 1
         drop_list = [{"name": n, "qty": q} for n, q in sorted(drop_counts.items())]
         for d in drop_list:
-            hotspots.append({"type": "drop", "name": d["name"], "qty": d["qty"]})
+            hotspots.append({"type": "drop", "name": d["name"], "qty": d["qty"],
+                             "label": f"pick up {d['name']}" + (f" \u00d7{d['qty']}" if d["qty"] > 1 else ""),
+                             "cmd": f"get {d['name']}"})
 
         inv = p["inventory"]
         usage = self.eng.player.get_inventory_usage(inv)

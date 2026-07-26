@@ -75,6 +75,9 @@
   body.busy .exit{opacity:.45;pointer-events:none}
   .hotspots{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
   .hot{background:#232c1f;border:1px solid #35452c;border-radius:6px;padding:2px 8px;font-size:12px;color:#bcd6a0}
+  button.hot{font:inherit;font-size:12px;font-weight:400;cursor:pointer;color:#bcd6a0}
+  button.hot:hover{border-color:var(--accent);background:#2c3a24}
+  body.busy button.hot{opacity:.45;pointer-events:none}
   #promptbar{grid-area:3/1/4/3;display:none;gap:8px;align-items:center}
   #promptbar label{color:var(--accent);white-space:pre-wrap}
   #promptbar input{flex:1;background:#0f131c;border:1px solid var(--accent);border-radius:8px;color:var(--ink);padding:10px 12px;font:inherit}
@@ -152,7 +155,9 @@ function renderHud(s){
     h += '<div class="questline"><b>Quest:</b> '+esc(q.title||'')+' <b>('+(q.progress||0)+'/'+(q.needed||1)+')</b>';
     h += '<small>'+esc(q.objective||'')+' \u2014 '+esc(q.turn_in||'')+(q.gold?(' \u00b7 '+q.gold+'g'):'')+'</small></div>';
   } else if(s.quest_pending){
-    h += '<div class="questline"><b>Offer:</b> '+esc(s.quest_pending.title||'')+' <small>from '+esc(s.quest_pending.giver||'')+' \u2014 ask about it in conversation</small></div>';
+    const q = s.quest_pending;
+    h += '<div class="questline"><b>Offer:</b> '+esc(q.title||'')+' <small>from '+esc(q.giver||'')+'</small>';
+    h += ' <button class="hot" data-cmd="quest accept">Accept</button> <button class="hot" data-cmd="quest decline">Decline</button></div>';
   }
   el.innerHTML = h;
 }
@@ -199,7 +204,15 @@ function renderSnapshot(s){
   });
   h += '</div>';
   const hs = r.hotspots||[];
-  if(hs.length){ h += '<div class="hotspots">'; hs.forEach(x=>{ h+='<span class="hot">'+esc(x.type)+(x.name?(' '+esc(x.name)):x.monster?(' '+esc(x.monster)):'')+'</span>'; }); h += '</div>'; }
+  if(hs.length){
+    h += '<div class="hotspots">';
+    hs.forEach(x=>{
+      const label = x.label || (x.type + (x.name ? ' ' + x.name : (x.monster ? ' ' + x.monster : '')));
+      if(x.cmd){ h += '<button class="hot" data-cmd="'+esc(x.cmd)+'" title="'+esc(x.cmd)+'">'+esc(label)+'</button>'; }
+      else { h += '<span class="hot">'+esc(label)+'</span>'; }
+    });
+    h += '</div>';
+  }
   $('#roombody').innerHTML = h;
   renderHud(s);
   renderInv(s);
