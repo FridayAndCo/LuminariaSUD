@@ -74,3 +74,8 @@ Requires `fastapi` + `uvicorn` (installed via pip). `rich` is optional.
   `static/index.html` is a functional test harness, not the final UI.
 - Phase 3: hotspots as live click targets (data already exposed in `snapshot`).
 - Phases 4–5: art assets and generated imagery.
+
+## License
+
+Released under the **GNU General Public License v3.0** (GPL-3.0) — see [LICENSE](LICENSE).
+Free to use, study, share, and adapt, on copyleft terms.
