@@ -4,6 +4,22 @@ A fork of the Luminaria dungeon crawler with the engine **unchanged**, refactore
 so the game can be driven from outside the terminal. This is Phase 1 of the
 roadmap (web shell → hotspots → art → generated imagery).
 
+## Luminaria (terminal port)
+
+A standalone terminal RPG port of the `rpgmodule` webui app.
+
+### Architecture
+
+- **95% deterministic**: the engine (engine.py) resolves movement, combat, traps,
+  loot, etc. One LLM call with `tools=[]` restyles the outcome as prose.
+- **5% improvise**: puzzle/weird rooms escalate into a bounded tool-calling
+  sub-loop (max 5 steps). The LLM may only call existing engine tools, so the
+  engine stays authoritative. Each escalation costs an "insight charge"
+  (restored by sleeping).
+- **Data-driven**: all game content lives in `data/*.json` (npcs, traps,
+  obstacles, spells, bestiary, encounter tables, items ledger, shop inventory,
+  town map, narrative). Balance tweaks = JSON edits, no code changes.
+
 ## What changed
 
 The engine (`engine.py`) was copied verbatim — same rules, same
