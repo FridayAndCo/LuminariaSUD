@@ -1000,6 +1000,9 @@ class WorldMap:
             except json.JSONDecodeError:
                 pass
             self._migrate_ways()
+        self.town_rooms = _load_json("town_map.json", {})
+        load_ledger()
+        self.ledger = LEDGER
 
     def _migrate_ways(self):
         """Old saves carry a room-level 'obstacle' string and no doors/obstacles
@@ -1034,9 +1037,6 @@ class WorldMap:
                 changed = True
         if changed:
             self.save()
-        self.town_rooms = _load_json("town_map.json", {})
-        load_ledger()
-        self.ledger = LEDGER
 
     def save(self):
         with open(WORLD_FILE, "w") as f:
