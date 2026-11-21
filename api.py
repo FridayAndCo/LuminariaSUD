@@ -37,9 +37,20 @@ import threading
 import io_layer
 import ui
 import luminaria as L
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import BaseModel
+try:
+    from fastapi import FastAPI, HTTPException
+    from fastapi.responses import HTMLResponse, JSONResponse
+    from pydantic import BaseModel
+except ImportError as _e:  # friendly hint instead of a raw traceback
+    import sys
+    sys.stderr.write(
+        "\n[LuminariaSUD] The web server needs a few Python packages that\n"
+        "aren't installed yet ({}).\n\n"
+        "    pip install -r requirements.txt\n\n"
+        "Tip: terminal mode needs none of these - just run\n"
+        "    python3 luminaria.py\n\n".format(_e)
+    )
+    sys.exit(1)
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.path.join(BASE, "static")

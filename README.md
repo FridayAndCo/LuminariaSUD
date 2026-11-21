@@ -62,18 +62,32 @@ The engine (`engine.py`) was copied verbatim — same rules, same
   pause on a prompt, the client streams new lines and answers it, and the same
   command then finishes. A second command during a busy command returns **409**.
 
-## Running
+## Quickstart
+
+Clone, set your API endpoint, install, and play:
 
 ```bash
-# Terminal (unchanged behaviour):
+git clone https://github.com/FridayAndCo/LuminariaSUD.git
+cd LuminariaSUD
+
+# 1. Point the game at your LLM endpoint by editing config.json:
+#      "api_url" -> e.g. http://127.0.0.1:5001/v1
+#      "model"   -> your model name
+
+# 2. Install the web dependencies (terminal mode needs none of these):
+pip install -r requirements.txt
+
+# 3a. Terminal mode (stdlib only, no install required):
 python3 luminaria.py
 
-# Web API (narration off by default — enable with --narrate):
+# 3b. Web mode (needs the deps above; narration off by default, add --narrate):
 python3 api.py --port 8090
-#   browse http://127.0.0.1:8090   (or /docs for OpenAPI)
+#     then browse http://127.0.0.1:8090   (or /docs for OpenAPI)
 ```
 
-Requires `fastapi` + `uvicorn` (installed via pip). `rich` is optional.
+> Web mode needs `fastapi` + `uvicorn` (pydantic comes with FastAPI). If you
+> skip the install, `api.py` prints a friendly reminder rather than a traceback.
+> `rich` is optional and only adds colour/panels to terminal mode.
 
 ## Verified
 

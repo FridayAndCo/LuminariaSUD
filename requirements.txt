@@ -1,0 +1,10 @@
+# LuminariaSUD dependencies
+#
+# Web server (python3 api.py) - REQUIRED:
+fastapi>=0.110
+uvicorn>=0.27
+#   (pydantic comes in automatically with FastAPI)
+#
+# Terminal mode (python3 luminaria.py) - OPTIONAL:
+#   rich gives colour/panel rendering; the game runs without it too.
+rich>=13
