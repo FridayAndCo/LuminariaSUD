@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+api.log
+.venv/
+
+# runtime save files - everyone gets a clean slate
+state/

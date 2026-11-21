@@ -1,0 +1,37 @@
+{
+ "Mysterious Archway": {
+  "flavor": "A freestanding archway of pale, unmarked stone spans nothing at all. On its lintel, engraved in handwriting you recognise with a cold shock as your own, is a single word: HOME.",
+  "verbs": "try 'enter'",
+  "search": "The engraving is fresh-cut, though the stone is ancient. The word is unmistakably HOME, in your own hand."
+ },
+ "Magic Circle": {
+  "flavor": "A circle of inlaid metal traces a slightly-too-perfect geometry across the floor. Something rests within it, and the air hums faintly.",
+  "verbs": "try 'search'",
+  "search": "The circle's geometry is exact to a fault. Whatever it contained, the metal is still warm."
+ },
+ "Holy Altar": {
+  "flavor": "A plain stone altar stands here, worn smooth at the kneeling edge. The air above it feels very still, and very clean.",
+  "verbs": "try 'meditate'",
+  "search": "Kneel-worn grooves, candle wax in many colors, and no blood. This altar has been used, not defiled."
+ },
+ "Fountain": {
+  "flavor": "A fountain occupies the room's center, its basin fed by a thin, patient trickle from the wall. The water here is not necessarily water.",
+  "verbs": "try 'search' or 'drink'",
+  "search": "You study the fountain's basin and the way the light sits in it."
+ },
+ "Pool": {
+  "flavor": "A wide pool lies sunk into the floor, its surface flat and unrippled, as if the room were holding very still around it.",
+  "verbs": "try 'search' or 'wade'",
+  "search": "You crouch at the pool's edge and look into it, carefully."
+ },
+ "Abandoned Campsite": {
+  "flavor": "Someone camped here a while ago: a cold hearth-ring, bedroll dents in the dust, and the sense that they left in a hurry and did not come back.",
+  "verbs": "try 'search'",
+  "search": "Ash, pack-marks, and crumbs. Whoever they were, they were not eternal."
+ },
+ "Dead Body": {
+  "flavor": "A corpse lies here in an attitude of exhaustion rather than violence. You turn it toward the light and the blood drains from your face: it is your own face.",
+  "verbs": "try 'search' (or loot it, if you can bear to)",
+  "search": "The body is yours, from some past life you cannot remember. It is armed and provisioned like someone who expected to come back."
+ }
+}

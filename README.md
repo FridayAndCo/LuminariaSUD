@@ -1,0 +1,76 @@
+# LuminariaSUD — Phase 1: Structured command API
+
+A fork of the Luminaria dungeon crawler with the engine **unchanged**, refactored
+so the game can be driven from outside the terminal. This is Phase 1 of the
+roadmap (web shell → hotspots → art → generated imagery).
+
+## What changed
+
+The engine (`engine.py`) was copied verbatim — same rules, same
+`state/*.json` save format. The only edits are to the game/IO layer:
+
+- **`io_layer.py` (new)** — a swappable output/input sink. The single seam that
+  lets identical logic run under the terminal or the API.
+  - `TerminalIO` → the classic `print` / `input` REPL.
+  - `QueueIO` → buffers every line into a cursor-pollable log; blocking prompts
+    park on a queue until a client answers them.
+
+- **`ui.py`** — all HUD/room/text output now routes through the sink
+  (`ui.SINK`). Rich panels still render for the terminal; the API always gets
+  clean, tag-free text. Added `render_hud()` (returns a string) and `_is_api()`.
+
+- **`luminaria.py`**
+  - Every `input()` → `ui.prompt()` (routes through the sink).
+  - The command dispatch + redraw tail were lifted out of the REPL `run()` loop
+    into **`Game.process_command(raw)`** → `{"quit": bool}`. `run()` is now a
+    thin adapter over it.
+  - New **`Game.snapshot()`** → a JSON-serialisable view:
+    `{ room: {id,name,description,exits,hotspots,…}, player: {hp,stats,
+    inventory,position,…}, insight, hud_text, … }`. Exits carry `kind`
+    (exit/door/obstacle/stairs) and hotspots (npc/monster/container/trap/
+    corpse/shrine) are pre-tagged for Phase 3 click targets.
+
+- **`api.py` (new)** — a FastAPI **actor server**: one `Game` instance driven by
+  one worker thread. Endpoints:
+
+  | Method | Path | Purpose |
+  |--------|------|---------|
+  | GET  | `/`                      | minimal test page (static/index.html) |
+  | GET  | `/api/state`             | snapshot + busy/awaiting flags |
+  | GET  | `/api/events?cursor=N`   | stream new lines since cursor N |
+  | POST | `/api/command` `{text}`  | run one command line (409 if busy) |
+  | POST | `/api/answer`  `{text}`  | answer a pending prompt (combat/menu/talk) |
+  | POST | `/api/reset`             | reset the run (no confirm) |
+
+  The blocking combat/conversation sub-loops work across HTTP: a command can
+  pause on a prompt, the client streams new lines and answers it, and the same
+  command then finishes. A second command during a busy command returns **409**.
+
+## Running
+
+```bash
+# Terminal (unchanged behaviour):
+python3 luminaria.py
+
+# Web API (narration off by default — enable with --narrate):
+python3 api.py --port 8090
+#   browse http://127.0.0.1:8090   (or /docs for OpenAPI)
+```
+
+Requires `fastapi` + `uvicorn` (installed via pip). `rich` is optional.
+
+## Verified
+
+- Terminal REPL regression: help / look / inv / roll / narrate / quit all work.
+- API: state, streaming events, move, and the **blocking-prompt round-trip**
+  (parser-miss confirm → answer `n`) all pass; concurrent command → 409.
+- LLM path runs safely inside the worker thread (~9s call, prose rendered into
+  the room panel).
+- Save format untouched — same `state/player_state.json` + `state/world_map.json`.
+
+## Not yet (later phases)
+
+- Phase 2: full web shell layout (clickable exits, separate panels). The current
+  `static/index.html` is a functional test harness, not the final UI.
+- Phase 3: hotspots as live click targets (data already exposed in `snapshot`).
+- Phases 4–5: art assets and generated imagery.

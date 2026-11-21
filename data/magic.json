@@ -1,0 +1,126 @@
+{
+ "magic_obstacles": {
+  "Elemental Barrier": {
+   "intensity": "strong",
+   "kind": "a woven elemental ward, still working hard",
+   "hint": "dispel magic, or the counter-element, might unmake it"
+  },
+  "Glyph-Locked Door": {
+   "intensity": "radiant",
+   "kind": "glyphwork set into stone, holding a door shut out of pure intent",
+   "hint": "Knock or dispel magic may answer it"
+  },
+  "Wall of Thorns": {
+   "intensity": "faint",
+   "kind": "a green enchantment that flinches away from light",
+   "hint": "something grown, not built - fire or light may persuade it"
+  }
+ },
+ "magic_discoveries": {
+  "Mysterious Archway": {
+   "intensity": "radiant",
+   "kind": "a doorway cut to somewhere that is not here"
+  },
+  "Magic Circle": {
+   "intensity": "radiant",
+   "kind": "work laid down in metal, still warm with purpose"
+  },
+  "Holy Altar": {
+   "intensity": "radiant",
+   "kind": "hallowed ground, swept and kept"
+  },
+  "Dead Body": {
+   "intensity": "faint",
+   "kind": "the echo of a life recently spent"
+  }
+ },
+ "magic_liquids": {
+  "Enchanted Water": {
+   "intensity": "radiant",
+   "kind": "water that carries a light of its own"
+  },
+  "Holy Water": {
+   "intensity": "radiant",
+   "kind": "water blessed to answer fear"
+  },
+  "Iridescent Rainbow liquid": {
+   "intensity": "strong",
+   "kind": "a liquid that refuses to be one colour"
+  },
+  "Ichor": {
+   "intensity": "strong",
+   "kind": "the golden blood of something old"
+  },
+  "Blood": null,
+  "Water": null,
+  "Refreshing Water": null,
+  "Rancid Water": null,
+  "Sewage": null
+ },
+ "echo_chance": 0.08,
+ "echo": {
+  "intensity": "faint",
+  "kind": "an old enchantment, spent and purposeless"
+ },
+ "town_places": {
+  "-1_1_0": {
+   "source": "the Temple of Radiance",
+   "intensity": "radiant",
+   "kind": "consecrated ground, thick with something that answers prayer"
+  },
+  "-1_0_0": {
+   "source": "the shrine garden",
+   "intensity": "steady",
+   "kind": "old blessings, patiently re-laid by many hands"
+  },
+  "0_2_0": {
+   "source": "the dark stone keep",
+   "intensity": "strong",
+   "kind": "a ward laid over the seat of power - and something sitting inside it"
+  },
+  "0_0_0": {
+   "source": "the beacon tower",
+   "intensity": "radiant",
+   "kind": "the spire itself, working, working, always working"
+  },
+  "1_-1_0": {
+   "source": "The Black Candle",
+   "intensity": "strong",
+   "kind": "merchandise under enchantment, priced accordingly"
+  },
+  "0_-1_0": {
+   "source": "the dungeon mouth",
+   "intensity": "faint",
+   "kind": "cold air rising off a stair that goes down further than it looks"
+  }
+ },
+ "magical_creatures": [
+  "Skeleton",
+  "Zombie",
+  "Mummy",
+  "Wight",
+  "Wraith",
+  "Shadow",
+  "Spectre",
+  "Ghoul",
+  "Lich",
+  "Vampire",
+  "Golem, Iron",
+  "Golem, Stone",
+  "Golem, Wood",
+  "Gargoyle",
+  "Invisible Stalker",
+  "Elemental, Air",
+  "Elemental, Earth",
+  "Elemental, Fire",
+  "Elemental, Water",
+  "Basilisk",
+  "Meduse",
+  "Demon, Imp",
+  "Demon, Lemure",
+  "Demon, Succubus",
+  "Demon, Balor",
+  "Death Knight",
+  "Nymph"
+ ]
+}

@@ -1,0 +1,288 @@
+{
+ "0_0_0": {
+  "name": "Luminaria Main Square",
+  "type": "Town",
+  "description": "The heart of the city, paved with soot-stained flagstones. A squat stone beacon tower stands in the middle, its lamp burning night and day - the light the city is named for, though of late it has grown dim.",
+  "exits": {
+   "North": "0_1_0",
+   "South": "0_-1_0",
+   "East": "1_0_0",
+   "West": "-1_0_0"
+  },
+  "visual_tags": [
+   "flagstones",
+   "beacon tower",
+   "market cross"
+  ],
+  "time_descriptions": {
+   "morning": "The heart of the city, paved with soot-stained flagstones. The beacon tower's lamp still burns, though the dawn has half taken over the job; shutters bang open two by two and a baker's boy weaves between the market carts.",
+   "day": "The heart of the city, paved with soot-stained flagstones. The squat beacon tower stands in the middle, its lamp pale against the sky, and the square thunders with carts, haggling, and geese of no fixed allegiance.",
+   "evening": "The heart of the city, paved with soot-stained flagstones. The beacon tower's lamp catches first light as the sun goes, and lantern-keepers on ladders string the square in small orange stars.",
+   "night": "The heart of the city, paved with soot-stained flagstones. Dark now - but the beacon burns overhead and lanterns ring the square, so the stones are never fully lost to the night. The night-watchman's pipe is the loudest thing here."
+  }
+ },
+ "0_1_0": {
+  "name": "The Keep Gate",
+  "type": "Town",
+  "description": "The iron-bound gates leading to the Keep. Guards in dented mail stand watch.",
+  "exits": {
+   "South": "0_0_0",
+   "North": "0_2_0"
+  },
+  "visual_tags": [
+   "iron gates",
+   "mail-clad guards",
+   "fortification"
+  ],
+  "time_descriptions": {
+   "morning": "The iron-bound gates leading to the Keep. Guards in dented mail stand watch, blinking at the dawn like men who took the early shift as a personal insult.",
+   "day": "The iron-bound gates leading to the Keep. Guards in dented mail stand watch, and errand-men craning for a glimpse of nobility shuffle past the gatehouse.",
+   "evening": "The iron-bound gates leading to the Keep. The guards' halberds go copper in the sunset; the gate will bar at full dark, so the stragglers are running.",
+   "night": "The iron-bound gates leading to the Keep, closed and barred for the night. A single lantern swings over the gatehouse; the guards have retreated into its cone of light, and take their sleep standing up."
+  }
+ },
+ "0_2_0": {
+  "name": "The Keep",
+  "type": "Town",
+  "description": "The seat of power in Luminaria. A squat keep of dark stone, its banners faded sun-bleached, squatting among the whitewashed timber houses.",
+  "exits": {
+   "South": "0_1_0"
+  },
+  "visual_tags": [
+   "dark stone keep",
+   "faded banners",
+   "seat of power"
+  ],
+  "time_descriptions": {
+   "morning": "The seat of power in Luminaria. A squat keep of dark stone, its banners still furled against the dew, squatting among the whitewashed timber houses.",
+   "day": "The seat of power in Luminaria. A squat keep of dark stone, its banners faded sun-bleached, squatting among the whitewashed timber houses like a grim uncle at a christening.",
+   "evening": "The seat of power in Luminaria. The keep's windows go gold one by one as the sun drops, and the banners hang motionless in the cooling air.",
+   "night": "The seat of power in Luminaria. The dark keep is darker still at night, a mass of shadow behind the torchlit gate - only the upper windows glow, where someone in authority cannot sleep."
+  }
+ },
+ "0_-1_0": {
+  "name": "The City Gates / Dungeon Entrance",
+  "type": "Town",
+  "description": "The boundary between the safety of the walls and the wild unknown. To the south lies the yawning mouth of the Infinite Dungeon.",
+  "exits": {
+   "North": "0_0_0",
+   "Down": "0_0_-1"
+  },
+  "visual_tags": [
+   "city wall",
+   "dark cave entrance",
+   "boundary"
+  ],
+  "time_descriptions": {
+   "morning": "The boundary between the safety of the walls and the wild unknown. The dawn light slides off the mouth of the Infinite Dungeon, which seems to resent it. Early delvers head out, trying not to look at it.",
+   "day": "The boundary between the safety of the walls and the wild unknown. To the south lies the yawning mouth of the Infinite Dungeon, exhaling cold air that smells of old stone and worse.",
+   "evening": "The boundary between the safety of the walls and the wild unknown. The sun drops behind the wall, and the dungeon mouth goes black as a closed eye. The last delvers of the day hurry in from the fields.",
+   "night": "The boundary between the safety of the walls and the wild unknown. At night the dungeon mouth is a darkness that lantern-light refuses to enter - a black square in a wall of amber glow."
+  }
+ },
+ "1_0_0": {
+  "name": "The Market District",
+  "type": "Town",
+  "description": "A bustling street smelling of woodsmoke, roasting garlic, and horse dung. Merchants haggle over everything from salt to stolen goods.",
+  "exits": {
+   "West": "0_0_0",
+   "North": "1_1_0",
+   "South": "1_-1_0",
+   "East": "2_0_0"
+  },
+  "visual_tags": [
+   "market stalls",
+   "crowded street",
+   "patched awnings"
+  ],
+  "time_descriptions": {
+   "morning": "A market street smelling of woodsmoke, roasting garlic, and yesterday's horse dung. Stall-holders bang boards together and argue about space before the customers arrive.",
+   "day": "A bustling street smelling of woodsmoke, roasting garlic, and horse dung. Merchants haggle over everything from salt to stolen goods, and the crowd moves like a slow river.",
+   "evening": "The market winding down: awnings folded, coins counted aloud, the smell of garlic replaced by frying onions from the cook-shops. Sweeper boys chase the day's leavings into little heaps.",
+   "night": "The market in darkness, stalls hooded and roped. Lanterns at the street corners make islands of light; between them, the sleeping stalls loom like cattle in a pen."
+  }
+ },
+ "2_0_0": {
+  "name": "The Hearth & Harvest",
+  "type": "Town",
+  "description": "A warm, aromatic bakery and grocer. Fresh bread and preserved meats are stacked high on wooden shelves.",
+  "exits": {
+   "West": "1_0_0",
+   "North": "2_1_0",
+   "South": "2_-1_0",
+   "East": "3_0_0"
+  },
+  "visual_tags": [
+   "fresh bread",
+   "sacks of grain",
+   "warm lighting"
+  ],
+  "time_descriptions": {
+   "morning": "A warm, aromatic bakery and grocer, awake before the sun. Fresh bread comes out of the oven in clouds of steam, and the day's first customers are already leaning on the counter.",
+   "evening": "A warm, aromatic bakery and grocer. The ovens are banked for the night, the shelves half-undressed; what bread is left goes cheap, and the regulars know it."
+  }
+ },
+ "1_-2_0": {
+  "name": "The Mortar & Pestle",
+  "type": "Town",
+  "description": "A shop smelling of sulfur and drying herbs. Rows of brown glass bottles line the walls, and a small cauldron simmers in the corner.",
+  "exits": {
+   "North": "1_-1_0"
+  },
+  "visual_tags": [
+   "brown bottles",
+   "simmering cauldron",
+   "herbal scent"
+  ],
+  "time_descriptions": {
+   "morning": "A shop smelling of sulfur and drying herbs. Rows of brown glass bottles line the walls, and the small cauldron in the corner is just beginning to steam for the day.",
+   "evening": "A shop smelling of sulfur and drying herbs. The cauldron has been taken off the fire, and the apothecary measures the last of the day's business by candlelight."
+  }
+ },
+ "2_1_0": {
+  "name": "The Royal Stables",
+  "type": "Town",
+  "description": "The smell of hay and leather fills the air. Well-groomed horses neigh in their stalls, and the sound of brushing coats is constant.",
+  "exits": {
+   "South": "2_0_0"
+  },
+  "visual_tags": [
+   "straw-covered floors",
+   "groomed horses",
+   "leather saddles"
+  ],
+  "time_descriptions": {
+   "morning": "The smell of hay and leather fills the air. Grooms pitch manure and the horses stamp in the cool, knowing the workday is starting before the grooms are.",
+   "day": "The smell of hay and leather fills the air. Well-groomed horses neigh in their stalls, and the sound of brushing coats is constant.",
+   "evening": "The stables at dusk: lanterns hung low, the last rides coming home, currycombs slowing. The horses eat in the gathering dark with the solemnity of bankers.",
+   "night": "The stables at night, dark but for one stable-lantern. The horses doze standing up; a watch-groom snores on a hay bale, and the owls have taken over the rafters."
+  }
+ },
+ "1_1_0": {
+  "name": "The Iron Anvil Blacksmith",
+  "type": "Town",
+  "description": "The air is thick with heat and the rhythmic clang of hammers on steel. Master Thorne works the forge.",
+  "exits": {
+   "South": "1_0_0"
+  },
+  "visual_tags": [
+   "glowing forge",
+   "anvil",
+   "smoke and sparks"
+  ],
+  "time_descriptions": {
+   "morning": "The forge is already roaring. Master Thorne works cold iron into hot shapes, and the rhythmic clang of hammer on anvil starts the market day like a town clock.",
+   "evening": "The forge banked to coals, the hammers quiet. What light is left comes from the embers and one lantern, and the iron cooling on the anvil ticks as it shrinks."
+  }
+ },
+ "1_-1_0": {
+  "name": "The Black Candle",
+  "type": "Town",
+  "description": "A dim shop of crowded shelves holding jars of powders, folded charms, and leather-bound books. The air smells of beeswax and old paper.",
+  "exits": {
+   "North": "1_0_0",
+   "South": "1_-2_0"
+  },
+  "visual_tags": [
+   "jars of reagents",
+   "old books",
+   "candlelight"
+  ],
+  "time_descriptions": {
+   "morning": "A dim shop of crowded shelves holding jars of powders, folded charms, and leather-bound books. Morning light leans through the front window and gives up halfway to the back.",
+   "evening": "A dim shop of crowded shelves, now lit by candles - several of them black, in fairness to the sign. The air smells of beeswax, old paper, and the day's last bargain."
+  }
+ },
+ "-1_0_0": {
+  "name": "The Quiet Quarter",
+  "type": "Town",
+  "description": "A serene area of the city where the noise of the market fades to the sound of a water channel and bees.",
+  "exits": {
+   "East": "0_0_0",
+   "North": "-1_1_0",
+   "South": "-1_-1_0"
+  },
+  "visual_tags": [
+   "cobblestone",
+   "quiet gardens",
+   "soft light"
+  ],
+  "time_descriptions": {
+   "morning": "A serene area of the city where the noise of the market fades to the sound of a water channel and bees. Mist lies in the garden beds; the beggar by the wall is already holding his hat.",
+   "day": "A serene area of the city where the noise of the market fades to the sound of a water channel and bees. Sunlight lies across the cobblestones like something spilled and worth leaving.",
+   "evening": "A serene area of the city where the market's roar fades to bees, then to crickets. The water channel goes silver in the dusk, and the garden shadows stretch over the stones.",
+   "night": "A serene area of the city, dark and quiet as a held breath. A lantern by the chapel wall and the glow in the channel keep the night from being total; the bees have sense enough to sleep."
+  }
+ },
+ "-1_1_0": {
+  "name": "The Temple of Radiance",
+  "type": "Town",
+  "description": "A plain stone chapel with leaded windows and a swept stone floor. The High Priestess offers healing to the weary. This is where the Protector awakens.",
+  "exits": {
+   "South": "-1_0_0"
+  },
+  "visual_tags": [
+   "leaded windows",
+   "stone altar",
+   "incense"
+  ],
+  "encounter": "None",
+  "shrine": true,
+  "time_descriptions": {
+   "morning": "A plain stone chapel with leaded windows and a swept stone floor. Morning light comes through the leaded glass in pale colors, and the Priestess is already here, looking already bored.",
+   "evening": "A plain stone chapel with leaded windows and a swept stone floor. Candles burn before the shrine, and the evening quiet is the kind the Temple was built for."
+  }
+ },
+ "-1_-1_0": {
+  "name": "The Gilded Flagon Inn",
+  "type": "Town",
+  "description": "A cozy establishment with a roaring fireplace and the comforting scent of roasted meat and ale.",
+  "exits": {
+   "North": "-1_0_0"
+  },
+  "visual_tags": [
+   "wooden beams",
+   "fireplace",
+   "tavern atmosphere"
+  ],
+  "time_descriptions": {
+   "morning": "The inn at morning: hearth re-laid, beds made up, the smell of breakfast and last night's spilled ale in honest competition. The barmaid polishes a mug that was clean already.",
+   "evening": "A cozy establishment with a roaring fireplace and the comforting scent of roasted meat and ale. The common room fills, the talk rises, and the fire wins the argument with the dark."
+  }
+ },
+ "2_-1_0": {
+  "name": "The Wayfarer's Kit",
+  "type": "Town",
+  "description": "A cluttered general store smelling of oiled leather and hemp rope. Every inch of wall space is occupied by tools, coils of rope, and camping gear.",
+  "exits": {
+   "North": "2_0_0"
+  },
+  "visual_tags": [
+   "coils of rope",
+   "iron tools",
+   "leather backpacks"
+  ],
+  "time_descriptions": {
+   "morning": "A cluttered general store smelling of oiled leather and hemp rope. The shutters are just down, the day's sundries laid out, and the proprietor is pretending to be tidy.",
+   "evening": "A cluttered general store, the counter lit by a single lamp. Every inch of wall space is occupied by tools, coils of rope, and camping gear - all of it, tonight, watching you spend."
+  }
+ },
+ "3_0_0": {
+  "name": "The Bowyer's Loft",
+  "type": "Town",
+  "description": "A quiet shop smelling of cedar and beeswax. Walls are lined with strung bows and well-worn fletching tools.",
+  "exits": {
+   "West": "2_0_0"
+  },
+  "visual_tags": [
+   "polished bows",
+   "fletching tools",
+   "cedar scent"
+  ],
+  "encounter": "None",
+  "time_descriptions": {
+   "morning": "A quiet shop smelling of cedar and beeswax. Morning light slants across the fletching bench, where a half-dozen bows hang waiting for owners who may or may not come back.",
+   "evening": "A quiet shop smelling of cedar and beeswax, closed up for the night by the look of it - though a lamp burns in the back, where Zale is clearly working late and pretending not to."
+  }
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "The Iron Anvil Blacksmith": {
+  "weapons": "weapons",
+  "armor": "armor"
+ },
+ "The Hearth & Harvest": {
+  "provisions": "provisions"
+ },
+ "The Wayfarer's Kit": {
+  "supplies": "general"
+ },
+ "The Royal Stables": {
+  "mounts": "transport"
+ },
+ "Shifty Pete's Stash": {
+  "specialty": "lockpicks"
+ },
+ "The Gilded Flagon Inn": {
+  "provisions": "provisions"
+ },
+ "The Black Candle": {
+  "reagents": "reagents",
+  "containers": "pouches"
+ },
+ "The Mortar & Pestle": {
+  "potions": "potions"
+ },
+ "The Bowyer's Loft": {
+  "weapons": "ranged_weapons",
+  "supplies": "ammunition"
+ }
+}

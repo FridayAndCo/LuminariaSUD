@@ -1,0 +1,201 @@
+{
+ "-1_1_0": {
+  "name": "High Priestess",
+  "description": "A brilliant but exhausted woman in robes gone thin at the elbows.",
+  "traits": [
+   "Sarcastic",
+   "Deeply impatient",
+   "Views her duties as a chore",
+   "Intellectually superior"
+  ],
+  "hints": {
+   "Luminaria": "A city of drifting memories and eternal light, though the light is getting dimmer.",
+   "High-Level Spells": "The great works require Phoenix-Ash, Stellar-Ichor, or Void-Pearls, though the exact ratios are a secret I'm too tired to explain.",
+   "Meditation": "At the Temple of Radiance, you may meditate. 50 Virtue can be exchanged for a permanent +1 to any attribute. Try not to make it a habit; I have other things to do."
+  },
+  "location_id": "-1_1_0"
+ },
+ "0_2_0": {
+  "name": "Lord Raika",
+  "description": "A man draped in excessive silks, eyes glazed and a gold goblet permanently in hand.",
+  "traits": [
+   "Distracted",
+   "Hedonistic",
+   "Utterly indifferent to governance",
+   "Living in a chemical haze"
+  ],
+  "hints": {
+   "City State": "Something about taxes? Or was it a parade? I can't recall. Just make sure the wine keeps flowing.",
+   "Audiences": "You may 'confer' your deeds with me once per day - new floors walked and last stands fought. I grant up to three virtue. Then send the wine cart."
+  },
+  "location_id": "0_2_0"
+ },
+ "2_-1_0": {
+  "name": "Barnaby the Tinker",
+  "description": "A twitchy man surrounded by coils of rope and iron tools.",
+  "traits": [
+   "Anxious",
+   "Prone to conspiracy theories",
+   "Comedic fear"
+  ],
+  "hints": {
+   "Gremlins": "I've heard they can reach right through your skin! They eat the food straight out of your stomach while you're still walking! Absolute nightmares!"
+  },
+  "location_id": "2_-1_0"
+ },
+ "-1_-1_0": {
+  "name": "Mistress Valerica",
+  "description": "A woman with a commanding presence, wearing a corset that seems to defy physics.",
+  "traits": [
+   "Flirtatious",
+   "Business-minded",
+   "Suggestive",
+   "Knowing"
+  ],
+  "hints": {
+   "Accommodations": "I have rooms for the weary... and 'private' suites in the back for those seeking a different kind of relaxation. For a price, of course."
+  },
+  "location_id": "-1_-1_0"
+ },
+ "1_-1_0": {
+  "name": "Xylos the Archivist",
+  "description": "A spindly man with ink-stained fingers and spectacles that magnify his eyes to an alarming size.",
+  "traits": [
+   "Pedantic",
+   "Knowledgeable",
+   "Secretive",
+   "Academic"
+  ],
+  "hints": {
+   "Low-Level Spells": "I can teach you the basics—Cure Light Wounds, Light, or Sleep—if you have the coin. The recipes are simple enough for a novice.",
+   "Advanced Magic": "Many mages took their greatest secrets down into the dungeons. If you seek the lost arts, look among the ruins below.",
+   "Dungeon Lore": "The ruins below are fickle. Forgiveness shrines can wipe your sins (reset Virtue to 0), while Anti-Shrines allow those with -50 Virtue to gain power. Fascinating, really."
+  },
+  "location_id": "1_-1_0"
+ },
+ "0_0_0": {
+  "name": "The Town Crier",
+  "description": "A man with a massive bell and a voice that echoes through the square.",
+  "traits": [
+   "Loud",
+   "Confused",
+   "Earnest"
+  ],
+  "hints": {
+   "News": "Hear ye! Hear ye! Something happened yesterday! I forget what, but it was definitely important!"
+  },
+  "location_id": "0_0_0"
+ },
+ "0_1_0": {
+  "name": "Captain Halloway",
+  "description": "A guard in dented mail with a posture so straight it looks painful.",
+  "traits": [
+   "Strict",
+   "Bureaucratic",
+   "Obsessed with rules"
+  ],
+  "hints": {
+   "Castle Entry": "Form 12-B must be signed in triplicate before you may approach Lord Raika. Rules are the only thing keeping this city from chaos!"
+  },
+  "location_id": "0_1_0"
+ },
+ "1_0_0": {
+  "name": "Slippery Pete",
+  "description": "A man in a patched cloak who seems to be constantly looking over his shoulder.",
+  "traits": [
+   "Shifty",
+   "Fast-talking",
+   "Dishonest"
+  ],
+  "hints": {
+   "Rare Goods": "Psst. Want some authentic Dragon Scales? Fresh from the peaks! (They look suspiciously like oversized carp scales).",
+   "Lockpicks": "Need a lockpick, friend? I'm the only honest man in the market who sells 'em. Don't tell the others."
+  },
+  "location_id": "1_0_0",
+  "shop": "Shifty Pete's Stash"
+ },
+ "1_-2_0": {
+  "name": "Alchemist Zale",
+  "description": "A jittery man with stained fingers and a scorched leather cap.",
+  "traits": [
+   "Eccentric",
+   "Obsessed with purity",
+   "Slightly paranoid",
+   "Fast-talking"
+  ],
+  "hints": {
+   "Potions": "I sell by color, dear Protector! Red for the flesh, Green for the venom, Blue for the blight. Simple as that!",
+   "Curing Poison": "A Green Potion is the fastest way, but if you're handy with reagents, a mix of Charcoal, Sage, and Silver Dust does the trick."
+  },
+  "location_id": "1_-2_0"
+ },
+ "2_0_0": {
+  "name": "Ma Baker",
+  "description": "A round, cheerful woman perpetually dusted in white flour.",
+  "traits": [
+   "Jolly",
+   "Warm",
+   "Speaks in bread metaphors"
+  ],
+  "hints": {
+   "Life Advice": "Life is like a sourdough, dearie; you've got to let the troubles rise before you can bake them into something sweet!",
+   "Hunger": "A hungry belly makes for a weak sword, dearie. Keep your satiety up, or you'll start wasting away!"
+  },
+  "location_id": "2_0_0"
+ },
+ "2_1_0": {
+  "name": "Silas the Stablemaster",
+  "description": "A rugged man who smells of hay and old leather.",
+  "traits": [
+   "Gruff",
+   "Misanthropic",
+   "Animal-lover"
+  ],
+  "hints": {
+   "Horses": "Horses don't lie. Humans lie. I'll take a stallion over a senator any day of the week."
+  },
+  "location_id": "2_1_0"
+ },
+ "0_-1_0": {
+  "name": "Sentry Pip",
+  "description": "A young guard whose helmet is slightly too large for his head.",
+  "traits": [
+   "Terrified",
+   "Nervous",
+   "Superstitious"
+  ],
+  "hints": {
+   "The Dungeon": "I... I don't go in there. I've heard the walls breathe. Also, some say there are 'Anti-Shrines' down there that empower the wicked, and 'Forgiveness Shrines' for those who've lost their way. Terrifying!"
+  },
+  "location_id": "0_-1_0"
+ },
+ "1_1_0": {
+  "name": "Master Thorne",
+  "description": "A burly man with arms like tree trunks and a permanent scowl of concentration.",
+  "traits": [
+   "Gruff",
+   "Perfectionist",
+   "Passionate about metallurgy",
+   "Impatient with amateurs"
+  ],
+  "hints": {
+   "Forging": "The secret to a true blade is the fold, not the fire.",
+   "Equipment": "I can repair your gear, but only if you bring the materials."
+  },
+  "location_id": "1_1_0"
+ },
+ "3_0_0": {
+  "name": "Elias the Fletcher",
+  "description": "A meticulous man with a magnifying lens perched on his forehead.",
+  "traits": [
+   "Meticulous",
+   "Quiet",
+   "Proud of his craft",
+   "Slightly obsessive about aerodynamics"
+  ],
+  "hints": {
+   "The Perfect Shot": "It's all in the fletching. A single millimeter of deviation in the feather and your arrow is just a very expensive stick."
+  },
+  "location_id": "3_0_0"
+ }
+}

@@ -1,0 +1,452 @@
+{
+  "reagents": {
+    "Charcoal": {
+      "price": 1,
+      "rarity": "Common"
+    },
+    "Sulfur": {
+      "price": 2,
+      "rarity": "Common"
+    },
+    "Dried Sage": {
+      "price": 3,
+      "rarity": "Common"
+    },
+    "Silver Dust": {
+      "price": 5,
+      "rarity": "Common"
+    },
+    "Phosphor-Moss": {
+      "price": 12,
+      "rarity": "Uncommon"
+    },
+    "Crushed Quartz": {
+      "price": 15,
+      "rarity": "Uncommon"
+    },
+    "Void-Salt": {
+      "price": 20,
+      "rarity": "Uncommon"
+    },
+    "Mercury-Dew": {
+      "price": 25,
+      "rarity": "Uncommon"
+    },
+    "Obsidian Shard": {
+      "price": 60,
+      "rarity": "Rare"
+    },
+    "Luminous Petal": {
+      "price": 75,
+      "rarity": "Rare"
+    },
+    "Nightshade": {
+      "price": 100,
+      "rarity": "Rare"
+    },
+    "Dried Mandrake Root": {
+      "price": 150,
+      "rarity": "Rare"
+    },
+    "Aether-Crystal": {
+      "price": 300,
+      "rarity": "Exotic"
+    },
+    "Void-Pearl": {
+      "price": 500,
+      "rarity": "Exotic"
+    },
+    "Phoenix-Ash": {
+      "price": 1000,
+      "rarity": "Exotic"
+    },
+    "Stellar-Ichor": {
+      "price": 2500,
+      "rarity": "Exotic"
+    }
+  },
+  "weapons": {
+    "Axe, Battle": {
+      "die": 6,
+      "mod": 2,
+      "price": 7,
+      "slots": 2,
+      "hands": 2
+    },
+    "Axe, Hand": {
+      "die": 6,
+      "mod": 0,
+      "price": 3,
+      "slots": 1,
+      "hands": 1,
+      "range": 30,
+      "type": "throwable"
+    },
+    "Club": {
+      "die": 6,
+      "mod": -1,
+      "price": 1,
+      "slots": 1,
+      "hands": 1
+    },
+    "Dagger": {
+      "die": 6,
+      "mod": -1,
+      "price": 3,
+      "slots": 1,
+      "hands": 1
+    },
+    "Flail": {
+      "die": 6,
+      "mod": 0,
+      "price": 8,
+      "slots": 1,
+      "hands": 1
+    },
+    "Mace": {
+      "die": 6,
+      "mod": 0,
+      "price": 5,
+      "slots": 1,
+      "hands": 1
+    },
+    "Morningstar": {
+      "die": 6,
+      "mod": 0,
+      "price": 6,
+      "slots": 1,
+      "hands": 1
+    },
+    "Polearm": {
+      "die": 6,
+      "mod": 1,
+      "price": 7,
+      "slots": 2,
+      "hands": 2
+    },
+    "Spear": {
+      "die": 6,
+      "mod": 0,
+      "price": 2,
+      "slots": 1,
+      "hands": 1,
+      "range": 60,
+      "type": "throwable"
+    },
+    "Staff": {
+      "die": 6,
+      "mod": -1,
+      "price": 1,
+      "slots": 2,
+      "hands": 2
+    },
+    "Sword, Long": {
+      "die": 6,
+      "mod": 1,
+      "price": 10,
+      "slots": 1,
+      "hands": 1
+    },
+    "Sword, Short": {
+      "die": 6,
+      "mod": 0,
+      "price": 8,
+      "slots": 1,
+      "hands": 1
+    },
+    "Sword, Two-Handed": {
+      "die": 6,
+      "mod": 2,
+      "price": 15,
+      "slots": 2,
+      "hands": 2
+    },
+    "Warhammer": {
+      "die": 6,
+      "mod": 0,
+      "price": 5,
+      "slots": 1,
+      "hands": 1
+    }
+  },
+  "ranged_weapons": {
+    "Bow, Long": {
+      "die": 6,
+      "mod": 0,
+      "price": 40,
+      "slots": 1,
+      "hands": 2,
+      "range": 210,
+      "type": "ranged"
+    },
+    "Bow, Short": {
+      "die": 6,
+      "mod": -1,
+      "price": 25,
+      "slots": 1,
+      "hands": 2,
+      "range": 150,
+      "type": "ranged"
+    },
+    "Crossbow": {
+      "die": 6,
+      "mod": -1,
+      "price": 25,
+      "slots": 1,
+      "hands": 2,
+      "range": 180,
+      "type": "ranged"
+    },
+    "Sling": {
+      "die": 6,
+      "mod": -2,
+      "price": 2,
+      "slots": 1,
+      "hands": 1,
+      "range": 90,
+      "type": "ranged"
+    }
+  },
+  "ammunition": {
+    "Arrows (20)": {
+      "price": 5
+    },
+    "Bolts, Case of 30": {
+      "price": 5
+    },
+    "Quiver": {
+      "price": 5
+    },
+    "Sling Stones (20)": {
+      "price": 1
+    }
+  },
+  "armor": {
+    "Cloth Robe": {
+      "ac": 1,
+      "price": 5,
+      "slots": 1,
+      "type": "body"
+    },
+    "Cloth Armor": {
+      "ac": 1,
+      "price": 5,
+      "slots": 1,
+      "type": "body"
+    },
+    "Leather Armor": {
+      "ac": 2,
+      "price": 15,
+      "slots": 1,
+      "type": "body"
+    },
+    "Ring Mail": {
+      "ac": 3,
+      "price": 22,
+      "slots": 1,
+      "type": "body"
+    },
+    "Scale Mail": {
+      "ac": 4,
+      "price": 30,
+      "slots": 1,
+      "type": "body"
+    },
+    "Chain Mail": {
+      "ac": 5,
+      "price": 50,
+      "slots": 1,
+      "type": "body"
+    },
+    "Plate Mail": {
+      "ac": 7,
+      "price": 150,
+      "slots": 1,
+      "type": "body"
+    },
+    "Small Wooden Shield": {
+      "ac": 1,
+      "price": 15,
+      "slots": 1,
+      "type": "shield"
+    },
+    "Kite Shield": {
+      "ac": 2,
+      "price": 75,
+      "slots": 1,
+      "type": "shield"
+    }
+  },
+  "general": {
+    "Backpack": {
+      "price": 5
+    },
+    "Bedroll": {
+      "price": 2
+    },
+    "Case (map or scroll)": {
+      "price": 3
+    },
+    "Crowbar": {
+      "price": 5
+    },
+    "Flint and Steel": {
+      "price": 5
+    },
+    "Grappling Hook": {
+      "price": 5
+    },
+    "Hammer": {
+      "price": 2
+    },
+    "Holy Water, Small Vial": {
+      "price": 25
+    },
+    "Lantern": {
+      "price": 10
+    },
+    "Mirror (small)": {
+      "price": 5
+    },
+    "Oil (Lantern, 1 pint)": {
+      "price": 2
+    },
+    "Pole, 10 ft": {
+      "price": 1
+    },
+    "Rope, 50 ft": {
+      "price": 1
+    },
+    "Rope, 50 ft (silk)": {
+      "price": 5
+    },
+    "Sack": {
+      "price": 1
+    },
+    "Shovel": {
+      "price": 5
+    },
+    "Spikes, Iron (12)": {
+      "price": 1
+    },
+    "Stakes, Wooden (12)": {
+      "price": 1
+    },
+    "Tent": {
+      "price": 20
+    },
+    "Torches (6)": {
+      "price": 1
+    }
+  },
+  "keys": {
+    "Rusty Key": {
+      "price": 5
+    },
+    "Iron Key": {
+      "price": 8
+    },
+    "Brass Key": {
+      "price": 10
+    },
+    "Silver Key": {
+      "price": 12
+    },
+    "Skeleton Key": {
+      "price": 20
+    }
+  },
+  "lockpicks": {
+    "Lockpick": {
+      "price": 25
+    }
+  },
+  "provisions": {
+    "Rations, Preserved": {
+      "price": 3
+    },
+    "Rations (meal in town)": {
+      "price": 1
+    },
+    "Spoiled Food": {
+      "price": 1,
+      "tradeable": false
+    },
+    "Monster Meat": {
+      "price": 1,
+      "tradeable": false
+    },
+    "Bottle (Glass)": {
+      "price": 1
+    }
+  },
+  "transport": {
+    "Horse Barding": {
+      "price": 320
+    },
+    "Saddle Bags": {
+      "price": 10
+    },
+    "Boat": {
+      "price": 100
+    },
+    "Cart": {
+      "price": 80
+    },
+    "Galley (Large)": {
+      "price": 30000
+    },
+    "Galley (Small)": {
+      "price": 10000
+    },
+    "Horse, draft": {
+      "price": 30
+    },
+    "Horse, Riding": {
+      "price": 40
+    },
+    "Mule": {
+      "price": 20
+    },
+    "Raft": {
+      "price": 40
+    },
+    "Saddle": {
+      "price": 25
+    },
+    "Ship, Sailing (Large)": {
+      "price": 20000
+    },
+    "Ship, sailing (small)": {
+      "price": 5000
+    },
+    "Wagon, small": {
+      "price": 160
+    },
+    "Warhorse": {
+      "price": 200
+    },
+    "Warship": {
+      "price": 40000
+    }
+  },
+  "potions": {
+    "Red Potion": {
+      "price": 25,
+      "effect": "Cure Light Wounds"
+    },
+    "Green Potion": {
+      "price": 25,
+      "effect": "Cure Poison"
+    },
+    "Blue Potion": {
+      "price": 50,
+      "effect": "Cure Disease"
+    }
+  },
+  "pouches": {
+    "Reagent Pouch": {
+      "price": 25
+    }
+  }
+}

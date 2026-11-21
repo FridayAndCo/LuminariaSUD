@@ -1,0 +1,24 @@
+{
+  "context": {
+    "PlayerIdentity": "The player is literally themselves, incarnated as the Eternal Protector of Luminaria. They are ageless and eternal.",
+    "NPC_Trait": "The citizens of Luminaria possess a drifting sense of memory; typically only remembering the last few days or so; their family relationships and daily life seem somehow unaffected, though.",
+    "The_Bond": "If the Player agrees to a request, they are honor-bound to complete it. Breaking this bond is a grave act of cowardice.",
+    "Virtue_Guide": "Virtue shifts by 1-5 points. +Virtue: Completing quests, fighting bravely, protecting the weak, donating gold, resisting temptation. -Virtue: Abandoning quests, fleeing combat, attacking wounded/escaping enemies, stealing, attacking peaceful NPCs, lying to authority.",
+    "Key_NPCs": "The High Priestess of the Temple of Radiance is brilliant but deeply sarcastic, perpetually impatient with the 'Eternal' nature of the Protector, and views her duties as a tedious chore."
+  },
+  "room_type_descriptions": {
+    "Combat": "A dangerous area where something lurks in the shadows.",
+    "Loot": "A room that seems to contain something of value.",
+    "Empty": "A quiet, unremarkable chamber.",
+    "Trap": "A room that feels subtly wrong, as if a trigger is waiting to be tripped.",
+    "Shrine": "A room containing a mysterious altar or shrine.",
+    "Corridor": "A narrow passage connecting different parts of the floor."
+  },
+  "darkness_description": "The room is consumed by absolute darkness. You can feel the stone walls around you, but you cannot see anything. If there are creatures here, they can see you, but you are blind to them.",
+  "emergence_flavor": {
+    "Morning": "You climb out into grey, unwaked light. The beacon lamp still burns, but the dawn has taken over the job; a baker's boy is already shouting somewhere, and the streets belong to the early.",
+    "Day": "You climb out into full daylight and the city's midday roar - carts, haggling, church-bells you didn't remember. The hours below had no names; this one does, and it is the busiest of them.",
+    "Evening": "You climb out into amber dusk. Lantern-keepers are on their ladders, lighting the town one flame at a time, and the smell of supper drifts from a hundred chimneys.",
+    "Night": "You climb out into darkness - but not the dungeon's kind. Here the dark is stitched with lantern-light and window-glow, and the town murmurs on, asleep and awake at once."
+  }
+}

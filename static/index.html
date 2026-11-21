@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LuminariaSUD</title>
+<style>
+  :root{--bg:#0b0d12;--panel:#141824;--ink:#e7e2d0;--dim:#9a917c;--accent:#c9a24b;--room:#1b2233;--border:#2a3040}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Iowan Old Style",Georgia,serif}
+  .wrap{display:grid;grid-template-columns:1.4fr 1fr;grid-template-rows:auto 1fr;gap:12px;padding:12px;max-width:1100px;margin:0 auto;height:100vh}
+  header{grid-column:1/3;display:flex;align-items:baseline;gap:12px}
+  header h1{font-size:20px;margin:0;color:var(--accent);letter-spacing:.06em}
+  header .sub{color:var(--dim);font-size:13px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;overflow:auto}
+  #log{grid-row:2;grid-column:1}
+  #side{grid-row:2;grid-column:2;display:flex;flex-direction:column;gap:12px}
+  #room{background:var(--room)}
+  #room h2,#hud h2{margin:0 0 6px;font-size:14px;color:var(--accent);letter-spacing:.05em}
+  .line{margin:2px 0;white-space:pre-wrap}
+  .say{color:var(--ink)} .warn{color:#d9b45b} .bad{color:#e07a6a}
+  .panel-room,.panel-hud{color:var(--dim);border-left:2px solid var(--border);padding-left:8px;margin:6px 0}
+  .hud-text{white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--dim)}
+  .exits{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:#20283a;border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:12px;color:var(--ink)}
+  .chip.door{border-color:#5a4a2a;color:#d9b45b} .chip.obstacle{border-color:#5a3a3a;color:#e07a6a}
+  .hot{background:#232c1f;border:1px solid #35452c;border-radius:6px;padding:2px 8px;font-size:12px;color:#bcd6a0}
+  .controls{grid-column:1/3;display:flex;gap:8px}
+  input#cmd{flex:1;background:#0f131c;border:1px solid var(--border);border-radius:8px;color:var(--ink);padding:10px 12px;font:inherit}
+  button{background:var(--accent);color:#1a1408;border:0;border-radius:8px;padding:0 16px;font:inherit;font-weight:600;cursor:pointer}
+  #promptbar{grid-column:1/3;display:none;gap:8px;align-items:center}
+  #promptbar label{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>LUMINARIA</h1><span class="sub">Phase 1 web shell &middot; the city that forgets itself</span></header>
+  <div id="log" class="panel"></div>
+  <div id="side">
+    <div id="room" class="panel"><h2>Room</h2><div id="roombody"></div></div>
+    <div id="hud" class="panel"><h2>Character</h2><div id="hudbody" class="hud-text"></div></div>
+  </div>
+  <div id="promptbar"><label id="promptlabel">prompt</label><input id="ans" autocomplete="off"><button id="ansbtn">answer</button></div>
+  <div class="controls"><input id="cmd" placeholder="type a command (look, n, inv, talk, improvise ...)"><button id="send">Go</button></div>
+</div>
+<script>
+let cursor = 0, polling = null;
+const $ = s => document.querySelector(s);
+function addLine(e){
+  const d = document.createElement('div');
+  if(e.level==='panel'){ d.className='panel-'+(e.kind||'x'); d.textContent=(e.title?('['+e.title+'] '):'')+e.text; }
+  else { d.className='line '+(e.level||'say'); d.textContent=e.text; }
+  $('#log').appendChild(d); $('#log').scrollTop=$('#log').scrollHeight;
+}
+function renderSnapshot(s){
+  if(!s) return;
+  const r = s.room;
+  let h = '<strong>'+r.name+'</strong><br>'+ (r.description||'');
+  if(r.visual_elements && r.visual_elements!=='none') h += '<br><span style="color:var(--dim)">Details: '+r.visual_elements+'</span>';
+  if(r.npc_presence) h += '<br>'+r.npc_presence;
+  if(r.contents) h += '<br><span style="color:var(--dim)">Contents: '+r.contents+'</span>';
+  h += '<div class="exits">';
+  (r.exits||[]).forEach(x=>{ let c='chip'+(x.kind==='door'?' door':x.kind==='obstacle'?' obstacle':''); let t=x.dir+(x.name?(' ('+x.name+')'):'')+(x.state?(' ['+x.state+']'):''); h+='<span class="'+c+'">'+t+'</span>'; });
+  (r.hotspots||[]).forEach(x=>{ h+='<span class="hot">'+x.type+(x.name?(' '+x.name):'')+'</span>'; });
+  h += '</div>';
+  $('#roombody').innerHTML = h;
+  $('#hudbody').textContent = s.hud_text || '';
+}
+async function poll(){
+  const r = await fetch('/api/events?cursor='+cursor); const j = await r.json();
+  (j.events||[]).forEach(addLine); cursor = j.cursor;
+  if(j.snapshot) renderSnapshot(j.snapshot);
+  if(j.awaiting_prompt){ $('#promptbar').style.display='flex'; $('#promptlabel').textContent=(j.prompt||'answer').trim(); $('#ans').focus(); }
+  else $('#promptbar').style.display='none';
+  if(j.busy){ polling = setTimeout(poll, 350); }
+  else { polling = null; }
+}
+async function send(text){
+  text = (text!==undefined?text:$('#cmd').value).trim(); if(!text) return;
+  if(text!==undefined) $('#cmd').value='';
+  const r = await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+  if(r.status===409){ addLine({level:'warn',text:'(busy — wait for the current command)'}); return; }
+  if(!polling) poll();
+}
+async function answer(){ const t=$('#ans').value; $('#ans').value=''; await fetch('/api/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})}); }
+$('#send').onclick=()=>send();
+$('#cmd').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+$('#ansbtn').onclick=answer;
+$('#ans').addEventListener('keydown',e=>{if(e.key==='Enter')answer();});
+(async()=>{ const r=await fetch('/api/state'); const j=await r.json(); renderSnapshot(j.snapshot); addLine({level:'say',text:'Welcome to Luminaria. Type look to begin.'}); await send('look'); })();
+</script>
+</body>
+</html>

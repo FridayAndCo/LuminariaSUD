@@ -1,0 +1,10 @@
+{
+    "1": ["Giant Beetle", "Poisonous Centipede", "Rat, Giant", "Skeleton"],
+    "2": ["Giant Beetle", "Goblin", "Kobold", "Zombie"],
+    "3": ["Goblin", "Hobgoblin", "Giant Centipede", "Ghoul"],
+    "4": ["Bugbear", "Dark Elf", "Gargoyle", "Werewolf"],
+    "5": ["Shadow", "Wraith", "Wight", "Mummy"],
+    "6": ["Elemental, Air", "Elemental, Earth", "Elemental, Fire", "Elemental, Water"],
+    "7": ["Golem, Iron", "Giant", "Death Knight", "Minotaur"],
+    "8": ["Lich", "Demon, Balor", "Purple Worm", "Vampire"]
+}

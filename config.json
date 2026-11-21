@@ -1,0 +1,14 @@
+{
+  "api_url": "http://100.111.252.84:5001/v1",
+  "model": "koboldcpp/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004",
+  "api_key": "none",
+  "narrate": true,
+  "insight_budget": 3,
+  "max_improvise_steps": 5,
+  "temperature": 0.8,
+  "max_tokens": 300,
+  "disable_thinking": true,
+  "improvise_room_types": [
+    "Puzzle"
+  ]
+}

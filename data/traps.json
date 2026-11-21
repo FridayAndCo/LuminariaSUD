@@ -1,0 +1,45 @@
+{
+  "Pressure Plate (Darts)": {
+    "damage": 2,
+    "dc": 12,
+    "lethality": "low",
+    "location": "Floor"
+  },
+  "Pit Trap": {
+    "damage": 4,
+    "dc": 10,
+    "lethality": "low",
+    "location": "Floor"
+  },
+  "Tripwire (Falling Rocks)": {
+    "damage": 3,
+    "dc": 13,
+    "lethality": "low",
+    "location": "Floor"
+  },
+  "Poison Needle": {
+    "damage": 1,
+    "effect": "poison",
+    "dc": 15,
+    "lethality": "low",
+    "location": "Chest"
+  },
+  "Mimic Bite": {
+    "damage": 5,
+    "dc": 14,
+    "lethality": "medium",
+    "location": "Chest"
+  },
+  "Flame Vent": {
+    "damage": 6,
+    "dc": 14,
+    "lethality": "medium",
+    "location": "Exit"
+  },
+  "Crushing Wall": {
+    "damage": 10,
+    "dc": 16,
+    "lethality": "high",
+    "location": "Exit"
+  }
+}

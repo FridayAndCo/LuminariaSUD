@@ -1,0 +1,196 @@
+{
+ "Crypt of the Drowned Kings": {
+  "atmosphere": "Brine and old incense cling to the air here; the dead were buried facing the sea.",
+  "walls": [
+   "weeping stone walls",
+   "walls furred with salt",
+   "carved funerary niches"
+  ],
+  "floors": [
+   "tile floor slick with moisture",
+   "sand scattered over flagstones",
+   "black standing water"
+  ],
+  "light": [
+   "green witch-light guttering in sconces",
+   "lamps of bleached bone"
+  ],
+  "dark": [
+   "a cold, wet blackness that sloshes like deep water"
+  ],
+  "details": [
+   "toppled cenotaphs",
+   "barnacled pillars",
+   "a mosaic of a drowned city",
+   "corroded bronze drip-chains"
+  ]
+ },
+ "The Fungal Undergrowth": {
+  "atmosphere": "The air is thick and sweet with spores; something is always growing here.",
+  "walls": [
+   "walls laced with pale mycelium",
+   "walls studded with shelf fungi"
+  ],
+  "floors": [
+   "spongy moss over stone",
+   "leaf-litter of grey caps and spore-dust"
+  ],
+  "light": [
+   "clusters of glowcap mushrooms",
+   "a faint bioluminescent haze"
+  ],
+  "dark": [
+   "a blackness that smells of loam and rot"
+  ],
+  "details": [
+   "towers of pale mushrooms",
+   "roots that have swallowed masonry",
+   "cobwebs of white hyphae",
+   "a stump weeping amber sap"
+  ]
+ },
+ "Hall of Broken Bells": {
+  "atmosphere": "Bronze and silence. The bells here are shattered in their frames; whatever they rang for is over.",
+  "walls": [
+   "walls hung with cracked bronze plaques",
+   "walls inlaid with tarnished bell-metal"
+  ],
+  "floors": [
+   "flagstones worn smooth by processions",
+   "scattered fragments of clappers and chains"
+  ],
+  "light": [
+   "oil lamps in bell-shaped sconces",
+   "light filtered through bronze grilles"
+  ],
+  "dark": [
+   "a darkness that seems to hold its breath"
+  ],
+  "details": [
+   "a fallen bell half-buried in rubble",
+   "rope burns in the lintels",
+   "a choir stall rotted to lace",
+   "engraved dedications in a dead tongue"
+  ]
+ },
+ "The Salt Quarries": {
+  "atmosphere": "Everything here is mined: white walls, white dust, a dryness that drinks the spit from your mouth.",
+  "walls": [
+   "sheer cut walls of pink salt",
+   "walls rough-hacked from the vein"
+  ],
+  "floors": [
+   "crushed salt crunching underfoot",
+   "worn wooden plank walkways"
+  ],
+  "light": [
+   "lantern light scattering through crystal",
+   "glowworms in salt niches"
+  ],
+  "dark": [
+   "a dry, crackling blackness"
+  ],
+  "details": [
+   "abandoned wedges and picks",
+   "a collapsed stair cut into the salt",
+   "salt flowers blooming from cracks",
+   "chalk-marked tally signs"
+  ]
+ },
+ "Cinder Warrens": {
+  "atmosphere": "Ash drifts down from somewhere above, and the stone holds a sullen, banked heat.",
+  "walls": [
+   "walls blackened with old soot",
+   "walls of fused, glassy slag"
+  ],
+  "floors": [
+   "a crust of ash over hot stone",
+   "cinder-choked flagstones"
+  ],
+  "light": [
+   "embers glowing in wall crevices",
+   "a dull magma-light from below"
+  ],
+  "dark": [
+   "a darkness that radiates heat like a closed oven"
+  ],
+  "details": [
+   "a chared timber beam",
+   "melted coins fused to the floor",
+   "a scorch mark in the shape of a doorway",
+   "cracked hearthstones"
+  ]
+ },
+ "The Ossuary": {
+  "atmosphere": "Bone is the local building material here, and it has been arranged with care.",
+  "walls": [
+   "walls lined with stacked longbones",
+   "walls paved with skull tesserae"
+  ],
+  "floors": [
+   "a floor of fused finger-bones",
+   "loose gravel of bone chips"
+  ],
+  "light": [
+   "candles burning in skull sconces",
+   "pale light through rose-window of vertebrae"
+  ],
+  "dark": [
+   "a darkness like the inside of a closed coffin"
+  ],
+  "details": [
+   "a pyramid of skulls",
+   "an ossuary cross of crossed ribs",
+   "shins set like book-spines in niches",
+   "a jawbone archway"
+  ]
+ },
+ "The Drowned Armory": {
+  "atmosphere": "Water took this place by inches. Rusted steel stands at attention in the dark.",
+  "walls": [
+   "walls studded with corroded arrowheads",
+   "walls hung with rusted mail and shields"
+  ],
+  "floors": [
+   "ankle-deep standing water",
+   "wet stone strewn with buckled scabbards"
+  ],
+  "light": [
+   "light glinting off a hundred rusty blades",
+   "lanterns reflected in still water"
+  ],
+  "dark": [
+   "a darkness that laps quietly at your boots"
+  ],
+  "details": [
+   "a rack of spears fused to rust",
+   "a toppled banner stock in the water",
+   "a helmet half-sunk in silt",
+   "chain hanging like dead vines"
+  ]
+ },
+ "Library of Stone": {
+  "atmosphere": "Every surface is carved with text. The library was cut from the living rock and never closed.",
+  "walls": [
+   "walls carved into tablet-shelves",
+   "walls dense with chiseled script"
+  ],
+  "floors": [
+   "worn stone steps polished by readers",
+   "flagstones inlaid with chapter marks"
+  ],
+  "light": [
+   "steady lamp-light in reading alcoves",
+   "light tuned to a scholar's glare"
+  ],
+  "dark": [
+   "a darkness like an unread page"
+  ],
+  "details": [
+   "a lectern of single-piece granite",
+   "stacks of stone codices",
+   "a wall of erased passages",
+   "mason's marks beside the script"
+  ]
+ }
+}
