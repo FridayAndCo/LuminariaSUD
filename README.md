@@ -64,30 +64,41 @@ The engine (`engine.py`) was copied verbatim — same rules, same
 
 ## Quickstart
 
-Clone, set your API endpoint, install, and play:
+Clone the repo and point it at your LLM endpoint by editing `config.json`
+(`"api_url"` and `"model"`). Then follow either path below.
+
+### Recommended: uv (handles the environment for you)
+
+Modern Linux/Debian Python is usually **externally managed** (PEP 668), so a
+plain `pip install` fails with *"error: externally-managed-environment"*.
+[uv](https://docs.astral.sh/uv/) sidesteps all of that — one command creates its
+own virtualenv, installs the dependencies, and runs the game:
 
 ```bash
-git clone https://github.com/FridayAndCo/LuminariaSUD.git
-cd LuminariaSUD
+# install uv once (pick any):
+curl -LsSf https://astral.sh/uv/install.sh | sh   #   or  pipx install uv
 
-# 1. Point the game at your LLM endpoint by editing config.json:
-#      "api_url" -> e.g. http://127.0.0.1:5001/v1
-#      "model"   -> your model name
-
-# 2. Install the web dependencies (terminal mode needs none of these):
-pip install -r requirements.txt
-
-# 3a. Terminal mode (stdlib only, no install required):
-python3 luminaria.py
-
-# 3b. Web mode (needs the deps above; narration off by default, add --narrate):
-python3 api.py --port 8090
-#     then browse http://127.0.0.1:8090   (or /docs for OpenAPI)
+uv run python api.py --port 8090    # web mode  -> browse http://127.0.0.1:8090
+uv run python luminaria.py          # terminal mode
 ```
 
-> Web mode needs `fastapi` + `uvicorn` (pydantic comes with FastAPI). If you
-> skip the install, `api.py` prints a friendly reminder rather than a traceback.
-> `rich` is optional and only adds colour/panels to terminal mode.
+`uv run` reads `pyproject.toml`, creates `.venv/`, installs `fastapi`+`uvicorn`,
+and launches — no manual venv, no activation, no PEP 668 headache.
+
+### Alternative: pip + venv
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate    # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python3 api.py --port 8090                            # or: python3 luminaria.py
+```
+
+> If you skip the venv on an externally-managed system, use
+> `pip install --user -r requirements.txt` (or uv above).
+>
+> Terminal mode needs **no** third-party packages — `rich` only adds colour and
+> is optional. Web mode needs `fastapi` + `uvicorn` (pydantic comes with FastAPI);
+> `api.py` prints a friendly reminder instead of a traceback if they're missing.
 
 ## Verified
 

@@ -1,0 +1,27 @@
+[project]
+name = "luminariasud"
+version = "0.1.0"
+description = "Luminaria dungeon crawler with a structured command API and a web shell."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "Apollo (FridayAndCo)" }]
+keywords = ["game", "rpg", "terminal", "roguelike", "dungeon-crawler", "fastapi"]
+
+# Web server (python3 api.py). pydantic comes in automatically with FastAPI.
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+]
+
+[project.optional-dependencies]
+# Colour/panel rendering for terminal mode (python3 luminaria.py). Optional.
+rich = ["rich>=13"]
+
+[project.urls]
+Homepage = "https://github.com/FridayAndCo/LuminariaSUD"
+
+[tool.uv]
+# Flat script project (not an importable package): uv manages the venv + deps
+# but does not try to build/install the project itself.
+package = false

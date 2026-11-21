@@ -34,7 +34,7 @@ try:
 except ImportError:  # graceful plain-text fallback
     RICH = False
 
-console = Console()
+console = Console() if RICH else None
 
 # The active sink. luminaria.py (REPL) leaves this as TerminalIO; the API
 # server swaps in a QueueIO for its worker thread.
@@ -193,7 +193,6 @@ def prompt(text):
 
 
 # Backwards-compatible aliases used by luminaria.py's inventory/shop blocks.
-import rich  # noqa: E402  (re-exported names below)
 if RICH:
     from rich.table import Table  # noqa: E402,F401
     from rich import box  # noqa: E402,F401
