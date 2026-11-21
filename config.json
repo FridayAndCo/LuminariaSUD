@@ -1,5 +1,5 @@
 {
-  "api_url": "http://100.111.252.84:5001/v1",
+  "api_url": "http://xxx.xxx.xxx.xxx:xxxx/v1",
   "model": "koboldcpp/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004",
   "api_key": "none",
   "narrate": true,
