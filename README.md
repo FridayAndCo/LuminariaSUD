@@ -18,7 +18,9 @@ somewhere reachable — koboldcpp, llama.cpp server, LM Studio, or a hosted API.
 The LLM is part of the *intended* experience (it voices the citizens and
 narrates your deeds), but the game still plays without one: movement, combat,
 loot, quests and shops are all resolved by the engine — only prose and free
-conversation go flat.
+conversation go flat. If `config.json` still has the placeholder URL, the game
+opens by telling you that narration and improvise are unavailable — everything
+else plays as-is.
 
 ```bash
 git clone https://github.com/FridayAndCo/LuminariaSUD.git
@@ -65,7 +67,7 @@ your character on first run.
 | `sleep` | bedroll in the dungeon, or the inn — restores HP and insight |
 | `improvise` (or `i`) | try *anything else* — the GM resolves it (costs 1 insight) |
 | `status` / `time` / `roll` | character panel / day & hour / ad-hoc die roll |
-| `narrate` | toggle LLM prose on/off |
+| `narrate` | toggle LLM prose on/off (**on by default**) |
 | `save` / `help` / `quit` / `reset` | exactly what they say |
 
 Anything the parser doesn't recognise is offered as an *improvise* — you're

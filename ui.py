@@ -52,7 +52,8 @@ def set_sink(sink):
     SINK = sink
 
 
-_COLOR = {"say": "green", "warn": "yellow", "bad": "red"}
+_COLOR = {"say": "green", "warn": "yellow", "bad": "red",
+          "narration": "magenta italic"}
 
 
 def _out(level, text):
@@ -164,12 +165,15 @@ def show_room(engine, narration=None, exits_line=None):
         body += "\nA shrine stands here - try 'meditate', or feed the coin slot ('confess')."
     if exits_line:
         body += f"\nExits: {exits_line}"
-    if narration:
-        body += f"\n{narration}"
 
     if _is_api():
         SINK.panel("room", body, title=room)
+        if narration:
+            SINK.emit("narration", narration)
         return
+    if narration:
+        body += f"\n{narration}"
+
     if not RICH:
         print(f"== {room} ==\n{body}")
         return
@@ -192,6 +196,10 @@ def warn(text):
 
 def bad(text):
     _out("bad", text)
+
+
+def narration(text):
+    _out("narration", text)
 
 
 def prompt(text):

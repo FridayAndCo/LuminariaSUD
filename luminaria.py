@@ -126,6 +126,12 @@ def load_cfg():
     return cfg
 
 
+def llm_configured(cfg):
+    """True when config.json points at a real endpoint (not the xxx placeholder)."""
+    url = (cfg.get("api_url") or "").strip()
+    return bool(url) and "xxx" not in url.lower()
+
+
 class Game:
     def __init__(self, cfg):
         self.cfg = cfg
@@ -136,6 +142,7 @@ class Game:
                              max_tokens=cfg.get("max_tokens", 300),
                              disable_thinking=cfg.get("disable_thinking", True))
         self.narrate_on = bool(cfg.get("narrate", True))
+        self.llm_ready = llm_configured(cfg)
         wis = self.eng.player.data["stats"]["WIS"]
         self.insight_max = max(1, int(cfg.get("insight_base", 1)) + max(0, wis - 10))
         self.insight = self.insight_max
@@ -144,7 +151,7 @@ class Game:
 
     # ---------- narration ----------
     def narrate(self, event_text):
-        if not self.narrate_on or not event_text:
+        if not self.narrate_on or not self.llm_ready or not event_text:
             return event_text
         ctx = self.eng.get_scene_context()
         user = (f"LOCATION: {ctx['room_name']}\n"
@@ -157,6 +164,16 @@ class Game:
             return event_text
         self.last_narration = text
         return text
+
+    def narration_notice(self):
+        """Startup one-liner about the narration/improvise situation."""
+        if not self.llm_ready:
+            return ("No LLM endpoint configured (config.json: api_url) - LLM "
+                    "narration and improvise are unavailable. The engine plays "
+                    "on: movement, combat, loot and quests all work.")
+        if not self.narrate_on:
+            return "LLM narration OFF (type 'narrate' to turn it on)."
+        return "LLM narration ON (type 'narrate' to turn it off)."
 
     # ---------- improvise ----------
     def should_improvise(self):
@@ -192,6 +209,10 @@ class Game:
         return ans in ("y", "yes")
 
     def improvise(self, focus=None, confirm=True):
+        if not self.llm_ready:
+            ui.warn("No LLM endpoint configured - improvise needs one "
+                    "(point config.json api_url at an OpenAI-compatible server).")
+            return
         if self.insight <= 0:
             ui.warn("No insight charges left (sleep at an inn or use a bedroll to recover).")
             return
@@ -217,7 +238,7 @@ class Game:
         for line in log:
             ui.warn(f"  · {line}")
         if text:
-            ui.say(text)
+            ui.narration(text)
             self.last_narration = text
         else:
             ui.warn("(the LLM could not resolve the moment - the engine holds.)")
@@ -426,7 +447,7 @@ class Game:
                     ui.say(f"You miss the {monster}. (roll {pa.get('roll')})")
             elif player_action == "mix" and pa.get("message"):
                 if pa.get("spell") == "Detect Magic":
-                    ui.say(self._detect_prose({"reading": pa["message"].replace("Detect Magic: ", ""),
+                    ui.narration(self._detect_prose({"reading": pa["message"].replace("Detect Magic: ", ""),
                                                "auras": pa.get("auras") or []}))
                 else:
                     ui.say(pa["message"])
@@ -512,7 +533,7 @@ class Game:
             ui.warn(str(verdict.get("error", "the attempt comes to nothing")))
             return "failed"
         if text:
-            ui.say(text)
+            ui.narration(text)
             self.last_narration = text
         ui.warn(f"[parley {verdict['stat']} check: d20 {verdict['natural']} "
                 f"{verdict['modifier']:+d} = {verdict['roll']} vs DC {verdict['dc']}"
@@ -900,7 +921,7 @@ class Game:
     def _detect_prose(self, res):
         """Detect Magic: engine decides WHAT registers, the LLM only phrases it."""
         reading = res.get("reading") or "Nothing registers."
-        if not self.narrate_on:
+        if not self.narrate_on or not self.llm_ready:
             return reading
         ctx = self.eng.get_scene_context()
         auras = res.get("auras") or []
@@ -924,7 +945,7 @@ class Game:
         res = self.eng.mix_reagents(formula)
         if isinstance(res, dict):
             if res.get("spell") == "Detect Magic":
-                ui.say(self._detect_prose(res))
+                ui.narration(self._detect_prose(res))
             else:
                 ui.say(res.get("message", str(res)))
             return res
@@ -1246,7 +1267,7 @@ class Game:
             ui.say(done["message"])
         if verb in self.MOVE_VERBS:
             # _move already painted the room panel (with narration)
-            if self.should_improvise() and self.insight > 0:
+            if self.should_improvise() and self.insight > 0 and self.llm_ready:
                 ui.warn(self._obstacle_hint())
             ui.show(self.eng, insight=self.insight, insight_max=self.insight_max)
         elif verb not in self.QUIET_CMDS:
@@ -1338,6 +1359,7 @@ class Game:
             "quest": self.eng.quest_status(),
             "quest_pending": self.eng.quest_pending(),
             "narrate": self.narrate_on,
+            "llm_ready": self.llm_ready,
             "hud_text": ui.render_hud(self.eng, insight=self.insight,
                                       insight_max=self.insight_max),
         }
@@ -1346,6 +1368,7 @@ class Game:
         """Terminal REPL - now a thin adapter over process_command()."""
         ui.console.clear() if ui.RICH else None
         ui.say("LUMINARIA - the city that forgets itself.")
+        ui.warn(self.narration_notice())
         ui.warn(self.HELP)
         ui.show(self.eng, insight=self.insight, insight_max=self.insight_max)
         self.cmd_look()

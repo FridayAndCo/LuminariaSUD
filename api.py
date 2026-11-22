@@ -27,7 +27,7 @@ pause mid-command waiting on a prompt; the client streams new lines via
 may span many HTTP round-trips without deadlocking.
 
 Run:  python3 api.py            (http://127.0.0.1:8090)
-      python3 api.py --port 9000 --narrate
+      python3 api.py --port 9000 --no-narrate
 """
 
 import argparse
@@ -60,6 +60,9 @@ CFG = L.load_cfg()
 GAME = L.Game(CFG)
 QIO = io_layer.QueueIO()
 ui.set_sink(QIO)
+_notice = GAME.narration_notice()
+if _notice:
+    QIO.emit("warn", _notice)
 
 _lock = threading.RLock()        # guards GAME mutation + snapshot reads
 _gate = threading.Lock()         # guards the busy flag only (never held during a prompt)
@@ -195,9 +198,13 @@ def main():
     ap = argparse.ArgumentParser(description="LuminariaSUD web API (Phase 1)")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8090)
-    ap.add_argument("--narrate", action="store_true", help="enable LLM prose")
+    ap.add_argument("--narrate", dest="narrate", action="store_true", default=None,
+                    help="force LLM prose ON (default: from config.json - ON)")
+    ap.add_argument("--no-narrate", dest="narrate", action="store_false",
+                    help="force LLM prose OFF")
     args = ap.parse_args()
-    GAME.narrate_on = args.narrate
+    if args.narrate is not None:
+        GAME.narrate_on = args.narrate
     import uvicorn
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 
