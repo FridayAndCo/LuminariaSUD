@@ -1,0 +1,230 @@
+{
+  "settings": {
+    "virtue_reward": 5,
+    "abandon_penalty": 5,
+    "recent_cooldown_days": 3
+  },
+  "quests": [
+    {
+      "id": "barnaby_spikes",
+      "giver": "Barnaby the Tinker",
+      "archetype": "gather",
+      "title": "Pins for the Pitons",
+      "text": "I'm rebuilding the winch on the old well and I'm clean out of iron spikes. Three cases, and mind - the forged ones, not that bent market rubbish!",
+      "objective": {
+        "item": "Spikes, Iron (12)",
+        "qty": 3
+      },
+      "turn_in": "giver",
+      "gold": 5
+    },
+    {
+      "id": "baker_gremlins",
+      "giver": "Ma Baker",
+      "archetype": "kill",
+      "title": "Thieves Below",
+      "text": "Gremlins in the root cellar, dearie! Little things that reach right through your skin and eat the dinner out of your belly. Put two of 'em down and my rising dough'll thank ye.",
+      "objective": {
+        "monster": "Gremlin",
+        "count": 2
+      },
+      "turn_in": "giver",
+      "gold": 8
+    },
+    {
+      "id": "halloway_rats",
+      "giver": "Captain Halloway",
+      "archetype": "kill",
+      "title": "Barracks Discipline",
+      "text": "The recruits are more afraid of the cellar rats than of me, Protector, and that is a bureaucratic embarrassment. Three giant rats, dead, filed with my office. Form 9-C.",
+      "objective": {
+        "monster": "Rat, Giant",
+        "count": 3
+      },
+      "turn_in": "giver",
+      "gold": 6
+    },
+    {
+      "id": "crier_goblins",
+      "giver": "The Town Crier",
+      "archetype": "kill",
+      "title": "News of the Road",
+      "text": "Hear ye! Goblins on the east road! I would announce them myself, but every time I cry 'goblin' they think I'm making an enemy. Two of them, Protector! Then report it to Captain Halloway - he keeps the list!",
+      "objective": {
+        "monster": "Goblin",
+        "count": 2
+      },
+      "turn_in": "Captain Halloway",
+      "gold": 8
+    },
+    {
+      "id": "pip_ghoul",
+      "giver": "Sentry Pip",
+      "archetype": "hunt",
+      "title": "The Corpse-Walker",
+      "text": "Th-there's a ghoul by the old north gate. It looked at me. It RECOGNISED me, Protector, and I wish it hadn't. One ghoul. That's all I ask. That's plenty, actually.",
+      "objective": {
+        "monster": "Ghoul",
+        "count": 1
+      },
+      "turn_in": "giver",
+      "gold": 15
+    },
+    {
+      "id": "pete_meat",
+      "giver": "Slippery Pete",
+      "archetype": "fetch",
+      "title": "The Jerky Venture",
+      "text": "Fresh monster jerky, Protector - you can't buy this in town, because I'm the one selling it and I'm out of stock. Two cuts of raw monster meat from the ruins and I'll pay well. Don't ask what it is. Nobody asks.",
+      "objective": {
+        "item": "Monster Meat",
+        "qty": 2
+      },
+      "turn_in": "giver",
+      "gold": 6
+    },
+    {
+      "id": "zale_moss",
+      "giver": "Alchemist Zale",
+      "archetype": "gather",
+      "title": "The Phosphor Commission",
+      "text": "A customer wants glowing ink and I am OUT of phosphor-moss - the candle-sellers have cornered the market, scheming little lamp-trimmers! Two bundles, and if you find it in the ruins it's purer anyway, I insist.",
+      "objective": {
+        "item": "Phosphor-Moss",
+        "qty": 2
+      },
+      "turn_in": "giver",
+      "gold": 10
+    },
+    {
+      "id": "thorne_quartz",
+      "giver": "Master Thorne",
+      "archetype": "gather",
+      "title": "Flux for a Masterwork",
+      "text": "I'm folding a masterwork blade and my quartz is gone. Two measures of crushed quartz - and don't bring me river gravel and call it quartz. I'll know. I always know.",
+      "objective": {
+        "item": "Crushed Quartz",
+        "qty": 2
+      },
+      "turn_in": "giver",
+      "gold": 10
+    },
+    {
+      "id": "fletcher_harpies",
+      "giver": "Elias the Fletcher",
+      "archetype": "kill",
+      "title": "Wings of the East",
+      "text": "Harpy feathers, Protector. No feather holds the air like it - a millimeter of deviation and your arrow is a very expensive stick. Three harpies. Mind the faces; they remember your name.",
+      "objective": {
+        "monster": "Harpy",
+        "count": 3
+      },
+      "turn_in": "giver",
+      "gold": 12
+    },
+    {
+      "id": "valerica_oil",
+      "giver": "Mistress Valerica",
+      "archetype": "fetch",
+      "title": "Lamps for the East Wing",
+      "text": "My east wing guests complain the corridor is 'atmospheric' at midnight, and I know what that means: it's dark and they can't find the door. Three pints of lamp oil and I'll keep their coin warm for you.",
+      "objective": {
+        "item": "Oil (Lantern, 1 pint)",
+        "qty": 3
+      },
+      "turn_in": "giver",
+      "gold": 5
+    },
+    {
+      "id": "xylos_charcoal",
+      "giver": "Xylos the Archivist",
+      "archetype": "gather",
+      "title": "Rubbings of the Stele",
+      "text": "I am attempting a rubbing of the Foundation Stele, and charcoal - true charcoal, not that compressed dust the chandlers sell - charcoal, I say, is the only honest medium. Five sticks. Academic rigour demands it.",
+      "objective": {
+        "item": "Charcoal",
+        "qty": 5
+      },
+      "turn_in": "giver",
+      "gold": 5
+    },
+    {
+      "id": "priestess_silver",
+      "giver": "High Priestess",
+      "archetype": "fetch",
+      "title": "Reconsecration",
+      "text": "The temple censer has gone cold and the rites are slipping into - well, into whatever it does when nobody pays attention. Two measures of silver dust to rekindle it. Try not to make it a miracle; I'm busy.",
+      "objective": {
+        "item": "Silver Dust",
+        "qty": 2
+      },
+      "turn_in": "giver",
+      "gold": 8
+    },
+    {
+      "id": "raika_petals",
+      "giver": "Lord Raika",
+      "archetype": "fetch",
+      "title": "A Petal for the Wine",
+      "text": "The festival wine is... adequate. A luminous petal steeped in the cask would make it DIVINE, and I am surrounded by people who say 'adequate' to my face. Bring me one. Only one. I'm not a greedy man.",
+      "objective": {
+        "item": "Luminous Petal",
+        "qty": 1
+      },
+      "turn_in": "giver",
+      "gold": 20
+    },
+    {
+      "id": "silas_stakes",
+      "giver": "Silas the Stablemaster",
+      "archetype": "gather",
+      "title": "Paddock Repairs",
+      "text": "Some fool left the paddock gate on a hinge and the draft horses let themselves out like it was a tavern night. Two cases of stakes to fence it proper. And if you see my grey mare, mind she doesn't bite you.",
+      "objective": {
+        "item": "Stakes, Wooden (12)",
+        "qty": 2
+      },
+      "turn_in": "giver",
+      "gold": 5
+    },
+    {
+      "id": "any_skeletons",
+      "giver": "any",
+      "archetype": "kill",
+      "title": "The Restless Yard",
+      "text": "The old cemetery yard is restless again - bones walking, children throwing stones at them for sport. Two skeletons back to rest would settle everyone's nerves. No ceremony needed; just don't let them reassemble.",
+      "objective": {
+        "monster": "Skeleton",
+        "count": 2
+      },
+      "turn_in": "auto",
+      "gold": 6
+    },
+    {
+      "id": "any_beetles",
+      "giver": "any",
+      "archetype": "kill",
+      "title": "The Cellar Invasion",
+      "text": "Giant beetles in the undercellars, fat as dogs and twice as smug. Two of them cleared out and half the town's stores are saved. The other half can hire their own sword.",
+      "objective": {
+        "monster": "Giant Beetle",
+        "count": 2
+      },
+      "turn_in": "auto",
+      "gold": 5
+    },
+    {
+      "id": "any_meat",
+      "giver": "any",
+      "archetype": "gather",
+      "title": "The Common Pot",
+      "text": "The commons' pot is thin this week, Protector. Two cuts of monster meat from the ruins and I'll see you fed at the evening table - and remembered at it, which is rarer.",
+      "objective": {
+        "item": "Monster Meat",
+        "qty": 2
+      },
+      "turn_in": "giver",
+      "gold": 5
+    }
+  ]
+}

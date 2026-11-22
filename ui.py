@@ -126,6 +126,13 @@ def render_hud(engine, last_narration=None, insight=None, insight_max=None):
         f"Pos: ({pos['x']},{pos['y']},{pos['z']}) [{floor}]   Status: {status}",
         f"Time: {time_str}",
     ]
+    try:
+        q = engine.quest_status()
+    except Exception:
+        q = None
+    if q:
+        lines.append(f"Quest: {q['title']} ({q['progress']}/{q['needed']}) "
+                     f"- {q['turn_in']}")
     if insight is not None and insight_max is not None:
         lines.append(f"Insight {_bar(insight, insight_max)} {insight}/{insight_max} (WIS)")
     return "\n".join(lines)

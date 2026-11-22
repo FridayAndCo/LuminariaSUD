@@ -79,6 +79,22 @@ SCHEMAS = [
         "parameters": {"type": "object", "properties": {
             "sides": {"type": "integer"}, "modifier": {"type": "integer"}},
             "required": ["sides"]}}},
+    {"type": "function", "function": {
+        "name": "quest_status",
+        "description": "Report the active quest (title, objective, progress, turn-in point), or the pending offer if the quest slot is free.",
+        "parameters": {"type": "object", "properties": {}, "required": []}}},
+    {"type": "function", "function": {
+        "name": "accept_quest",
+        "description": "Take the pending quest offer (only one quest at a time).",
+        "parameters": {"type": "object", "properties": {}, "required": []}}},
+    {"type": "function", "function": {
+        "name": "decline_quest",
+        "description": "Politely refuse the pending quest offer (the same citizen will not re-offer it today).",
+        "parameters": {"type": "object", "properties": {}, "required": []}}},
+    {"type": "function", "function": {
+        "name": "abandon_quest",
+        "description": "Give up the active quest: progress is lost and Virtue -5 (never below 0).",
+        "parameters": {"type": "object", "properties": {}, "required": []}}},
 ]
 
 SCHEMA_NAMES = {s["function"]["name"] for s in SCHEMAS}
@@ -138,6 +154,11 @@ def dispatch(engine):
                                    "auras": res["auras"], "reading": res["reading"]})
             if name == "roll_dice":
                 return str(engine.roll_dice(args.get("sides", 20), args.get("modifier", 0)))
+            if name == "quest_status":
+                st = engine.quest_status() or engine.quest_pending()
+                return json.dumps(st or {"message": "No active quest, no pending offer."})
+            if name in ("accept_quest", "decline_quest", "abandon_quest"):
+                return json.dumps(getattr(engine, name)())
             if name == "resolve_parley":
                 res = engine.resolve_parley(args.get("monster"),
                                             args.get("approach", "negotiate"),

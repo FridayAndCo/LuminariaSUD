@@ -115,6 +115,22 @@ for _rid, _d in _load_json("npcs.json", {}).items():
         shop=_d.get("shop")
     )
 
+# Reverse lookup for quest turn-in: NPC name -> room id.
+NPC_ROOM_BY_NAME = {npc.name: rid for rid, npc in NPC_REGISTRY.items()}
+
+# --- Quests ---------------------------------------------------------------- #
+# Templates are static content (data/quests.json). The engine owns ALL quest
+# state (player.data['quest']) and resolves every offer/accept/complete step
+# deterministically, so quests survive reload and need no LLM to adjudicate.
+_quests_doc = _load_json("quests.json", {})
+QUEST_TEMPLATES = _quests_doc.get("quests", [])
+QUEST_SETTINGS = {
+    "virtue_reward": 5,
+    "abandon_penalty": 5,
+    "recent_cooldown_days": 3,
+}
+QUEST_SETTINGS.update(_quests_doc.get("settings", {}))
+
 # Item category tables (populated by load_ledger)
 REAGENT_DATA = {}
 WEAPON_DATA = {}
@@ -622,6 +638,7 @@ def default_player_data():
         "last_direction": None,
         "inventory": {"Cloth Robe": 1},
         "equipped": {"weapon": None, "armor": "Cloth Robe", "shield": None},
+        "quest": {"active": None, "pending": None, "recent": [], "declined": []},
     }
 
 
@@ -2052,6 +2069,7 @@ class GameEngine:
                   "instruction": "Roleplay this character using the traits provided. Remember that citizens of Luminaria have drifting memories."}
         if getattr(npc, "shop", None):
             result["shop"] = npc.shop
+        result.update(self.talk_hook_quest(npc.name))
         return result
 
     # --- Monster drops ------------------------------------------------------
@@ -2299,6 +2317,259 @@ class GameEngine:
                 "message": ("Raika actually looks at you - briefly. He counts your deeds on "
                             f"silk-draped fingers: {floors} new floor(s), {stands} last stand(s). "
                             f"'Granted, granted.' (Virtue +{granted})")}
+
+    # --- Quests ------------------------------------------------------------ #
+    # One active quest at a time. Offers are rolled deterministically from
+    # (world seed, NPC, day) so they survive reload and never touch the
+    # global RNG stream that combat depends on.
+    def _quest_book(self):
+        """The quest ledger stored inside player.data (additive save key)."""
+        qb = self.player.data.get("quest")
+        if not isinstance(qb, dict):
+            qb = {"active": None, "pending": None, "recent": [], "declined": []}
+            self.player.data["quest"] = qb
+        qb.setdefault("active", None)
+        qb.setdefault("pending", None)
+        qb.setdefault("recent", [])
+        qb.setdefault("declined", [])
+        return qb
+
+    @staticmethod
+    def _quest_monster_match(template_name, slain_name):
+        """Word-set matching: 'Rat' hits 'Rat, Giant', and 'Giant Rat' matches
+        its inverted bestiary spelling - but 'Goblin' does NOT hit 'Hobgoblin'."""
+        tw = set(re.findall(r"[a-z]+", str(template_name).lower()))
+        sw = set(re.findall(r"[a-z]+", str(slain_name).lower()))
+        return bool(tw) and bool(sw) and (tw <= sw or sw <= tw)
+
+    @staticmethod
+    def _quest_objective_text(objective):
+        if objective.get("monster"):
+            return f"Slay {objective.get('count', 1)} x {objective['monster']}"
+        return f"Bring {objective.get('qty', 1)} x {objective.get('item', '?')}"
+
+    def _quest_progress(self, q):
+        """Kill quests count stored progress; collect quests count the pack."""
+        obj = q.get("objective", {})
+        if obj.get("monster"):
+            return int(q.get("progress", 0))
+        have = self.player.data["inventory"].get(obj.get("item"), 0)
+        return min(int(have), int(obj.get("qty", 1)))
+
+    @staticmethod
+    def _quest_turn_in_name(q):
+        t = q.get("turn_in", "giver")
+        if t == "auto":
+            return None
+        return q.get("giver") if t == "giver" else t
+
+    def _quest_on_cooldown(self, qb, tid):
+        days = int(QUEST_SETTINGS.get("recent_cooldown_days", 3))
+        today = self.player.data.get("time", {}).get("day", 1)
+        for rec in qb.get("recent", []):
+            if rec.get("id") == tid and today - int(rec.get("day", 0)) <= days:
+                return True
+        return False
+
+    def quest_candidates(self, npc_name):
+        """Templates this NPC may offer right now: their own or 'any', minus
+        the active quest, minus recently done/abandoned, minus what they
+        offered and was declined today."""
+        qb = self._quest_book()
+        active_id = (qb.get("active") or {}).get("id")
+        today = self.player.data.get("time", {}).get("day", 1)
+        declined_today = {d.get("id") for d in qb.get("declined", [])
+                          if d.get("npc") == npc_name and int(d.get("day", 0)) == today}
+        out = []
+        for t in QUEST_TEMPLATES:
+            if t.get("giver") not in (npc_name, "any"):
+                continue
+            if t.get("id") == active_id or self._quest_on_cooldown(qb, t.get("id")):
+                continue
+            if t.get("id") in declined_today:
+                continue
+            out.append(t)
+        return out
+
+    def roll_quest_offer(self, npc_name):
+        """Deterministic offer pick keyed to (seed, NPC, day)."""
+        cands = self.quest_candidates(npc_name)
+        if not cands:
+            return None
+        day = self.player.data.get("time", {}).get("day", 1)
+        rng = random.Random(f"{self.world.seed}|{npc_name}|{day}")
+        offer = dict(rng.choice(cands))
+        offer["giver"] = npc_name
+        return offer
+
+    def talk_hook_quest(self, npc_name):
+        """Called from talk_to_npc: attach active-quest context, or roll a
+        pending offer when the quest slot is free. A pending offer from a
+        different citizen is replaced - an offer waits for the one who made
+        it."""
+        qb = self._quest_book()
+        result = {}
+        if qb.get("active"):
+            result["active_quest"] = self.quest_status()
+        else:
+            pending = qb.get("pending")
+            if pending and pending.get("giver") != npc_name:
+                qb["pending"] = None
+            if qb.get("pending") is None:
+                qb["pending"] = self.roll_quest_offer(npc_name)
+                self.player.save()
+            if qb.get("pending"):
+                result["quest_offer"] = qb["pending"]
+        return result
+
+    def quest_status(self):
+        """Structured view of the active quest (None when the slot is free)."""
+        qb = self._quest_book()
+        q = qb.get("active")
+        if not q:
+            return None
+        obj = q.get("objective", {})
+        need = int(obj.get("count") or obj.get("qty") or 1)
+        prog = self._quest_progress(q)
+        turn_name = self._quest_turn_in_name(q)
+        return {
+            "id": q.get("id"), "title": q.get("title"),
+            "archetype": q.get("archetype", "task"),
+            "text": q.get("text", ""),
+            "objective": self._quest_objective_text(obj),
+            "progress": prog, "needed": need,
+            "done": prog >= need,
+            "turn_in": "completes on the spot" if turn_name is None
+                       else f"return to {turn_name}",
+            "turn_in_npc": turn_name,
+            "giver": q.get("giver"),
+            "gold": int(q.get("gold", 0)),
+        }
+
+    def quest_pending(self):
+        qb = self._quest_book()
+        p = qb.get("pending")
+        if not p:
+            return None
+        turn_name = self._quest_turn_in_name(p)
+        return {"id": p.get("id"), "title": p.get("title"), "giver": p.get("giver"),
+                "text": p.get("text", ""),
+                "objective": self._quest_objective_text(p.get("objective", {})),
+                "turn_in": "completes on the spot" if turn_name is None
+                           else f"return to {turn_name}"}
+
+    def accept_quest(self):
+        qb = self._quest_book()
+        if qb.get("active"):
+            return {"success": False,
+                    "message": f"You are already on a quest: '{qb['active'].get('title')}'. "
+                               "Abandon it ('quest abandon') before taking another."}
+        p = qb.get("pending")
+        if not p:
+            return {"success": False, "message": "No one has offered you a quest here."}
+        qb["active"] = {
+            "id": p.get("id"), "title": p.get("title"),
+            "archetype": p.get("archetype", "task"), "text": p.get("text", ""),
+            "objective": p.get("objective", {}),
+            "turn_in": p.get("turn_in", "giver"), "giver": p.get("giver"),
+            "gold": int(p.get("gold", 0)),
+            "progress": 0,
+            "accepted_day": self.player.data.get("time", {}).get("day", 1),
+        }
+        qb["pending"] = None
+        self.player.save()
+        return {"success": True,
+                "message": f"Quest accepted: '{qb['active']['title']}' - "
+                           f"{self._quest_objective_text(qb['active']['objective'])}."}
+
+    def decline_quest(self):
+        qb = self._quest_book()
+        p = qb.get("pending")
+        if not p:
+            return {"success": False, "message": "No pending quest offer."}
+        today = self.player.data.get("time", {}).get("day", 1)
+        qb.setdefault("declined", []).append({"id": p.get("id"), "npc": p.get("giver"),
+                                              "day": today})
+        del qb["declined"][:-20]
+        qb["pending"] = None
+        self.player.save()
+        return {"success": True,
+                "message": f"You decline the offer: '{p.get('title')}'."}
+
+    def abandon_quest(self):
+        qb = self._quest_book()
+        q = qb.get("active")
+        if not q:
+            return {"success": False, "message": "You have no active quest."}
+        qb["active"] = None
+        qb["pending"] = None
+        today = self.player.data.get("time", {}).get("day", 1)
+        qb.setdefault("recent", []).append({"id": q.get("id"), "end": "abandoned",
+                                            "day": today})
+        del qb["recent"][:-20]
+        penalty = int(QUEST_SETTINGS.get("abandon_penalty", 5))
+        v = int(self.player.data.get("virtue", 0))
+        if v > 0:
+            # The penalty never drags virtue below 0, and never makes an
+            # already-negative virtue more negative (Anti-Shrine runs).
+            self.player.data["virtue"] = max(0, v - penalty)
+            note = f" Virtue -{min(penalty, v)}."
+        else:
+            note = " Your virtue is already in the dark; it sinks no further."
+        self.player.save()
+        return {"success": True,
+                "message": f"Quest abandoned: '{q.get('title')}'. All progress is lost."
+                           + note + f" (now {self.player.data['virtue']:+d})"}
+
+    def notify_kill(self, monster_name):
+        """Hook for the combat loop: count a slain monster toward a kill quest."""
+        qb = self._quest_book()
+        q = qb.get("active")
+        if not q or not q.get("objective", {}).get("monster"):
+            return None
+        if not self._quest_monster_match(q["objective"]["monster"], monster_name):
+            return None
+        q["progress"] = int(q.get("progress", 0)) + 1
+        self.player.save()
+        need = int(q["objective"].get("count", 1))
+        return (f"Quest: {q['objective']['monster']} slain "
+                f"{min(q['progress'], need)}/{need}.")
+
+    def check_quest_completion(self):
+        """Called after every command. Completes when the objective is met AND
+        the player stands at the turn-in point (or the quest needs no hand-in).
+        Completion is the best virtue award: automatic +5."""
+        qb = self._quest_book()
+        q = qb.get("active")
+        if not q:
+            return None
+        obj = q.get("objective", {})
+        need = int(obj.get("count") or obj.get("qty") or 1)
+        if self._quest_progress(q) < need:
+            return None
+        turn_name = self._quest_turn_in_name(q)
+        if turn_name is not None:
+            pos = self.player.data["position"]
+            if NPC_ROOM_BY_NAME.get(turn_name) != f"{pos['x']}_{pos['y']}_{pos['z']}":
+                return None
+        if obj.get("item"):
+            self.player.remove_item(obj["item"], int(obj.get("qty", 1)))
+        reward = int(QUEST_SETTINGS.get("virtue_reward", 5))
+        gold = int(q.get("gold", 0))
+        qb["active"] = None
+        qb["pending"] = None
+        qb["declined"] = []
+        today = self.player.data.get("time", {}).get("day", 1)
+        qb.setdefault("recent", []).append({"id": q.get("id"), "end": "done",
+                                            "day": today})
+        del qb["recent"][:-20]
+        self.player.update_virtue(reward)
+        if gold:
+            self.player.update_gold(gold)
+        msg = (f"QUEST COMPLETE: '{q.get('title')}' - {q.get('giver')} "
+               f"accepts your service. (Virtue +{reward}"
+               + (f", +{gold} gold" if gold else "") + ")")
+        return {"success": True, "message": msg, "virtue": reward, "gold": gold}
 
     # --- Discovery rooms --------------------------------------------------
     FOUNTAIN_OUTCOMES = [

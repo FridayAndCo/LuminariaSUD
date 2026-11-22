@@ -449,6 +449,9 @@ class Game:
             if res.get("monster_dead"):
                 extra = res.get("virtue_msg") or ""
                 ui.say(f"The {monster} falls! Virtue +2." + extra)
+                qline = self.eng.notify_kill(monster)
+                if qline:
+                    ui.warn(qline)
                 for line in (res.get("drop_lines") or []):
                     ui.say(line)
                 return "won"
@@ -655,6 +658,19 @@ class Game:
         if res.get("shop"):
             ui.warn(f"  {res['npc_name']} has wares for sale - after 'farewell': "
                     "'shop' to browse, 'buy <item>' to purchase.")
+        offer = res.get("quest_offer")
+        active = res.get("active_quest")
+        if offer:
+            tn = self.eng._quest_turn_in_name(offer)
+            ui.say(f"  {res['npc_name']} leans in with a task:")
+            ui.say(f"    \"{offer.get('title', 'A task')}\" - {offer.get('text', '')}")
+            ui.warn(f"    Objective: {self.eng._quest_objective_text(offer.get('objective', {}))} - "
+                    + (f"return to {tn}" if tn else "completes on the spot")
+                    + ". Answer 'yes' to accept or 'no' to decline.")
+        elif active:
+            ui.warn(f"  (you are on a quest: '{active.get('title')}' - "
+                    f"{active.get('progress')}/{active.get('needed')}; "
+                    f"{active.get('turn_in')})")
         # In-context greeting: the 'talk' action itself prompts the NPC to open.
         msgs.append({"role": "user", "content":
                      "(The player approaches you. Greet them in character in 1-3 "
@@ -696,6 +712,16 @@ class Game:
                 if head in ("buy", "sell"):
                     self._cmd_trade(head, w0[1].strip() if len(w0) > 1 else "")
                     continue
+            # A pending quest offer is answered mechanically - the engine
+            # holds the offer; the LLM only voices the citizen.
+            if self.eng.quest_pending():
+                low = line.lower().strip().rstrip(".!?")
+                if low in ("yes", "y", "accept", "i will", "deal", "agreed"):
+                    ui.say("  " + str(self.eng.accept_quest().get("message", "")))
+                    continue
+                if low in ("no", "n", "decline", "refuse", "not now"):
+                    ui.say("  " + str(self.eng.decline_quest().get("message", "")))
+                    continue
             msgs.append({"role": "user", "content": line})
             reply = self.llm.chat(msgs, max_tokens=self.cfg.get("conversation_max_tokens", 200))
             if "error" in reply:
@@ -712,6 +738,41 @@ class Game:
             if "FAREWELL" in text.upper():
                 ui.say(f"  You part ways with {res['npc_name']}.")
                 break
+
+    def cmd_quest(self, arg=None):
+        """The quest desk. Bare 'quest' reports; accept/decline act on the
+        pending offer; abandon gives up the active quest (progress lost,
+        Virtue -5 but never downward through 0)."""
+        sub = (arg or "").strip().lower().rstrip(".!?")
+        if sub in ("", "status"):
+            st = self.eng.quest_status()
+            if st:
+                ui.say(f"Quest: {st['title']} - {st['text']}")
+                ui.say(f"  Objective: {st['objective']} "
+                       f"({st['progress']}/{st['needed']}) - {st['turn_in']}.")
+                if st["done"]:
+                    ui.warn("  The deed is done - make the hand-in.")
+                return
+            p = self.eng.quest_pending()
+            if p:
+                ui.warn(f"An offer awaits from {p.get('giver')}: "
+                        f"\"{p.get('title')}\" - {p.get('text')} "
+                        f"({p.get('objective')}; {p.get('turn_in')}). "
+                        "'quest accept' or 'quest decline'.")
+            else:
+                ui.warn("No active quest. Talk to a citizen - someone may "
+                        "have a task for the Protector.")
+            return
+        if sub == "accept":
+            res = self.eng.accept_quest()
+        elif sub in ("decline", "refuse"):
+            res = self.eng.decline_quest()
+        elif sub == "abandon":
+            res = self.eng.abandon_quest()
+        else:
+            ui.warn("Usage: quest | quest accept | quest decline | quest abandon")
+            return
+        (ui.say if res.get("success") else ui.warn)(res.get("message", str(res)))
 
     def cmd_search(self, arg=None):
         room = self._room()
@@ -1021,6 +1082,10 @@ class Game:
         "  look      describe the room again\n"
         "  talk      free-flowing conversation with an NPC here (exit: q)\n"
         "  confer    report your deeds to Lord Raika at the Castle (capped +3, once per sleep)\n"
+        "  quest     your current task: quest | quest accept | quest decline |\n"
+        "            quest abandon (citizens offer quests to you in 'talk';\n"
+        "             completing one is +5 Virtue - abandoning costs -5,\n"
+        "             never below 0; one quest at a time)\n"
         "  inv       inventory | equip <item> | unequip <item>\n"
         "            (names are forgiving: case, plurals and half a name are\n"
         "             enough - 'equip torch' finds 'Torches (6)')\n"
@@ -1126,6 +1191,8 @@ class Game:
         elif verb == "confer":
             res = self.eng.confer()
             (ui.say if res.get("success") else ui.warn)(res.get("message", str(res)))
+        elif verb == "quest":
+            self.cmd_quest(arg)
         elif verb == "search":
             self.cmd_search(arg)
         elif verb == "disarm":
@@ -1174,6 +1241,9 @@ class Game:
         # commands (equip, use, buy, sleep...) never leave a stale screen.
         for msg in self.eng.take_food_msgs():
             ui.warn(msg)
+        done = self.eng.check_quest_completion()
+        if done:
+            ui.say(done["message"])
         if verb in self.MOVE_VERBS:
             # _move already painted the room panel (with narration)
             if self.should_improvise() and self.insight > 0:
@@ -1265,6 +1335,8 @@ class Game:
             },
             "insight": self.insight,
             "insight_max": self.insight_max,
+            "quest": self.eng.quest_status(),
+            "quest_pending": self.eng.quest_pending(),
             "narrate": self.narrate_on,
             "hud_text": ui.render_hud(self.eng, insight=self.insight,
                                       insight_max=self.insight_max),
