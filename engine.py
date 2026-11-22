@@ -1263,11 +1263,12 @@ class GameEngine:
                          else "unsearched - try 'search corpse'")
                 npc_presence += (f" | The corpse of the {corpse.get('monster', 'creature')} "
                                  f"lies here ({state}).")
-            if not npc and room_id == VIRTUE_DATA.get("beggar_room", "-1_0_0"):
+            if room_id == VIRTUE_DATA.get("beggar_room", "-1_0_0"):
+                # Aelric the Beggar is a real NPC now (talk works); nudge 'alms'.
                 if npc_presence == "No NPCs or monsters present.":
                     npc_presence = "A beggar sits by the garden wall, hat extended - try 'alms'."
                 else:
-                    npc_presence += " | A beggar sits by the garden wall, hat extended - try 'alms'."
+                    npc_presence += " - his hat is extended; 'alms' works here."
             # The authoritative list of what actually sits in the room right now
             # (chest/trap/shrine). This is what stops a treasure room being
             # narrated as 'empty'.

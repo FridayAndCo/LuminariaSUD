@@ -1,4 +1,20 @@
 {
+ "-1_0_0": {
+  "name": "Aelric the Beggar",
+  "description": "A weathered man in layered rags by the garden wall, hat extended. His eyes are sharper than his coat.",
+  "traits": [
+   "Watchful",
+   "Grateful",
+   "Remembers more than he lets on",
+   "Speaks in half-sentences"
+  ],
+  "hints": {
+   "Alms": "A coin in the hat keeps the old stories moving - say 'alms' if you can spare it.",
+   "The Quiet Quarter": "Gardens, bees, a water channel. Best corner in Luminaria, if you don't mind sleeping in it.",
+   "Drifting": "Names go first, then faces. I keep a list of what I was - 'til I forget where I put it."
+  },
+  "location_id": "-1_0_0"
+ },
  "-1_1_0": {
   "name": "High Priestess",
   "description": "A brilliant but exhausted woman in robes gone thin at the elbows.",

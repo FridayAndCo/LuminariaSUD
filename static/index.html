@@ -55,7 +55,7 @@ function addLine(e){
 }
 function renderSnapshot(s){
   if(!s) return;
-  const r = s.room;
+  const r = s.room || {};
   let h = '<strong>'+r.name+'</strong><br>'+ (r.description||'');
   if(r.visual_elements && r.visual_elements!=='none') h += '<br><span style="color:var(--dim)">Details: '+r.visual_elements+'</span>';
   if(r.npc_presence) h += '<br>'+r.npc_presence;
@@ -68,22 +68,35 @@ function renderSnapshot(s){
   $('#hudbody').textContent = s.hud_text || '';
 }
 async function poll(){
-  const r = await fetch('/api/events?cursor='+cursor); const j = await r.json();
+  let j;
+  try {
+    const r = await fetch('/api/events?cursor='+cursor); j = await r.json();
+  } catch(err) { polling = setTimeout(poll, 700); return; }
   (j.events||[]).forEach(addLine); cursor = j.cursor;
   if(j.snapshot) renderSnapshot(j.snapshot);
   if(j.awaiting_prompt){ $('#promptbar').style.display='flex'; $('#promptlabel').textContent=(j.prompt||'answer').trim(); $('#ans').focus(); }
   else $('#promptbar').style.display='none';
   if(j.busy){ polling = setTimeout(poll, 350); }
-  else { polling = null; }
+  else { polling = null; refreshState(); }
+}
+async function refreshState(){
+  // Belt and braces: once a command has finished, pull the authoritative
+  // snapshot so the room/HUD panels can never lag behind the text log.
+  try { const r = await fetch('/api/state'); const j = await r.json(); renderSnapshot(j.snapshot); }
+  catch(err) {}
 }
 async function send(text){
   text = (text!==undefined?text:$('#cmd').value).trim(); if(!text) return;
   if(text!==undefined) $('#cmd').value='';
-  const r = await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+  let r;
+  try {
+    r = await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+  } catch(err) { addLine({level:'warn',text:'(could not reach the server - try again)'}); return; }
   if(r.status===409){ addLine({level:'warn',text:'(busy — wait for the current command)'}); return; }
   if(!polling) poll();
 }
-async function answer(){ const t=$('#ans').value; $('#ans').value=''; await fetch('/api/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})}); }
+async function answer(){ const t=$('#ans').value; $('#ans').value=''; try { await fetch('/api/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})}); } catch(err) { addLine({level:'warn',text:'(answer failed - try again)'}); } }
+window.addEventListener('focus',()=>{ if(!polling) refreshState(); });
 $('#send').onclick=()=>send();
 $('#cmd').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
 $('#ansbtn').onclick=answer;
