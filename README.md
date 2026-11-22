@@ -36,19 +36,35 @@ Edit `config.json` — point it at your model:
 }
 ```
 
-Then run it. The easiest way is [uv](https://docs.astral.sh/uv/) (it creates
-its own virtualenv, installs `fastapi`+`uvicorn`, and launches — no PEP 668
-headache on modern Debian/Ubuntu):
+Then run it. **Terminal mode needs no third-party packages at all** — plain
+Python is enough:
 
 ```bash
-uv run python luminaria.py          # terminal mode
-uv run python api.py --port 8090    # web mode -> browse http://127.0.0.1:8090
+python3 luminaria.py     # or `python luminaria.py`, depending on your OS/environment
+```
+
+(`rich` adds color and panels to the terminal if you already have it installed;
+the game plays fine without it.)
+
+Web mode needs `fastapi` + `uvicorn`. The easiest way to get those is
+[uv](https://docs.astral.sh/uv/) — it creates its own virtualenv, installs the
+dependencies, and launches, with no PEP 668 headache on modern Debian/Ubuntu:
+
+```bash
+uv run python api.py --port 8090    # -> browse http://127.0.0.1:8090
+```
+
+Running terminal mode *through* uv works too, and is how you opt in to the
+optional color extra:
+
+```bash
+uv run python luminaria.py              # plain (no extras)
+uv run --extra rich python luminaria.py # with rich color
 ```
 
 Prefer plain pip? `python3 -m venv .venv && source .venv/bin/activate &&
-pip install -r requirements.txt`. Terminal mode needs **no** third-party
-packages at all (`rich` adds color and is optional); web mode needs
-`fastapi` + `uvicorn`.
+pip install -r requirements.txt` (or `pip install -e ".[rich]"` for the
+color extra).
 
 Saves live in `state/` and start empty on a fresh clone — the game creates
 your character on first run.
