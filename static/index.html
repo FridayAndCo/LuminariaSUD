@@ -31,6 +31,35 @@
   .narration{color:#cdb9f5;font-style:italic;border-left:3px solid #7a5cc7;padding-left:10px;margin:8px 0;background:rgba(122,92,199,.07)}
   .panel-room,.panel-hud{color:#6f7891;font-size:12.5px;border-left:2px solid var(--border);padding-left:8px;margin:6px 0;opacity:.85}
   .hud-text{white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--dim)}
+  /* --- 2b: structured HUD --- */
+  .bars{display:flex;flex-direction:column;gap:6px}
+  .barrow{display:flex;align-items:center;gap:8px;font-size:12.5px}
+  .barrow label{width:64px;color:var(--dim);flex:none}
+  .bar{flex:1;height:10px;background:#0f131c;border:1px solid var(--border);border-radius:5px;overflow:hidden}
+  .bar i{display:block;height:100%}
+  .bar.hp i{background:#7fbf6a} .bar.sat i{background:#c9a24b} .bar.ins i{background:#8a6fd1}
+  .barrow b{width:56px;text-align:right;font-weight:600;flex:none}
+  .statline{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:12px;color:var(--dim)}
+  .statline span{background:#10141d;border:1px solid var(--border);border-radius:6px;padding:2px 7px}
+  .statline span b{color:var(--ink);font-weight:600}
+  .equipped{margin-top:10px;font-size:12px;color:var(--dim);display:flex;flex-direction:column;gap:2px}
+  .equipped i{color:#d9b45b;font-style:normal}
+  .effects{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+  .effect{font-size:11.5px;background:#241f10;border:1px solid #5a4a2a;color:#d9b45b;border-radius:6px;padding:1px 7px}
+  .questline{margin-top:10px;font-size:12.5px;border-top:1px solid var(--border);padding-top:8px}
+  .questline small{display:block;color:var(--dim);margin-top:2px}
+  /* --- 2b: inventory panel --- */
+  #inv{flex:none;max-height:32%}
+  .invhead{font-size:11.5px;color:var(--dim);margin-bottom:6px}
+  .invrow{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px dashed #232a3c;font-size:13px}
+  .invrow:last-child{border-bottom:0}
+  .invrow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .invrow .qty{color:var(--dim);flex:none}
+  .invrow .worn{font-size:10px;color:#8fb8d9;border:1px solid #2e4358;border-radius:4px;padding:0 4px;flex:none}
+  .iact{background:#20283a;border:1px solid var(--border);border-radius:5px;color:#bcd6a0;font-size:10.5px;padding:2px 6px;cursor:pointer;flex:none}
+  .iact:hover{border-color:var(--accent)}
+  body.busy .iact{opacity:.45;pointer-events:none}
+  .invempty{color:var(--dim);font-size:12.5px}
   /* --- compass exits --- */
   .compass{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
   .compass .ghost,.compass .rose{height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center}
@@ -66,7 +95,8 @@
   <header><h1>LUMINARIA</h1><span class="sub">the city that forgets itself</span><span id="busydot" title="the game is working"></span></header>
   <div id="left">
     <div id="room" class="panel"><h2>Room</h2><div id="roombody"></div></div>
-    <div id="hud" class="panel"><h2>Character</h2><div id="hudbody" class="hud-text"></div></div>
+    <div id="inv" class="panel"><h2>Inventory</h2><div id="invbody"></div></div>
+    <div id="hud" class="panel"><h2>Character</h2><div id="hudbody"></div></div>
   </div>
   <div id="log" class="panel"></div>
   <div id="promptbar"><label id="promptlabel">prompt</label><input id="ans" autocomplete="off"><button id="ansbtn">answer</button></div>
@@ -92,6 +122,58 @@ function setBusy(b){
   $('#send').disabled = b;
 }
 function esc(t){ const d=document.createElement('span'); d.textContent=(t==null?'':String(t)); return d.innerHTML; }
+function bar(label, cls, cur, max){
+  const pct = (max>0) ? Math.max(0, Math.min(100, Math.round(cur/max*100))) : 0;
+  return '<div class="barrow"><label>'+label+'</label><div class="bar '+cls+'"><i style="width:'+pct+'%"></i></div><b>'+cur+'/'+max+'</b></div>';
+}
+function renderHud(s){
+  const el = $('#hudbody'); if(!el) return;
+  const p = s.player || {};
+  let h = '<div class="bars">';
+  h += bar('Health','hp', p.hp||0, p.max_hp||0);
+  h += bar('Fullness','sat', p.satiety||0, p.max_satiety||0);
+  h += bar('Insight','ins', (s.insight==null?0:s.insight), (s.insight_max==null?0:s.insight_max));
+  h += '</div>';
+  const st = p.stats || {};
+  h += '<div class="statline">';
+  ['STR','DEX','CON','INT','WIS','CHA'].forEach(k=>{ if(st[k]!=null) h+='<span>'+k+' <b>'+st[k]+'</b></span>'; });
+  h += '</div>';
+  h += '<div class="statline"><span>AC <b>'+(p.ac==null?'?':p.ac)+'</b></span><span>Gold <b>'+(p.gold==null?'?':p.gold)+'</b></span><span>Virtue <b>'+(p.virtue==null?'?':p.virtue)+'</b></span><span>'+(p.floor||'')+'</span></div>';
+  const eq = p.equipped || {};
+  h += '<div class="equipped">';
+  [['weapon','Weapon'],['armor','Armor'],['shield','Shield']].forEach(pair=>{
+    h += '<div>'+pair[1]+': '+(eq[pair[0]] ? '<i>'+esc(eq[pair[0]])+'</i>' : '<span style="opacity:.5">empty</span>')+'</div>';
+  });
+  h += '</div>';
+  const fx = p.status_effects || [];
+  if(fx.length){ h += '<div class="effects">'; fx.forEach(f=>{ h+='<span class="effect">'+esc(typeof f==='string'?f:(f.name||JSON.stringify(f)))+'</span>'; }); h += '</div>'; }
+  if(s.quest){
+    const q = s.quest;
+    h += '<div class="questline"><b>Quest:</b> '+esc(q.title||'')+' <b>('+(q.progress||0)+'/'+(q.needed||1)+')</b>';
+    h += '<small>'+esc(q.objective||'')+' \u2014 '+esc(q.turn_in||'')+(q.gold?(' \u00b7 '+q.gold+'g'):'')+'</small></div>';
+  } else if(s.quest_pending){
+    h += '<div class="questline"><b>Offer:</b> '+esc(s.quest_pending.title||'')+' <small>from '+esc(s.quest_pending.giver||'')+' \u2014 ask about it in conversation</small></div>';
+  }
+  el.innerHTML = h;
+}
+function renderInv(s){
+  const el = $('#invbody'); if(!el) return;
+  const p = s.player || {};
+  const inv = p.inventory || [];
+  const wornNames = {}; Object.keys(p.equipped||{}).forEach(k=>{ const v=p.equipped[k]; if(v) wornNames[v]=true; });
+  let h = '<div class="invhead">'+(p.inv_usage||0)+'/'+(p.inv_cap||0)+' slots</div>';
+  if(!inv.length){ h += '<div class="invempty">Your pack is empty.</div>'; }
+  inv.forEach(it=>{
+    const nm = it.name;
+    h += '<div class="invrow"><span class="nm" title="'+esc(nm)+'">'+esc(nm)+'</span>';
+    if(wornNames[nm]) h += '<span class="worn">worn</span>';
+    if(it.qty>1) h += '<span class="qty">\u00d7'+it.qty+'</span>';
+    h += '<button class="iact" data-act="use" data-item="'+esc(nm)+'">Use</button>';
+    h += '<button class="iact" data-act="equip" data-item="'+esc(nm)+'">Equip</button>';
+    h += '<button class="iact" data-act="drop" data-item="'+esc(nm)+'">Drop</button></div>';
+  });
+  el.innerHTML = h;
+}
 function renderSnapshot(s){
   if(!s) return;
   const r = s.room || {};
@@ -118,7 +200,8 @@ function renderSnapshot(s){
   const hs = r.hotspots||[];
   if(hs.length){ h += '<div class="hotspots">'; hs.forEach(x=>{ h+='<span class="hot">'+esc(x.type)+(x.name?(' '+esc(x.name)):x.monster?(' '+esc(x.monster)):'')+'</span>'; }); h += '</div>'; }
   $('#roombody').innerHTML = h;
-  $('#hudbody').textContent = s.hud_text || '';
+  renderHud(s);
+  renderInv(s);
 }
 async function poll(){
   let j;
@@ -164,6 +247,13 @@ async function answer(){
 document.addEventListener('click', e=>{
   const b = e.target.closest && e.target.closest('button[data-cmd]'); if(!b) return;
   send(b.dataset.cmd);
+});
+// 2b: inventory action buttons -> engine commands (drop confirms; others fire)
+document.addEventListener('click', e=>{
+  const b = e.target.closest && e.target.closest('button.iact[data-act]'); if(!b) return;
+  const act = b.dataset.act, item = b.dataset.item;
+  if(act==='drop' && window.confirm && !window.confirm('Drop ' + item + ' for good?')) return;
+  send(act + ' ' + item);
 });
 window.addEventListener('focus',()=>{ if(!polling) refreshState(); });
 $('#send').onclick=()=>send();
