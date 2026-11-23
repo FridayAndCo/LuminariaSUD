@@ -159,8 +159,10 @@ async function answer(){
   try { await fetch('/api/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})}); }
   catch(err) { addLine({level:'warn',text:'(answer failed - try again)'}); }
 }
-$('#compass').addEventListener('click', e=>{
-  const b = e.target.closest('button[data-cmd]'); if(!b) return;
+// Compass buttons are re-rendered with every snapshot, so delegate from
+// document — #compass does not exist yet at script-parse time.
+document.addEventListener('click', e=>{
+  const b = e.target.closest && e.target.closest('button[data-cmd]'); if(!b) return;
   send(b.dataset.cmd);
 });
 window.addEventListener('focus',()=>{ if(!polling) refreshState(); });
