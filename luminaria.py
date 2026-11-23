@@ -335,6 +335,10 @@ class Game:
             # repaint the room so the panel reflects the post-fight state
             ui.show_room(self.eng, exits_line=self._exits_line())
         self._flush_food_msgs()
+        gone = res.get("drops_gone")
+        if gone:
+            bits = "; ".join(f"the {n} you dropped {E.DROP_DECAY}" for n, _q in gone)
+            ui.warn(bits + ".")
         return text
 
     def _monster_hp(self, monster):
@@ -660,6 +664,30 @@ class Game:
                 ui.warn(f"Not a number - discarding {have}x {match}.")
                 qty = have
         res = self.eng.player.discard_item(match, qty)
+        (ui.say if res.get("success") else ui.warn)(res.get("message", str(res)))
+
+
+    def cmd_get(self, arg):
+        """'get <item>' - pick a dropped item back off the room floor."""
+        pos = self.eng.player.data["position"]
+        room = self._room()
+        drops = room.get("dropped_items") or []
+        names = sorted({d["name"] for d in drops})
+        if not arg:
+            if not drops:
+                ui.warn("There is nothing lying on the ground here.")
+            else:
+                ui.say("Pick up what? Lying here: " + ", ".join(names))
+            return
+        match, ambiguous = E.resolve_item_name(arg, names)
+        if ambiguous:
+            ui.warn("Which one - " + " or ".join(ambiguous) + "?")
+            return
+        if not match:
+            lying = ", ".join(names) or "nothing"
+            ui.warn(f"There is no {arg} lying here. On the ground: {lying}")
+            return
+        res = self.eng.player.drop_pickup(pos["x"], pos["y"], pos["z"], match)
         (ui.say if res.get("success") else ui.warn)(res.get("message", str(res)))
 
 
@@ -1112,7 +1140,9 @@ class Game:
         "             enough - 'equip torch' finds 'Torches (6)')\n"
         "  discard   discard <item> [qty] - throw it away for good\n"
         "            (drop / throw work too; a stack asks 'How many?',\n"
-        "             default the lot - and it empties any worn slot)\n"
+        "             default the lot - and it empties any worn slot;\n"
+        "             what you drop lies here a few moves before it fades)\n"
+        "  get       get <item> - pick a dropped item back up (take / grab)\n"
         "  search    hunt for traps/hidden things - costs an hour, and a\n"
         "              fumble can set the trap off under your own fingers\n"
         "            (search [corpse] - rifle the corpse a slain monster left;\n"
@@ -1123,7 +1153,7 @@ class Game:
         "            'talk' to - e.g. Slippery Pete in the Market District)\n"
         "  buy       buy <item> [qty] | sell <item> [qty] - CHA helps selling\n"
         "            (you can shop/buy/sell right inside a 'talk' too)\n"
-        "  use       use <item>\n"
+        "  use       use <item>  ('eat' and 'consume' work for food)\n"
         "  cast      mix reagents into a spell (menu of what you carry; cast in combat too)\n"
         "  sleep     bedroll (dungeon) or the inn - restores insight & HP, costs Satiety\n"
         "            (inn: wakes you the next Morning; bedroll: two phases pass)\n"
@@ -1201,6 +1231,8 @@ class Game:
             self.cmd_unequip(arg or "")
         elif verb in ("discard", "drop", "throw"):
             self.cmd_discard(arg or "")
+        elif verb in ("get", "take", "grab"):
+            self.cmd_get(arg or "")
         elif verb == "talk":
             self.cmd_talk()
         elif verb == "alms":
@@ -1228,7 +1260,7 @@ class Game:
             self.cmd_discovery("discovery_enter", "enter")
         elif verb == "open":
             self.cmd_open(arg)
-        elif verb == "use":
+        elif verb in ("use", "eat", "consume"):
             self.cmd_use(arg or "")
         elif verb in ("cast", "mix", "m"):
             self.cmd_cast()
@@ -1322,6 +1354,12 @@ class Game:
                              "searched": bool(corpse.get("searched"))})
         if room.get("shrine") or room.get("type") == "Shrine":
             hotspots.append({"type": "shrine"})
+        drop_counts = {}
+        for d in (room.get("dropped_items") or []):
+            drop_counts[d["name"]] = drop_counts.get(d["name"], 0) + 1
+        drop_list = [{"name": n, "qty": q} for n, q in sorted(drop_counts.items())]
+        for d in drop_list:
+            hotspots.append({"type": "drop", "name": d["name"], "qty": d["qty"]})
 
         inv = p["inventory"]
         usage = self.eng.player.get_inventory_usage(inv)
@@ -1340,6 +1378,7 @@ class Game:
                 "time_of_day": ctx.get("time_of_day"),
                 "exits": exits,
                 "hotspots": hotspots,
+                "dropped_items": drop_list,
             },
             "player": {
                 "hp": p["hp"], "max_hp": p["max_hp"],

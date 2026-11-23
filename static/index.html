@@ -169,7 +169,8 @@ function renderInv(s){
     if(wornNames[nm]) h += '<span class="worn">worn</span>';
     if(it.qty>1) h += '<span class="qty">\u00d7'+it.qty+'</span>';
     h += '<button class="iact" data-act="use" data-item="'+esc(nm)+'">Use</button>';
-    h += '<button class="iact" data-act="equip" data-item="'+esc(nm)+'">Equip</button>';
+    if(wornNames[nm]) h += '<button class="iact" data-act="unequip" data-item="'+esc(nm)+'">Unequip</button>';
+    else h += '<button class="iact" data-act="equip" data-item="'+esc(nm)+'">Equip</button>';
     h += '<button class="iact" data-act="drop" data-item="'+esc(nm)+'">Drop</button></div>';
   });
   el.innerHTML = h;

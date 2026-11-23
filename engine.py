@@ -194,6 +194,13 @@ BUNDLES = {
 }
 
 # Things that burn down to nothing on their own timer rather than being worn.
+# Dropped items are NOT deleted: they lie in the room for a few moves so the
+# floor can be used as a free staging area (juggling gear must not cost
+# satiety - that is the time budget). The clock is per-item, counted in moves,
+# and only the room you ENTER decays - everything else waits.
+DROP_FADE_MOVES = (4, 7)
+DROP_DECAY = "drifts away, forgotten with the place"
+
 LIGHT_FUEL_KEYS = {"torch": "Torch", "lantern": "Lantern"}
 
 # British and colloquial spellings for the equipment slot names.
@@ -915,6 +922,9 @@ class PlayerState:
             msg = f"You throw away {qty}x {match}."
         if cleared:
             msg += f" Your {', '.join(cleared)} is now empty."
+        if self.engine:
+            pos = self.data["position"]
+            self.engine.world.add_dropped(pos["x"], pos["y"], pos["z"], match, qty)
         return {
             "success": True,
             "discarded": qty,
@@ -951,6 +961,32 @@ class PlayerState:
         self.save()
         return {"success": True, "message": f"Added {quantity}x {item} to inventory."}
 
+    def drop_pickup(self, x, y, z, item, qty=1):
+        """Pick a dropped item off the floor of a room back into the pack."""
+        w = self.engine.world
+        room_id = f"{x}_{y}_{z}"
+        src = w.town_rooms if room_id in w.town_rooms else w.rooms
+        drops = (src.get(room_id) or {}).get("dropped_items") or []
+        for i, d in enumerate(drops):
+            if d.get("name") == item:
+                inv = self.data["inventory"]
+                if (self.get_inventory_usage(inv) + qty
+                        > self.get_inventory_capacity(inv)):
+                    return {"success": False,
+                            "message": "Your inventory is full - you cannot carry that."}
+                drops.pop(i)
+                inv[item] = inv.get(item, 0) + qty
+                self.data.setdefault("item_ages", {}).setdefault(item, 0)
+                if item == "Torch":
+                    self.data["light_fuel"]["torch"] += qty * 60
+                elif item == "Oil (Lantern, 1 pint)":
+                    self.data["light_fuel"]["lantern"] += qty * 120
+                w.save()
+                self.save()
+                left = f" ({len(drops)} item(s) still on the ground here)" if drops else ""
+                return {"success": True,
+                        "message": f"You pick up {qty}x {item}." + left}
+        return {"success": False, "message": "There is nothing like that lying here."}
 
 
 def time_of_day_description(room, phase_idx, z):
@@ -975,6 +1011,7 @@ def time_of_day_description(room, phase_idx, z):
              2: ["morning", "morning", "evening", "evening"]}
     keys = table.get(len(tdesc), ["morning", "morning", "evening", "evening"])
     return tdesc.get(keys[idx]) or tdesc.get("morning") or tdesc.get("evening")
+
 
 
 def room_features(room):
@@ -1054,6 +1091,43 @@ class WorldMap:
                 changed = True
         if changed:
             self.save()
+
+    def add_dropped(self, x, y, z, name, qty=1, decay=None):
+        """Record dropped items on the TRUE room dict (get_room() hands out
+        copies, so mutating those would vanish)."""
+        room_id = f"{x}_{y}_{z}"
+        src = self.town_rooms if room_id in self.town_rooms else self.rooms
+        if room_id not in src:
+            return False
+        drops = src[room_id].setdefault("dropped_items", [])
+        for _ in range(qty):
+            drops.append({"name": name,
+                          "decay": decay if decay is not None
+                          else random.randint(*DROP_FADE_MOVES)})
+        self.save()
+        return True
+
+    def decay_drops(self, x, y, z):
+        """Advance the hidden per-item clock (in MOVES) for the room entered.
+        Returns a list of (name, qty) that just faded away."""
+        room_id = f"{x}_{y}_{z}"
+        src = self.town_rooms if room_id in self.town_rooms else self.rooms
+        drops = (src.get(room_id) or {}).get("dropped_items") or []
+        if not drops:
+            return []
+        gone = {}
+        keep = []
+        for d in drops:
+            d["decay"] = d.get("decay", 5) - 1
+            if d["decay"] <= 0:
+                gone[d["name"]] = gone.get(d["name"], 0) + 1
+            else:
+                keep.append(d)
+        src[room_id]["dropped_items"] = keep
+        if len(keep) != len(drops):
+            self.save()
+        return list(gone.items())
+
 
     def save(self):
         with open(WORLD_FILE, "w") as f:
@@ -1350,6 +1424,10 @@ class GameEngine:
                     led["floors"].append(nz)
                     self.player.update_virtue(1)
                     res["new_floor"] = True
+            np_ = res.get("position", {})
+            gone = self.world.decay_drops(np_.get("x", 0), np_.get("y", 0), np_.get("z", 0))
+            if gone:
+                res["drops_gone"] = gone
         return res
 
     def _resolve_trap(self, trap_type):
