@@ -122,8 +122,10 @@ app = FastAPI(title="LuminariaSUD API", version="0.1")
 
 
 @app.get("/", response_class=HTMLResponse)
-def index():
-    path = os.path.join(STATIC, "index.html")
+def index(legacy: bool = False):
+    # The Phase 1 test harness stays reachable at /?legacy=1.
+    fname = "legacy.html" if legacy and os.path.exists(os.path.join(STATIC, "legacy.html")) else "index.html"
+    path = os.path.join(STATIC, fname)
     if os.path.exists(path):
         with open(path, encoding="utf-8") as f:
             return f.read()
