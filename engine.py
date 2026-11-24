@@ -650,6 +650,7 @@ def default_player_data():
         "virtue_ledger": {"day": 0, "last_stand": 0, "floors": []},
         "light_fuel": {"torch": 0, "lantern": 0},
         "light_duration": 0,
+        "buffs": [],
         "time": {"day": 1, "phase": 0, "tick": 0},
         "stats": {"STR": 11, "DEX": 11, "CON": 11, "INT": 11, "WIS": 11, "CHA": 11},
         "position": {"x": -1, "y": 1, "z": 0},
@@ -1399,6 +1400,7 @@ class GameEngine:
                         eq[slot] = None
         if p_data["light_duration"] > 0:
             p_data["light_duration"] -= 1
+        self._tick_buffs()
         self.player.save()
 
         if monster != "None":
@@ -1661,7 +1663,10 @@ class GameEngine:
         shield_bonus = (ARMOR_DATA[self.player.data["equipped"]["shield"]]["ac"]
                         if self.player.data["equipped"]["shield"] in ARMOR_DATA else 0)
         dex = self.player.data["stats"].get("DEX", 10)
-        return armor_bonus + shield_bonus + dex
+        buff_ac = 0
+        for b in self.player.data.get("buffs", []):
+            buff_ac += b.get("tags", {}).get("ac_bonus", 0)
+        return armor_bonus + shield_bonus + dex + buff_ac
 
     def calculate_attack_bonus(self, weapon_name):
         weapon_stats = WEAPON_DATA.get(weapon_name, {})
@@ -1800,6 +1805,11 @@ class GameEngine:
             "Sleep": lambda: "A heavy mist descends. (Targets fall asleep - handled by AI)",
             "Detect Magic": lambda: self.detect_magic(),
             "Purify Food": lambda: self._purify_food(),
+            "Fireball": lambda: self._spell_fireball(),
+            "Lightning Bolt": lambda: self._spell_lightning_bolt(),
+            "Wall of Fire": lambda: self._spell_wall_of_fire(),
+            "Disintegrate": lambda: self._spell_disintegrate(),
+            "Kill": lambda: self._spell_kill(),
         }
         if cast_spell in effects:
             result = effects[cast_spell]()
@@ -1960,6 +1970,135 @@ class GameEngine:
         self.player.save()
         return "A sphere of soft, magical light erupts around you, illuminating the darkness for some time."
 
+    # --- spell damage & buff infrastructure (sub-phase 2d, batch 1) ---
+    def _int_bonus(self):
+        return self.player.data["stats"].get("INT", 10) - 10
+
+    def _apply_buff(self, name, turns, tags=None):
+        buffs = self.player.data.setdefault("buffs", [])
+        for b in buffs:
+            if b.get("name") == name:
+                b["turns"] = max(b.get("turns", 0), int(turns))
+                b["tags"] = tags or b.get("tags", {})
+                self.player.save()
+                return
+        buffs.append({"name": name, "turns": int(turns), "tags": tags or {}})
+        self.player.save()
+
+    def _get_buff(self, name):
+        for b in self.player.data.get("buffs", []):
+            if b.get("name") == name:
+                return b
+        return None
+
+    def _tick_buffs(self):
+        """Decrement buff durations on a normal (movement) turn; drop expired."""
+        buffs = self.player.data.get("buffs", [])
+        if not buffs:
+            return []
+        lines = []
+        kept = []
+        for b in buffs:
+            b["turns"] = b.get("turns", 0) - 1
+            if b["turns"] <= 0:
+                lines.append(f"{b['name']} fades.")
+            else:
+                kept.append(b)
+        self.player.data["buffs"] = kept
+        if lines:
+            self.player.save()
+        return lines
+
+    def _room_encounter(self):
+        pos = self.player.data["position"]
+        room = self.world.get_room(pos["x"], pos["y"], pos["z"])
+        enc = room.get("encounter", "None")
+        return enc if enc and enc != "None" else None
+
+    def _spell_damage_encounter(self, monster_name, damage, no_corpse=False, source=""):
+        """Apply spell damage to the room's encounter; handle death/corpse/virtue."""
+        pos = self.player.data["position"]
+        room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        bestiary = self.world.generator.bestiary
+        mdata = bestiary.get(monster_name, {})
+        if room_id not in self.combat_state:
+            self.combat_state[room_id] = mdata.get("hp", 10)
+        self.combat_state[room_id] -= damage
+        dead = self.combat_state[room_id] <= 0
+        msg = f"{source}The {monster_name} takes {damage} damage."
+        if dead:
+            self._clear_room_encounter(room_id)
+            self.player.update_virtue(2)
+            if not no_corpse:
+                self._deposit_corpse(room_id, monster_name, self.roll_monster_drops(monster_name))
+            msg += f" The {monster_name} is destroyed!"
+        return {"success": True, "damage": damage, "monster_dead": dead, "message": msg}
+
+    def _spell_fireball(self):
+        X = self._int_bonus()
+        enc = self._room_encounter()
+        if not enc:
+            return {"success": True, "spell": "Fireball",
+                    "message": "The fireball erupts in a wash of light - but there is nothing there to burn."}
+        dice = max(0, X)
+        dmg = sum(random.randint(1, 6) for _ in range(dice)) + dice
+        res = self._spell_damage_encounter(enc, dmg, source="A roaring fireball engulfs the room. ")
+        res["spell"] = "Fireball"
+        return res
+
+    def _spell_lightning_bolt(self):
+        X = self._int_bonus()
+        enc = self._room_encounter()
+        if not enc:
+            return {"success": True, "spell": "Lightning Bolt",
+                    "message": "The bolt crackles and dies in the air - nothing to strike."}
+        bestiary = self.world.generator.bestiary
+        mdata = bestiary.get(enc, {})
+        roll = self.roll_dice(20, 0)
+        if roll < mdata.get("ac", 10):
+            return {"success": True, "spell": "Lightning Bolt",
+                    "message": f"A lightning bolt arcs toward the {enc} and misses. (roll {roll} vs AC {mdata.get('ac',10)})"}
+        dice = max(0, X)
+        dmg = sum(random.randint(1, 8) for _ in range(dice)) + dice
+        res = self._spell_damage_encounter(enc, dmg, source="A bolt of lightning lashes down. ")
+        res["spell"] = "Lightning Bolt"
+        res["message"] = f"(roll {roll}) " + res["message"]
+        return res
+
+    def _spell_wall_of_fire(self):
+        X = self._int_bonus()
+        enc = self._room_encounter()
+        if not enc:
+            return {"success": True, "spell": "Wall of Fire",
+                    "message": "A wall of roaring flame rises - but there is no one there to be caught in it."}
+        dice = max(0, X)
+        first = sum(random.randint(1, 6) for _ in range(dice)) + dice
+        res = self._spell_damage_encounter(enc, first, source="A wall of fire crashes through the room. ")
+        if not res.get("monster_dead"):
+            self._apply_buff("Wall of Fire", 5, {"dot": dice, "dice": 6})
+            res["message"] += " The flames linger, burning the creature each round."
+        res["spell"] = "Wall of Fire"
+        return res
+
+    def _spell_disintegrate(self):
+        enc = self._room_encounter()
+        if not enc:
+            return {"success": True, "spell": "Disintegrate",
+                    "message": "The disintegrating ray flashes - but there is nothing there to unmake."}
+        res = self._spell_damage_encounter(enc, 9999, no_corpse=True, source="A disintegrating ray lances out. ")
+        res["spell"] = "Disintegrate"
+        res["message"] += " What remains crumbles to gray dust - no corpse, no trace."
+        return res
+
+    def _spell_kill(self):
+        enc = self._room_encounter()
+        if not enc:
+            return {"success": True, "spell": "Kill",
+                    "message": "You speak the word of death - but there is no one there to hear it."}
+        res = self._spell_damage_encounter(enc, 9999, source="A cold word of death leaves your lips. ")
+        res["spell"] = "Kill"
+        return res
+
     def meditate(self, shrine_type, stat_name):
         if stat_name not in self.player.data["stats"]:
             return {"success": False, "message": "Invalid stat."}
@@ -2054,6 +2193,18 @@ class GameEngine:
         m_hp = self.combat_state[room_id]
         p_hp = self.player.data["hp"]
         p_res = {"hit": False, "damage": 0, "message": ""}
+        # Wall of Fire damage-over-time: burns the encounter each combat round
+        wof = self._get_buff("Wall of Fire")
+        if wof:
+            w_dice = wof.get("tags", {}).get("dot", 0)
+            if w_dice > 0:
+                w_dmg = sum(random.randint(1, 6) for _ in range(w_dice)) + w_dice
+                self.combat_state[room_id] -= w_dmg
+                p_res["message"] = (p_res.get("message") or "") + f" The wall of fire burns the {monster_name} for {w_dmg}."
+            wof["turns"] -= 1
+            if wof["turns"] <= 0:
+                self.player.data["buffs"] = [b for b in self.player.data["buffs"] if b.get("name") != "Wall of Fire"]
+                self.player.save()
         if player_action == "fight":
             p_res = self.resolve_attack(player_weapon, bestiary[monster_id]["ac"], penalty=attack_penalty)
             if p_res["hit"]:

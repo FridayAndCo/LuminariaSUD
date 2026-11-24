@@ -178,6 +178,41 @@ NPCs with distinct voices, dynamic NPC schedules (who's where, when), expanded
 town districts, an overworld with more towns beyond Luminaria, and more
 quests, monsters, and weird rooms all along the way.
 
+### Magic system (sub-phase 2d, in progress)
+
+The goal: every spell has a **real mechanical effect** that moves the game,
+instead of leaning on the LLM to invent outcomes. Magic is deliberately
+powerful in Luminaria — that's why it's locked behind a complex reagent
+system. The engine resolves the dice, the state, and the consequences; the LLM
+only narrates.
+
+**Damage formula:** a damage spell deals `Xd6 + X` where `X = INT - 10`
+(no halving). Low-level casters can't use the big spells — a L3 Fireball at
+INT 10 is a fizzle.
+
+**Work is landing in batches**, each pushable on its own:
+
+1. **Batch 1 — damage spells + buff infrastructure** *(this push)*: the
+   buff system (durations that tick on the turn loop, feeding AC / attacks /
+   movement), a shared monster-save helper, and the five damage spells —
+   **Fireball**, **Lightning Bolt** (d20 to hit), **Wall of Fire** (damage
+   over time), **Disintegrate** (no corpse), and **Kill** (instant).
+2. **Batch 2 — control spells**: Sleep, Hold Person, Web, Charm (Person /
+   Monster), Confusion.
+3. **Batch 3 — utility spells**: Lock, Knock, Levitate, Fly, Invisibility,
+   Water Breathing, Passwall, Teleport, Locate Object, Read Language,
+   Continuous Light, Remove Curse, Dispel Magic, Control Weather, Find Traps.
+4. **Batch 4 — LLM-tool spells**: Divinate (revisit later), Polymorph,
+   Commune with the Dead, Telekinesis, Speak with Plants / Animals, and the
+   wildcard **Wish**.
+5. **Batch 5 — counter-features**: `see_invisible` monster trait, the glyph
+   feature, and Raise-Dead curses.
+
+The full per-spell design (what each one does, whether it's mechanical, a
+buff, or an LLM tool) is tracked in the project notes. If you're forking,
+batches 1–3 are pure engine work you can read and extend; batch 4 is where
+the LLM-tool seam lives.
+
 Everyone is free to build on this however they wish — it's GPL-3.0. We'll
 keep adding to it; consider this a world with room in it.
 
