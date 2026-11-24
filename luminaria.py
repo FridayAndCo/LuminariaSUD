@@ -901,6 +901,13 @@ class Game:
         else:
             ui.say(str(res))
 
+    def cmd_read(self, item):
+        res = self.eng.read_item(item or "")
+        if isinstance(res, dict):
+            ui.say(res.get("message", str(res)))
+        else:
+            ui.say(str(res))
+
     def _reagent_menu(self):
         """Ultima-style casting: the player knows the formula out-of-game.
         We list only the reagents actually carried and ask for a quantity of
@@ -1157,6 +1164,9 @@ class Game:
         "  buy       buy <item> [qty] | sell <item> [qty] - CHA helps selling\n"
         "            (you can shop/buy/sell right inside a 'talk' too)\n"
         "  use       use <item>  ('eat' and 'consume' work for food)\n"
+        "  read      read <item> - look a page/scrap/book over ('study'/'peruse'\n"
+        "            work too). Not consumed - the formula is yours to keep in your\n"
+        "            own head. Bare 'read' lists what you carry.\n"
         "  cast      mix reagents into a spell (menu of what you carry; cast in combat too)\n"
         "  sleep     bedroll (dungeon) or the inn - restores insight & HP, costs Satiety\n"
         "            (inn: wakes you the next Morning; bedroll: two phases pass)\n"
@@ -1274,6 +1284,8 @@ class Game:
             self.cmd_open(arg)
         elif verb in ("use", "eat", "consume"):
             self.cmd_use(arg or "")
+        elif verb in ("read", "study", "peruse"):
+            self.cmd_read(arg or "")
         elif verb in ("cast", "mix", "m"):
             self.cmd_cast()
         elif verb == "sleep":

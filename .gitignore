@@ -6,3 +6,6 @@ api.log
 
 # runtime save files - everyone gets a clean slate
 state/
+
+# stale state backups
+state_bk*/

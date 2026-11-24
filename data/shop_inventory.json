@@ -20,7 +20,8 @@
  },
  "The Black Candle": {
   "reagents": "reagents",
-  "containers": "pouches"
+  "containers": "pouches",
+  "readables": "readables"
  },
  "The Mortar & Pestle": {
   "potions": "potions"

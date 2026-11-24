@@ -142,6 +142,7 @@ POUCH_DATA = {}
 TRANSPORT_DATA = {}
 KEY_DATA = {}
 LOCKPICK_DATA = {}
+READABLE_DATA = {}
 LEDGER_DATA = {}
 LEDGER = {}
 
@@ -150,6 +151,7 @@ def load_ledger():
     """(Re)load the items ledger JSON into the module-level category globals."""
     global REAGENT_DATA, WEAPON_DATA, RANGED_DATA, ARMOR_DATA, PROVISIONS_DATA, GENERAL_DATA
     global TRANSPORT_DATA, KEY_DATA, LOCKPICK_DATA, LEDGER_DATA, LEDGER, POUCH_DATA
+    global READABLE_DATA
     ledger = _load_json("items_ledger.json", {})
     LEDGER = ledger
     REAGENT_DATA = ledger.get("reagents", {})
@@ -162,6 +164,7 @@ def load_ledger():
     TRANSPORT_DATA = ledger.get("transport", {})
     KEY_DATA = ledger.get("keys", {})
     LOCKPICK_DATA = ledger.get("lockpicks", {})
+    READABLE_DATA = ledger.get("readables", {})
     LEDGER_DATA.clear()
     for category in ledger.values():
         for item, info in category.items():
@@ -611,10 +614,18 @@ class DungeonGenerator:
             item_to_give = None
             item_price = 0
             if random.random() < 0.05:
+                # A spell readable: mostly a page, sometimes a scrap, rarely a book.
                 spell_name = random.choice(list(SPELL_DATA.keys()))
-                item_to_give = (f"Recipe: {spell_name}" if random.random() > 0.4
-                                else f"Partial Recipe: {spell_name}")
-                item_price = 0
+                roll = random.random()
+                if roll < 0.10:
+                    item_to_give = (f"Book: {spell_name}"
+                                    if f"Book: {spell_name}" in READABLE_DATA
+                                    else f"Scrap: {spell_name}")
+                elif roll < 0.40:
+                    item_to_give = f"Scrap: {spell_name}"
+                else:
+                    item_to_give = f"Page: {spell_name}"
+                item_price = LEDGER_DATA.get(item_to_give, 0)
             elif eligible_items:
                 item_to_give = random.choice(eligible_items)
                 item_price = LEDGER_DATA.get(item_to_give, 0)
@@ -1856,6 +1867,9 @@ class GameEngine:
             "Monster Meat": {"spell": None, "effect": self._eat_raw_meat,
                              "flavor": "You eat the meat raw, because you are hungry enough to."},
         }
+        # Readables (pages/scraps/books) are read, not used - nothing is consumed.
+        if item_name in READABLE_DATA:
+            return self.read_item(item_name)
         use_key = (item_name if item_name in usable_items
                    else find_table_key(item_name, usable_items))
         if not use_key:
@@ -1877,6 +1891,35 @@ class GameEngine:
             response["message"] += (f" Your health returns fully to "
                                     f"{p['hp']}/{p['max_hp']}.")
         return response
+
+    def read_item(self, item_name):
+        """Read a carried readable (page/scrap/book). Not consumed.
+
+        A bare call (empty name) lists the readables carried. The game never
+        tracks what you have learned (Ultima-style - the player IS the
+        Protector): reading only shows the text so you can commit it to
+        memory or write it down.
+        """
+        inv = self.player.data["inventory"]
+        carried = [k for k, q in inv.items() if q > 0 and k in READABLE_DATA]
+        if not (item_name or "").strip():
+            if not carried:
+                return {"success": False,
+                        "message": "You carry nothing to read."}
+            return {"success": True, "readables": sorted(carried),
+                    "message": "You carry: " + ", ".join(sorted(carried)) +
+                               ". (read <item> to look one over)"}
+        match, ambiguous = resolve_item_name(item_name, carried)
+        if ambiguous:
+            return {"success": False,
+                    "message": "Which one - " + " or ".join(ambiguous) + "?"}
+        if not match:
+            return {"success": False,
+                    "message": f"You don't have a {item_name} to read."}
+        info = READABLE_DATA[match]
+        return {"success": True, "item": match, "kind": info.get("kind"),
+                "text": info.get("text", ""),
+                "message": info.get("text", f"The {match} holds no legible text.")}
 
     def _eat_hot_meal(self):
         p = self.player.data
@@ -2140,9 +2183,6 @@ class GameEngine:
         if not npc:
             return {"error": "There is no one here to talk to."}
         knowledge = npc.hints.copy()
-        if npc.name == "Xylos the Archivist":
-            low_level_recipes = {name: info["reagents"] for name, info in SPELL_DATA.items() if info["level"] <= 2}
-            knowledge["Common Spell Recipes"] = low_level_recipes
         result = {"npc_name": npc.name, "description": npc.description,
                   "personality_traits": npc.traits, "knowledge_and_hints": knowledge,
                   "instruction": "Roleplay this character using the traits provided. Remember that citizens of Luminaria have drifting memories."}
@@ -2762,16 +2802,16 @@ class GameEngine:
             roll = random.randint(1, 3)
             if roll == 1:
                 spell = random.choice(list(SPELL_DATA.keys()))
-                res = self.player.add_item(f"Recipe: {spell}")
+                res = self.player.add_item(f"Page: {spell}")
                 ok = not (isinstance(res, dict) and not res.get("success"))
                 self.player.update_virtue(1)
                 return (f"{flavor} At the circle's center, a page lies folded: a spell "
                         f"recipe for {spell}." + ("" if ok else " (You cannot carry it - it flutters back down.)"))
             if roll == 2:
                 spell = random.choice(list(SPELL_DATA.keys()))
-                res = self.player.add_item(f"Partial Recipe: {spell}")
+                res = self.player.add_item(f"Scrap: {spell}")
                 ok = not (isinstance(res, dict) and not res.get("success"))
-                return (f"{flavor} Half a recipe, inked on one corner of the circle: "
+                return (f"{flavor} A torn scrap, inked on one corner of the circle: "
                         f"{spell}." + ("" if ok else " (You cannot carry it - it flutters back down.)"))
             n = random.randint(1, 4)
             lines = [flavor + f" Nestled in the inlay you find reagents - {n} unit(s)."]
