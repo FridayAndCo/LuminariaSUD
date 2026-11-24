@@ -162,13 +162,16 @@ data/*.json   the entire world
 
 ## Roadmap
 
-- **Phase 1 — structured command API** ✅ *(this repo today)*
-- **Phase 2 — web shell**: replace the current test-harness page with a real
-  browser layout: room panel, HUD, inventory, message log, command box,
-  clickable exits.
-- **Phase 3 — hotspots as click targets** (the data is already in `snapshot`).
-- **Phase 4 — art assets** (cached room imagery).
+- **Phase 1 — structured command API** ✅
+- **Phase 2 — web shell** ✅ *(shipped with v0.2.0: compass, structured HUD,
+  inventory action buttons, message log, command box, quest offer buttons)*
+- **Phase 3 — hotspots as click targets** ✅ *(arrived early with 2c — chips
+  fire talk / attack / open / pray / get / disarm / search)*
+- **Phase 4 — art assets** (cached room imagery, item icons, a paper doll).
 - **Phase 5 — generated imagery** (on-demand, seeded for consistency).
+
+(A dedicated mobile/touch layout is deliberately out of scope for now — a
+fork is welcome to own it.)
 
 **Content horizons** (we intend to keep building, and so can you): many more
 NPCs with distinct voices, dynamic NPC schedules (who's where, when), expanded

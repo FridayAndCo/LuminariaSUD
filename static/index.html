@@ -95,7 +95,7 @@
 </head>
 <body>
 <div class="wrap">
-  <header><h1>LUMINARIA</h1><span class="sub">the city that forgets itself</span><span id="busydot" title="the game is working"></span></header>
+  <header><h1>LUMINARIA</h1><span class="sub">the city that forgets itself</span><span id="busydot" title="the game is working"></span><span id="clock" class="sub" style="margin-left:auto"></span><span class="sub">v0.2.0</span></header>
   <div id="left">
     <div id="room" class="panel"><h2>Room</h2><div id="roombody"></div></div>
     <div id="inv" class="panel"><h2>Inventory</h2><div id="invbody"></div></div>
@@ -124,7 +124,7 @@ function setBusy(b){
   document.body.classList.toggle('busy', b);
   $('#send').disabled = b;
 }
-function esc(t){ const d=document.createElement('span'); d.textContent=(t==null?'':String(t)); return d.innerHTML; }
+function esc(t){ return (t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function bar(label, cls, cur, max){
   const pct = (max>0) ? Math.max(0, Math.min(100, Math.round(cur/max*100))) : 0;
   return '<div class="barrow"><label>'+label+'</label><div class="bar '+cls+'"><i style="width:'+pct+'%"></i></div><b>'+cur+'/'+max+'</b></div>';
@@ -152,7 +152,7 @@ function renderHud(s){
   if(fx.length){ h += '<div class="effects">'; fx.forEach(f=>{ h+='<span class="effect">'+esc(typeof f==='string'?f:(f.name||JSON.stringify(f)))+'</span>'; }); h += '</div>'; }
   if(s.quest){
     const q = s.quest;
-    h += '<div class="questline"><b>Quest:</b> '+esc(q.title||'')+' <b>('+(q.progress||0)+'/'+(q.needed||1)+')</b>';
+    h += '<div class="questline"><b>Quest:</b> '+esc(q.title||'')+' <b>('+(q.progress||0)+'/'+(q.needed||1)+')</b>' + ' <button class="hot" data-cmd="quest abandon" data-confirm="Abandon the quest? (Virtue -5)">abandon</button>';
     h += '<small>'+esc(q.objective||'')+' \u2014 '+esc(q.turn_in||'')+(q.gold?(' \u00b7 '+q.gold+'g'):'')+'</small></div>';
   } else if(s.quest_pending){
     const q = s.quest_pending;
@@ -183,6 +183,8 @@ function renderInv(s){
 function renderSnapshot(s){
   if(!s) return;
   const r = s.room || {};
+  const clk = $('#clock');
+  if(clk){ if(r.time_of_day){ clk.textContent=r.time_of_day; } else { clk.textContent='no daylight below'; } clk.style.display=''; }
   let h = '<strong>'+esc(r.name)+'</strong><br>'+ esc(r.description||'');
   if(r.visual_elements && r.visual_elements!=='none') h += '<br><span style="color:var(--dim)">Details: '+esc(r.visual_elements)+'</span>';
   if(r.npc_presence) h += '<br>'+esc(r.npc_presence);
@@ -260,6 +262,7 @@ async function answer(){
 // document — #compass does not exist yet at script-parse time.
 document.addEventListener('click', e=>{
   const b = e.target.closest && e.target.closest('button[data-cmd]'); if(!b) return;
+  if(b.dataset.confirm && window.confirm && !window.confirm(b.dataset.confirm)) return;
   send(b.dataset.cmd);
 });
 // 2b: inventory action buttons -> engine commands (drop confirms; others fire)
@@ -280,7 +283,7 @@ $('#ansbtn').onclick=answer;
 $('#ans').addEventListener('keydown',e=>{if(e.key==='Enter')answer();});
 (async()=>{
   try { const r=await fetch('/api/state'); const j=await r.json(); renderSnapshot(j.snapshot); } catch(err) {}
-  addLine({level:'say',text:'Welcome to Luminaria. Type look to begin.'});
+  addLine({level:'say',text:'Welcome to Luminaria - type help for a list of commands.'});
   await send('look');
   $('#cmd').focus();
 })();

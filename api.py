@@ -118,7 +118,7 @@ class Ans(BaseModel):
 
 
 # ---- app ----
-app = FastAPI(title="LuminariaSUD API", version="0.1")
+app = FastAPI(title="LuminariaSUD API", version="0.2.0")
 
 
 @app.get("/", response_class=HTMLResponse)
