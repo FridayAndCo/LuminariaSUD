@@ -214,14 +214,6 @@ INT 10 is a fizzle.
    wildcard **Wish**.
 5. **Batch 5 — counter-features**: `see_invisible` monster trait, the glyph
    feature, and Raise-Dead curses.
-3. **Batch 3 — utility spells**: Lock, Knock, Levitate, Fly, Invisibility,
-   Water Breathing, Passwall, Teleport, Locate Object, Read Language,
-   Continuous Light, Remove Curse, Dispel Magic, Control Weather, Find Traps.
-4. **Batch 4 — LLM-tool spells**: Divinate (revisit later), Polymorph,
-   Commune with the Dead, Telekinesis, Speak with Plants / Animals, and the
-   wildcard **Wish**.
-5. **Batch 5 — counter-features**: `see_invisible` monster trait, the glyph
-   feature, and Raise-Dead curses.
 
 The full per-spell design (what each one does, whether it's mechanical, a
 buff, or an LLM tool) is tracked in the project notes. If you're forking,
