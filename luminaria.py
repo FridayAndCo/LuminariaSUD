@@ -463,6 +463,8 @@ class Game:
             tick = res.get("poison_tick")
             if tick and tick.get("message"):
                 ui.warn(tick["message"])
+            for cm in res.get("control_msgs", []):
+                ui.say(cm)
             m_hp = res.get("monster_hp", m_hp)
             p = self.eng.player.data
             ui.warn(f"You: {p['hp']}/{p['max_hp']}   {monster}: {max(0, m_hp)}/{m_max}")

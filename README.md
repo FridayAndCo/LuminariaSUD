@@ -192,13 +192,28 @@ INT 10 is a fizzle.
 
 **Work is landing in batches**, each pushable on its own:
 
-1. **Batch 1 — damage spells + buff infrastructure** *(this push)*: the
+1. **Batch 1 — damage spells + buff infrastructure** *(done, v0.3.1)*: the
    buff system (durations that tick on the turn loop, feeding AC / attacks /
    movement), a shared monster-save helper, and the five damage spells —
    **Fireball**, **Lightning Bolt** (d20 to hit), **Wall of Fire** (damage
    over time), **Disintegrate** (no corpse), and **Kill** (instant).
-2. **Batch 2 — control spells**: Sleep, Hold Person, Web, Charm (Person /
-   Monster), Confusion.
+2. **Batch 2 — control spells** *(this push)*: **Sleep** (≤20 HP no save;
+   21+ gets a save; sleeping targets take 10× damage and can be passed by —
+   killing one in sleep costs −3 Virtue), **Hold Person** (persons only, no
+   save), **Web** (DEX attack, works on all types, held until it tears free),
+   **Charm Person** (persons only, no save) and **Charm Monster** (any, no
+   save) — both pacify and clear the encounter — and **Confusion** (−4 to its
+   attacks, 1-in-6 it strikes itself). A data-driven `kind` field was added to
+   every bestiary entry (person / undead / beast / construct / elemental /
+   demon) so Hold/Charm Person can't touch undead or monsters.
+3. **Batch 3 — utility spells**: Lock, Knock, Levitate, Fly, Invisibility,
+   Water Breathing, Passwall, Teleport, Locate Object, Read Language,
+   Continuous Light, Remove Curse, Dispel Magic, Control Weather, Find Traps.
+4. **Batch 4 — LLM-tool spells**: Divinate (revisit later), Polymorph,
+   Commune with the Dead, Telekinesis, Speak with Plants / Animals, and the
+   wildcard **Wish**.
+5. **Batch 5 — counter-features**: `see_invisible` monster trait, the glyph
+   feature, and Raise-Dead curses.
 3. **Batch 3 — utility spells**: Lock, Knock, Levitate, Fly, Invisibility,
    Water Breathing, Passwall, Teleport, Locate Object, Read Language,
    Continuous Light, Remove Curse, Dispel Magic, Control Weather, Find Traps.

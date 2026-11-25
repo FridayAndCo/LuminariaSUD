@@ -1201,6 +1201,7 @@ class GameEngine:
             "time", {"day": 1, "phase": 0, "tick": 0})["phase"]
         self.turn_count = 0
         self.combat_state = {}
+        self.monster_control = {}
         self.death_message = None
         self.pending_food_msgs = []
         self.last_parley_verdict = None
@@ -1300,6 +1301,7 @@ class GameEngine:
         self.world.save()
         self.turn_count = 0
         self.combat_state = {}
+        self.monster_control = {}
         return self.player.data
 
     # --- scene / narration context (was an RpgModule tool) ---
@@ -1401,9 +1403,15 @@ class GameEngine:
         if p_data["light_duration"] > 0:
             p_data["light_duration"] -= 1
         self._tick_buffs()
+        self._tick_all_monster_controls()
         self.player.save()
 
-        if monster != "None":
+        cur_room_id = f"{current_pos['x']}_{current_pos['y']}_{current_pos['z']}"
+        ctrl = self.monster_control.get(cur_room_id, {})
+        controlled = (ctrl.get("sleep", 0) > 0 or ctrl.get("hold", 0) > 0
+                      or ctrl.get("web", 0) > 0 or ctrl.get("confuse", 0) > 0)
+
+        if monster != "None" and not controlled:
             opposites = {"North": "South", "South": "North", "East": "West", "West": "East",
                          "Up": "Down", "Down": "Up"}
             last_dir = self.player.data.get("last_direction")
@@ -1422,6 +1430,12 @@ class GameEngine:
                         "position": current_pos, "room": current_room}
 
         res = self._execute_move(direction)
+        if "error" not in res and controlled:
+            which = ("sleeping" if ctrl.get("sleep", 0) > 0
+                     else "held" if ctrl.get("hold", 0) > 0
+                     else "webbed" if ctrl.get("web", 0) > 0
+                     else "confused")
+            res["control_note"] = f"You slip past the {which} {monster} without a fight."
         if "error" not in res:
             if was_underground and res.get("position", {}).get("z", 0) == 0:
                 res["emerged"] = True
@@ -1701,13 +1715,13 @@ class GameEngine:
         return {"roll": roll, "bonus": con_bonus, "dc": dc, "success": success,
                 "applied": applied, "refreshed": refreshed, "already_poisoned": already_poisoned}
 
-    def resolve_monster_attack(self, monster_name):
+    def resolve_monster_attack(self, monster_name, penalty=0):
         monster_id = self._find_monster(monster_name)
         monster = self.world.generator.bestiary.get(monster_id, {})
         if not monster:
             return {"hit": False, "damage": 0, "message": "The creature is confused and misses!"}
         player_ac = self.calculate_ac()
-        attack_bonus = monster.get("atk", monster.get("attack_bonus", 0))
+        attack_bonus = monster.get("atk", monster.get("attack_bonus", 0)) + penalty
         roll = random.randint(1, 20) + attack_bonus
         if roll >= player_ac:
             dmg_die = monster.get("damage_die", 6)
@@ -1802,7 +1816,12 @@ class GameEngine:
             "Cure Poison": lambda: self._clear_poison(),
             "Light": lambda: self._apply_light_spell(),
             "Protection": lambda: "Your skin takes on a faint metallic sheen. (AC increased temporarily - handled by AI)",
-            "Sleep": lambda: "A heavy mist descends. (Targets fall asleep - handled by AI)",
+            "Sleep": lambda: self._spell_sleep(),
+            "Hold Person": lambda: self._spell_hold_person(),
+            "Web": lambda: self._spell_web(),
+            "Charm Person": lambda: self._spell_charm_person(),
+            "Charm Monster": lambda: self._spell_charm_monster(),
+            "Confusion": lambda: self._spell_confusion(),
             "Detect Magic": lambda: self.detect_magic(),
             "Purify Food": lambda: self._purify_food(),
             "Fireball": lambda: self._spell_fireball(),
@@ -2099,6 +2118,172 @@ class GameEngine:
         res["spell"] = "Kill"
         return res
 
+    # --- spell control infrastructure (sub-phase 2d, batch 2) ---
+    def _monster_control(self, room_id):
+        if room_id not in self.monster_control:
+            self.monster_control[room_id] = {"sleep": 0, "hold": 0, "web": 0, "confuse": 0}
+        return self.monster_control[room_id]
+
+    def _clear_monster_control(self, room_id):
+        self.monster_control.pop(room_id, None)
+
+    def _encounter_damage_multiplier(self, room_id):
+        """A sleeping target takes 10x damage."""
+        ctrl = self.monster_control.get(room_id, {})
+        return 10 if ctrl.get("sleep", 0) > 0 else 1
+
+    def _tick_monster_control(self, room_id, monster_name):
+        """Decrement control durations on a turn; webbed targets struggle free.
+        Returns a list of message lines."""
+        ctrl = self.monster_control.get(room_id)
+        if not ctrl:
+            return []
+        lines = []
+        if ctrl.get("sleep", 0) > 0:
+            ctrl["sleep"] -= 1
+            if ctrl["sleep"] <= 0:
+                lines.append(f"The {monster_name} stirs and wakes.")
+        if ctrl.get("hold", 0) > 0:
+            ctrl["hold"] -= 1
+            if ctrl["hold"] <= 0:
+                lines.append(f"The {monster_name} breaks free of the hold.")
+        if ctrl.get("confuse", 0) > 0:
+            ctrl["confuse"] -= 1
+            if ctrl["confuse"] <= 0:
+                lines.append(f"The {monster_name}'s eyes focus - the confusion fades.")
+        if ctrl.get("web", 0) > 0:
+            roll = self.roll_dice(20, 0)
+            if roll >= 15:
+                ctrl["web"] = 0
+                lines.append(f"The {monster_name} tears free of the web! (roll {roll})")
+            else:
+                lines.append(f"The {monster_name} strains against the web. (roll {roll})")
+        if not any(ctrl.values()):
+            self.monster_control.pop(room_id, None)
+        return lines
+
+    def _tick_all_monster_controls(self):
+        """Tick every active control state (movement turns)."""
+        for room_id in list(self.monster_control.keys()):
+            room = self.world.rooms.get(room_id) or self.world.town_rooms.get(room_id)
+            monster_name = (room or {}).get("encounter", "creature")
+            if monster_name in (None, "None"):
+                self.monster_control.pop(room_id, None)
+                continue
+            self._tick_monster_control(room_id, monster_name)
+
+    def _spell_sleep(self):
+        enc = self._room_encounter()
+        if not enc:
+            return {"success": True, "spell": "Sleep",
+                    "message": "The heavy mist settles - but there is nothing there to lull."}
+        pos = self.player.data["position"]
+        room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        bestiary = self.world.generator.bestiary
+        mdata = bestiary.get(enc, {})
+        raw_hp = mdata.get("hp", 10)
+        if raw_hp <= 20:
+            self._monster_control(room_id)["sleep"] = 3
+            self.player.save()
+            return {"success": True, "spell": "Sleep",
+                    "message": f"A heavy mist descends and the {enc} sinks into a deep, untroubled sleep. "
+                               f"(3 rounds; it takes 10x damage, and you may simply pass by it. "
+                               f"Killing it in sleep costs -3 Virtue.)"}
+        dc = 8 + 1 + self._int_bonus()
+        roll = self.roll_dice(20, 0)
+        if roll >= dc:
+            return {"success": True, "spell": "Sleep",
+                    "message": f"A heavy mist descends, but the {enc} shakes it off and stays awake. "
+                               f"(save roll {roll} vs DC {dc})"}
+        self._monster_control(room_id)["sleep"] = 3
+        self.player.save()
+        return {"success": True, "spell": "Sleep",
+                "message": f"The mist takes hold and the {enc} slips into sleep. (save roll {roll} vs DC {dc}; "
+                           f"3 rounds, 10x damage, you may pass by it)"}
+
+    def _spell_hold_person(self):
+        enc = self._room_encounter()
+        if not enc:
+            return {"success": True, "spell": "Hold Person",
+                    "message": "You speak the words of holding - but there is no one there to bind."}
+        bestiary = self.world.generator.bestiary
+        mdata = bestiary.get(enc, {})
+        if mdata.get("kind") != "person":
+            return {"success": True, "spell": "Hold Person",
+                    "message": f"The words of holding wash over the {enc} and do nothing - it is no person."}
+        pos = self.player.data["position"]
+        room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        self._monster_control(room_id)["hold"] = 3
+        self.player.save()
+        return {"success": True, "spell": "Hold Person",
+                "message": f"The {enc} is rooted in place - no block, no attack, no movement. (3 rounds)"}
+
+    def _spell_web(self):
+        enc = self._room_encounter()
+        if not enc:
+            return {"success": True, "spell": "Web",
+                    "message": "The webbing sprays out - but there is nothing there to ensnare."}
+        bestiary = self.world.generator.bestiary
+        mdata = bestiary.get(enc, {})
+        roll = self.roll_dice(20, self.get_stat_bonus("DEX"))
+        if roll < mdata.get("ac", 10):
+            return {"success": True, "spell": "Web",
+                    "message": f"The webbing sprays toward the {enc} and misses. "
+                               f"(roll {roll} vs AC {mdata.get('ac',10)})"}
+        pos = self.player.data["position"]
+        room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        self._monster_control(room_id)["web"] = 1
+        self.player.save()
+        return {"success": True, "spell": "Web",
+                "message": f"Thick webbing erupts and ensnares the {enc}! (roll {roll}) It cannot attack or block "
+                           f"until it tears free or is killed."}
+
+    def _spell_charm_person(self):
+        enc = self._room_encounter()
+        if not enc:
+            return {"success": True, "spell": "Charm Person",
+                    "message": "You offer the words of charm - but there is no one there to hear them."}
+        bestiary = self.world.generator.bestiary
+        mdata = bestiary.get(enc, {})
+        if mdata.get("kind") != "person":
+            return {"success": True, "spell": "Charm Person",
+                    "message": f"The words of charm find no purchase in the {enc} - it is no person."}
+        pos = self.player.data["position"]
+        room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        self._clear_room_encounter(room_id)
+        self._clear_monster_control(room_id)
+        self.player.save()
+        return {"success": True, "spell": "Charm Person", "pacified": True,
+                "message": f"Your words of charm take hold. The {enc} regards you with sudden warmth, "
+                           f"then turns and departs, leaving you in peace."}
+
+    def _spell_charm_monster(self):
+        enc = self._room_encounter()
+        if not enc:
+            return {"success": True, "spell": "Charm Monster",
+                    "message": "You offer the words of charm - but there is no one there to hear them."}
+        pos = self.player.data["position"]
+        room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        self._clear_room_encounter(room_id)
+        self._clear_monster_control(room_id)
+        self.player.save()
+        return {"success": True, "spell": "Charm Monster", "pacified": True,
+                "message": f"Your words of charm take hold. The {enc} regards you with sudden warmth, "
+                           f"then turns and departs, leaving you in peace."}
+
+    def _spell_confusion(self):
+        enc = self._room_encounter()
+        if not enc:
+            return {"success": True, "spell": "Confusion",
+                    "message": "The dissonant chord rings out - but there is nothing there to confuse."}
+        pos = self.player.data["position"]
+        room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        self._monster_control(room_id)["confuse"] = 3
+        self.player.save()
+        return {"success": True, "spell": "Confusion",
+                "message": f"A dissonant chord of confusion washes over the {enc}. "
+                           f"(3 rounds: -4 to its attacks, and 1 time in 6 it strikes itself)"}
+
     def meditate(self, shrine_type, stat_name):
         if stat_name not in self.player.data["stats"]:
             return {"success": False, "message": "Invalid stat."}
@@ -2166,6 +2351,7 @@ class GameEngine:
 
     def _clear_room_encounter(self, room_id):
         """Remove the encounter from a room (dungeon or town) and persist."""
+        self._clear_monster_control(room_id)
         cleared = False
         if room_id in self.world.rooms:
             self.world.rooms[room_id]["encounter"] = "None"
@@ -2192,13 +2378,15 @@ class GameEngine:
             self.combat_state[room_id] = bestiary[monster_id].get("hp", 10)
         m_hp = self.combat_state[room_id]
         p_hp = self.player.data["hp"]
+        ctrl = self.monster_control.get(room_id, {})
+        dmg_mult = self._encounter_damage_multiplier(room_id)
         p_res = {"hit": False, "damage": 0, "message": ""}
         # Wall of Fire damage-over-time: burns the encounter each combat round
         wof = self._get_buff("Wall of Fire")
         if wof:
             w_dice = wof.get("tags", {}).get("dot", 0)
             if w_dice > 0:
-                w_dmg = sum(random.randint(1, 6) for _ in range(w_dice)) + w_dice
+                w_dmg = (sum(random.randint(1, 6) for _ in range(w_dice)) + w_dice) * dmg_mult
                 self.combat_state[room_id] -= w_dmg
                 p_res["message"] = (p_res.get("message") or "") + f" The wall of fire burns the {monster_name} for {w_dmg}."
             wof["turns"] -= 1
@@ -2208,7 +2396,9 @@ class GameEngine:
         if player_action == "fight":
             p_res = self.resolve_attack(player_weapon, bestiary[monster_id]["ac"], penalty=attack_penalty)
             if p_res["hit"]:
-                self.combat_state[room_id] -= p_res["damage"]
+                dealt = p_res["damage"] * dmg_mult
+                self.combat_state[room_id] -= dealt
+                p_res["damage"] = dealt
         elif player_action == "mix" and formula:
             spell_res = self.mix_reagents(formula)
             p_res["message"] = spell_res.get("message", "The mixture fizzles.")
@@ -2216,7 +2406,27 @@ class GameEngine:
             p_res["auras"] = spell_res.get("auras")
         poison_tick = self._tick_poison()
         m_res = {"hit": False, "damage": 0, "message": ""}
-        if monster_action == "fight":
+        is_sleeping = ctrl.get("sleep", 0) > 0
+        is_held = ctrl.get("hold", 0) > 0
+        is_webbed = ctrl.get("web", 0) > 0
+        is_confused = ctrl.get("confuse", 0) > 0
+        if is_sleeping:
+            m_res["message"] = f"The {monster_name} slumbers, oblivious."
+        elif is_held:
+            m_res["message"] = f"The {monster_name} is rooted in place, unable to act."
+        elif is_webbed:
+            m_res["message"] = f"The {monster_name} strains against the webbing, unable to act."
+        elif is_confused:
+            if random.randint(1, 6) == 1:
+                self_dmg = random.randint(1, 6) * dmg_mult
+                self.combat_state[room_id] -= self_dmg
+                m_res["message"] = f"The confused {monster_name} lashes out and strikes ITSELF for {self_dmg}!"
+            else:
+                m_res = self.resolve_monster_attack(monster_name, penalty=-4)
+                if m_res["hit"]:
+                    self.player.update_hp(-m_res["damage"])
+                m_res["message"] = (m_res.get("message") or "") + " (confused: -4 to hit)"
+        elif monster_action == "fight":
             m_res = self.resolve_monster_attack(monster_name)
             if m_res["hit"]:
                 self.player.update_hp(-m_res["damage"])
@@ -2228,6 +2438,7 @@ class GameEngine:
             self._clear_room_encounter(room_id)
         monster_dead = self.combat_state[room_id] <= 0
         player_dead = self.player.data["hp"] <= 0
+        sleep_kill = (monster_dead and is_sleeping and player_action in ("fight", "mix"))
         virtue_msg = None
         drop_lines = None
         if monster_dead:
@@ -2237,15 +2448,21 @@ class GameEngine:
             # until the player searches it.
             drop_lines = [self._deposit_corpse(
                 room_id, monster_name, self.roll_monster_drops(monster_name))]
+            if sleep_kill:
+                # Striking a sleeping foe: the act itself costs an additional -3 Virtue
+                # on top of the normal +2 kill reward (net -1).
+                self.player.update_virtue(-3)
+                virtue_msg = " You struck a sleeping foe - the act itself costs -3 Virtue."
             if player_action == "fight" and p_hp <= self.player.data["max_hp"] // 2:
                 led = self._virtue_ledger()
                 led["last_stand"] = led.get("last_stand", 0) + 1
                 self.player.save()
-                virtue_msg = " Last stand logged - Raika will hear of it."
+                virtue_msg = (virtue_msg or "") + " Last stand logged - Raika will hear of it."
+        control_msgs = self._tick_monster_control(room_id, monster_name)
         return {"player_attack": p_res, "monster_attack": m_res, "poison_tick": poison_tick,
                 "monster_hp": self.combat_state[room_id], "monster_dead": monster_dead,
                 "player_dead": player_dead, "virtue_msg": virtue_msg,
-                "drop_lines": drop_lines}
+                "drop_lines": drop_lines, "control_msgs": control_msgs}
 
     # --- tools that lived on RpgModule, now engine methods ---
     def resolve_parley(self, monster_name, approach="negotiate", value=0):
