@@ -489,12 +489,6 @@
       "text": "Lock (Level 1). To cast, mix 1 Crushed Quartz + 2 Silver Dust. When the mixture settles, turns the air to your will.",
       "tradeable": false
     },
-    "Page: Read Language": {
-      "price": 12,
-      "kind": "page",
-      "text": "Read Language (Level 1). To cast, mix 2 Charcoal + 2 Dried Sage. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
     "Page: Cure Poison": {
       "price": 12,
       "kind": "page",
@@ -757,12 +751,6 @@
       "kind": "scrap",
       "tradeable": false,
       "text": "A torn scrap, ink half faded. It names what Lock is made of - Crushed Quartz Silver Dust - but the quantities are lost to time."
-    },
-    "Scrap: Read Language": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Read Language is made of - Charcoal Dried Sage - but the quantities are lost to time."
     },
     "Scrap: Cure Poison": {
       "price": 5,

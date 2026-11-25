@@ -1386,6 +1386,7 @@ class GameEngine:
         current_pos = self.player.data["position"]
         current_room = self.world.get_room(current_pos["x"], current_pos["y"], current_pos["z"])
         monster = current_room.get("encounter", "None")
+        old_last_dir = self.player.data.get("last_direction")
         p_data = self.player.data
         eq = p_data["equipped"]
         fuel = p_data["light_fuel"]
@@ -1411,7 +1412,8 @@ class GameEngine:
         controlled = (ctrl.get("sleep", 0) > 0 or ctrl.get("hold", 0) > 0
                       or ctrl.get("web", 0) > 0 or ctrl.get("confuse", 0) > 0)
 
-        if monster != "None" and not controlled:
+        invisible = self._buff_active("Invisibility")
+        if monster != "None" and not controlled and not invisible:
             opposites = {"North": "South", "South": "North", "East": "West", "West": "East",
                          "Up": "Down", "Down": "Up"}
             last_dir = self.player.data.get("last_direction")
@@ -1430,7 +1432,17 @@ class GameEngine:
                         "position": current_pos, "room": current_room}
 
         res = self._execute_move(direction)
-        if "error" not in res and controlled:
+        if "error" not in res and invisible and monster != "None":
+            opposites = {"North": "South", "South": "North", "East": "West", "West": "East",
+                         "Up": "Down", "Down": "Up"}
+            if old_last_dir and direction == opposites.get(old_last_dir):
+                # Slipping back the way you came past a hostile = a flee.
+                self.player.update_virtue(-1)
+                res["control_note"] = (f"You vanish and slip back past the {monster}, the way "
+                                       f"you came. The Protector ran. (Virtue -1)")
+            else:
+                res["control_note"] = f"You vanish and slip past the {monster} without a fight."
+        elif "error" not in res and controlled:
             which = ("sleeping" if ctrl.get("sleep", 0) > 0
                      else "held" if ctrl.get("hold", 0) > 0
                      else "webbed" if ctrl.get("web", 0) > 0
@@ -1496,8 +1508,13 @@ class GameEngine:
                     "position": current_pos, "room": current_room}
         elif direction in current_room.get("obstacles", {}):
             ob = current_room["obstacles"][direction]
-            return {"error": f"The {ob.get('name', 'obstacle')} bars the way to the {direction}.",
-                    "position": current_pos, "room": current_room}
+            if ob.get("name", "") in self.GAP_OBSTACLES and self._buff_active("Fly", "Levitate"):
+                # Fly/Levitate carry you across the gap - route through the far room.
+                target_id = ob["to"]
+                tx, ty, tz = map(int, target_id.split("_"))
+            else:
+                return {"error": f"The {ob.get('name', 'obstacle')} bars the way to the {direction}.",
+                        "position": current_pos, "room": current_room}
         elif direction in exits:
             target_id = exits[direction]
             tx, ty, tz = map(int, target_id.split("_"))
@@ -1661,6 +1678,7 @@ class GameEngine:
         return None
 
     DARK_ROOM_TAGS = ("oppressive darkness", "darkness")
+    GAP_OBSTACLES = ("Broken Floor",)
 
     def room_is_lit(self, room=None):
         """True if the room itself provides light (town, torch-lit dungeon).
@@ -1829,6 +1847,19 @@ class GameEngine:
             "Wall of Fire": lambda: self._spell_wall_of_fire(),
             "Disintegrate": lambda: self._spell_disintegrate(),
             "Kill": lambda: self._spell_kill(),
+            "Lock": lambda: self._spell_lock(),
+            "Knock": lambda: self._spell_knock(),
+            "Levitate": lambda: self._spell_levitate(),
+            "Fly": lambda: self._spell_fly(),
+            "Invisibility": lambda: self._spell_invisibility(),
+            "Water Breathing": lambda: self._spell_water_breathing(),
+            "Passwall": lambda: self._spell_passwall(),
+            "Teleport": lambda: self._spell_teleport(),
+            "Locate Object or Person": lambda: self._spell_locate(),
+            "Continuous Light": lambda: self._spell_continuous_light(),
+            "Remove Curse": lambda: self._spell_remove_curse(),
+            "Dispel Magic": lambda: self._spell_dispel_magic(),
+            "Find Traps": lambda: self._spell_find_traps(),
         }
         if cast_spell in effects:
             result = effects[cast_spell]()
@@ -2284,6 +2315,313 @@ class GameEngine:
                 "message": f"A dissonant chord of confusion washes over the {enc}. "
                            f"(3 rounds: -4 to its attacks, and 1 time in 6 it strikes itself)"}
 
+    # --- spell utility infrastructure (sub-phase 2d, batch 3) ---
+    def _buff_active(self, *names):
+        """True if any of the named buffs is currently active."""
+        for b in self.player.data.get("buffs", []):
+            if b.get("name") in names and b.get("turns", 0) > 0:
+                return True
+        return False
+
+    def _opposites(self):
+        return {"North": "South", "South": "North", "East": "West", "West": "East",
+                "Up": "Down", "Down": "Up"}
+
+    def _spell_lock(self):
+        """Lock: sets the room's door(s) to locked state, persists."""
+        pos = self.player.data["position"]
+        rid = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        room = self.world.rooms.get(rid)
+        if room is None:
+            return {"success": True, "spell": "Lock",
+                    "message": "You are in town - there is no door here to lock."}
+        doors = room.get("doors", {})
+        locked = []
+        for d, door in doors.items():
+            if door.get("state") != "locked":
+                door["state"] = "locked"
+                pair = self._edge_rooms(rid, d)
+                if pair:
+                    far, back = pair[1], pair[2]
+                    if back in far.get("doors", {}):
+                        far["doors"][back]["state"] = "locked"
+                locked.append(d)
+        if not locked:
+            return {"success": True, "spell": "Lock",
+                    "message": "The doors here are already locked."}
+        self.world.save()
+        dirs = ", ".join(sorted(locked))
+        return {"success": True, "spell": "Lock",
+                "message": f"Runes of binding flash and the door(s) to the {dirs} click shut, locked tight."}
+
+    def _spell_knock(self):
+        """Knock: UNLOCKS every locked door in the room (state -> closed/openable)."""
+        pos = self.player.data["position"]
+        rid = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        room = self.world.rooms.get(rid)
+        if room is None:
+            return {"success": True, "spell": "Knock",
+                    "message": "You are in town - there is no door here to knock."}
+        doors = room.get("doors", {})
+        unlocked = []
+        for d, door in doors.items():
+            if door.get("state") == "locked":
+                door["state"] = "closed"
+                pair = self._edge_rooms(rid, d)
+                if pair:
+                    far, back = pair[1], pair[2]
+                    if back in far.get("doors", {}):
+                        far["doors"][back]["state"] = "closed"
+                unlocked.append(d)
+        if not unlocked:
+            return {"success": True, "spell": "Knock",
+                    "message": "A resonant knock echoes out - but no lock here answers."}
+        self.world.save()
+        dirs = ", ".join(sorted(unlocked))
+        return {"success": True, "spell": "Knock",
+                "message": f"A deep, resonant knock ripples through the stone - the lock(s) to the {dirs} open with a click."}
+
+    def _spell_levitate(self):
+        """Levitate: 5-turn buff; pits and water don't hurt you (forward: gap bypass)."""
+        self._apply_buff("Levitate", 5, {"move_flags": {"pit": True, "water": True, "gap": True}})
+        return {"success": True, "spell": "Levitate",
+                "message": "You rise gently off the ground and hover. (5 turns: pits and water won't catch you)"}
+
+    def _spell_fly(self):
+        """Fly: 10-turn buff; pits/water immune (forward: gap bypass)."""
+        self._apply_buff("Fly", 10, {"move_flags": {"pit": True, "water": True, "gap": True}})
+        return {"success": True, "spell": "Fly",
+                "message": "Invisible wings catch the air and you soar. (10 turns: pits and water are no obstacle)"}
+
+    def _spell_invisibility(self):
+        """Invisibility: 5-turn buff; no ambushes; existing encounter no longer blocks you."""
+        self._apply_buff("Invisibility", 5, {"stealth": True})
+        return {"success": True, "spell": "Invisibility",
+                "message": "The light bends around you and you vanish. (5 turns: no ambushes, and a monster that was blocking you can no longer hold you)"}
+
+    def _spell_water_breathing(self):
+        """Water Breathing: 10-turn buff; underwater movement (forward: water rooms/levels)."""
+        self._apply_buff("Water Breathing", 10, {"move_flags": {"underwater": True}})
+        return {"success": True, "spell": "Water Breathing",
+                "message": "You draw breath from the water itself. (10 turns: you can move through water)"}
+
+    def _spell_passwall(self):
+        """Passwall: just removes an obstacle in the room (permanent)."""
+        pos = self.player.data["position"]
+        rid = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        room = self.world.rooms.get(rid)
+        if room is None:
+            return {"success": True, "spell": "Passwall",
+                    "message": "You are in town - there is no wall here to pass through."}
+        direction, ob = self._find_obstacle_way(room)
+        if ob is None:
+            return {"success": True, "spell": "Passwall",
+                    "message": "The spell passes through the air - but there is no wall here to dissolve."}
+        name = ob.get("name", "obstacle")
+        pair = self._edge_rooms(rid, direction)
+        if pair is None:
+            room["obstacles"].pop(direction, None)
+        else:
+            self._promote_edge(pair, direction, rid=rid)
+        self.world.save()
+        return {"success": True, "spell": "Passwall",
+                "message": f"The {name} shimmers, thins, and is simply gone. The way to the {direction} stands open."}
+
+    def _spell_teleport(self):
+        """Teleport: the reagents are mixed; now the player names where they
+        know where they're going. Returns needs_coords so the game layer can
+        prompt, then call _teleport_apply((x, y, z))."""
+        return {"success": True, "spell": "Teleport", "needs_coords": True,
+                "message": "The mixture hums, ready to fold space. Where do you know where you're going? (x, y, z)"}
+
+    def _teleport_apply(self, coord):
+        """Apply a Teleport to (x, y, z) - reagents already consumed.
+        Guaranteed to land there; out-of-bounds (The Void) = comedic death."""
+        if not coord:
+            return {"success": False, "spell": "Teleport",
+                    "message": "You lose your nerve and the mixture fizzles out. (The reagents are spent.)"}
+        x, y, z = coord
+        target_id = f"{x}_{y}_{z}"
+        known = (target_id in self.world.town_rooms or target_id in self.world.rooms)
+        if known:
+            self.player.data["position"] = {"x": x, "y": y, "z": z}
+            self.player.save()
+            room = self.world.get_room(x, y, z)
+            self.player.update_satiety(-1)
+            return {"success": True, "spell": "Teleport",
+                    "message": f"You fold space and step out in {room.get('name', 'a room')} ({x}, {y}, {z}).",
+                    "position": {"x": x, "y": y, "z": z}, "room": room}
+        # Out-of-bounds: The Void or elsewhere. Comedic death.
+        self.player.die()
+        self.death_message = (
+            f"You fold space and materialize at ({x}, {y}, {z}) - which is The Void, "
+            "a place that is emphatically not a place. You burst out of the middle of a "
+            "solid stone wall, half in and half out, your robes caught on a protruding "
+            "iron bar. A passing priest stops mid-sermon, points at you, and faints. "
+            "You have, in a word, died. (Type 'reset' to return to the Temple of Radiance.)")
+        return {"success": True, "spell": "Teleport", "void_death": True,
+                "message": self.death_message}
+
+    def _spell_locate(self):
+        """Locate Object or Person: the reagents are mixed; now the player
+        names what to find. Returns needs_target so the game layer can prompt,
+        then call _locate_apply(target)."""
+        return {"success": True, "spell": "Locate Object or Person", "needs_target": True,
+                "message": "The mixture shivers, straining toward something. What do you want to find? (an item or a person)"}
+
+    def _locate_apply(self, target):
+        """Apply a Locate to a named item or NPC - reagents already consumed.
+        BFS the current floor, report direction + rooms away."""
+        if not target:
+            return {"success": False, "spell": "Locate Object or Person",
+                    "message": "You lose your nerve and the mixture fizzles out. (The reagents are spent.)"}
+        target = target.strip()
+        pos = self.player.data["position"]
+        z = pos["z"]
+        # NPC?
+        if target in NPC_ROOM_BY_NAME:
+            npc_rid = NPC_ROOM_BY_NAME[target]
+            nx, ny, nz = map(int, npc_rid.split("_"))
+            if nz != z:
+                return {"success": True, "spell": "Locate Object or Person",
+                        "message": f"{target} is not on this floor."}
+            return self._locate_report(pos, npc_rid, f"{target}")
+        # Item: BFS the floor's rooms for a drop match.
+        start = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        self.world.get_room(pos["x"], pos["y"], pos["z"])
+        rooms = self.world.rooms
+        from collections import deque
+        seen = {start: (None, 0)}
+        dq = deque([start])
+        found = None
+        while dq:
+            cur = dq.popleft()
+            room = rooms.get(cur)
+            if not room:
+                continue
+            for dr in room.get("dropped_items") or []:
+                if dr.get("name", "").lower() == target.lower():
+                    found = cur
+                    break
+            if found:
+                break
+            for d, to in room.get("exits", {}).items():
+                if to not in seen:
+                    seen[to] = (d, seen[cur][1] + 1)
+                    dq.append(to)
+        if found:
+            return self._locate_report(pos, found, f"the {target}")
+        return {"success": True, "spell": "Locate Object or Person",
+                "message": f"You sense nothing like the {target} on this floor."}
+
+    def _locate_report(self, pos, target_rid, label):
+        tx, ty, tz = map(int, target_rid.split("_"))
+        if (tx, ty, tz) == (pos["x"], pos["y"], pos["z"]):
+            return {"success": True, "spell": "Locate Object or Person",
+                    "message": f"{label} is right here with you."}
+        # direction from current room
+        room = self.world.get_room(pos["x"], pos["y"], pos["z"])
+        exits = room.get("exits", {})
+        dirs = []
+        for d, to in exits.items():
+            if to == target_rid:
+                dirs.append(d)
+        dist = None
+        # BFS distance (reuse simple search)
+        from collections import deque
+        start = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        seen = {start: 0}
+        dq = deque([start])
+        while dq:
+            cur = dq.popleft()
+            for d, to in self.world.rooms.get(cur, {}).get("exits", {}).items():
+                if to not in seen:
+                    seen[to] = seen[cur] + 1
+                    dq.append(to)
+                if to == target_rid:
+                    dist = seen[to]
+                    break
+            if dist is not None:
+                break
+        if dirs:
+            return {"success": True, "spell": "Locate Object or Person",
+                    "message": f"{label} is to the {', '.join(sorted(dirs))} - about {dist} room(s) away."}
+        return {"success": True, "spell": "Locate Object or Person",
+                "message": f"{label} is on this floor, {dist} room(s) away, but not in a direct line."}
+
+    def _spell_continuous_light(self):
+        """Continuous Light: 100-turn light (bigger than Light's 50)."""
+        self.player.data["light_duration"] = max(self.player.data.get("light_duration", 0), 100)
+        self.player.save()
+        return {"success": True, "spell": "Continuous Light",
+                "message": "A steady, unwavering glow settles around you, ignoring torch-fuel and lantern-oil alike. (100 turns)"}
+
+    def _spell_remove_curse(self):
+        """Remove Curse: clears Cursed status + curse debuffs (restores max HP)."""
+        effs = self.player.data.get("status_effects", [])
+        had = [e for e in effs if e in ("Cursed", "Curse", "Diseased")]
+        if not had:
+            return {"success": True, "spell": "Remove Curse",
+                    "message": "You wash away the taint of curses - but you were not cursed."}
+        self.player.data["status_effects"] = [e for e in effs if e not in ("Cursed", "Curse")]
+        # If a curse had capped max HP (disease-style), restore derived stats.
+        if self.player.data.get("max_hp", 0) < (10 + ((self.player.data["stats"]["CON"] - 10) * 2)):
+            self.player.refresh_derived_stats()
+        self.player.save()
+        cleared = ", ".join(sorted(set(had)))
+        return {"success": True, "spell": "Remove Curse",
+                "message": f"A cold shudder runs off you as the curse breaks. ({cleared} removed)"}
+
+    def _spell_dispel_magic(self):
+        """Dispel Magic: removes your active buffs + the room's magical state
+        (monster control: web/hold/sleep/confuse, wall of fire)."""
+        p = self.player.data
+        buffs_before = [b.get("name") for b in p.get("buffs", [])]
+        p["buffs"] = []
+        # clear room's magical monster-control state
+        rid = f"{p['position']['x']}_{p['position']['y']}_{p['position']['z']}"
+        ctrl = self.monster_control.get(rid, {})
+        had_ctrl = {k: v for k, v in ctrl.items() if v > 0}
+        self._clear_monster_control(rid)
+        # clear continuous light (spell light)
+        p["light_duration"] = 0
+        self.player.save()
+        self.world.save()
+        parts = []
+        if buffs_before:
+            parts.append("your buffs (" + ", ".join(sorted(set(buffs_before))) + ")")
+        if had_ctrl:
+            parts.append("the room's enchantments (" + ", ".join(sorted(had_ctrl)) + ")")
+        if not parts:
+            return {"success": True, "spell": "Dispel Magic",
+                    "message": "You wave away the magic in the air - but there was nothing to dispel."}
+        return {"success": True, "spell": "Dispel Magic",
+                "message": "A pulse of dispelling energy washes over you and the room, unravelling " + " and ".join(parts) + "."}
+
+    def _spell_find_traps(self):
+        """Find Traps: reports the trap in this room + which adjacent rooms have them."""
+        pos = self.player.data["position"]
+        rid = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        room = self.world.get_room(pos["x"], pos["y"], pos["z"])
+        here = bool(room.get("trap"))
+        here_type = room.get("trap_type", "a trap")
+        adj = []
+        for d, to in room.get("exits", {}).items():
+            ar = self.world.get_room(*map(int, to.split("_")))
+            if ar.get("trap"):
+                adj.append(f"to the {d} ({ar.get('trap_type', 'a trap')})")
+        lines = []
+        if here:
+            lines.append(f"This room holds {here_type}.")
+        else:
+            lines.append("No trap here.")
+        if adj:
+            lines.append("You sense traps " + "; ".join(adj) + ".")
+        else:
+            lines.append("The adjoining passages feel clean.")
+        return {"success": True, "spell": "Find Traps",
+                "message": " " + " ".join(lines)}
+
     def meditate(self, shrine_type, stat_name):
         if stat_name not in self.player.data["stats"]:
             return {"success": False, "message": "Invalid stat."}
@@ -2330,7 +2668,7 @@ class GameEngine:
                 return {"success": False, "message": "You don't have a bedroll. Sleeping on the cold dungeon floor is a recipe for disaster"}
             if self.player.data["satiety"] < satiety_cost:
                 return {"success": False, "message": "You are too hungry to sleep properly; you need more food."}
-            if z < 0:
+            if z < 0 and not self._buff_active("Invisibility"):
                 ambush_chance = 0.1 * abs(z)
                 if random.random() < ambush_chance:
                     monster = self.world.generator._stock_monster(z)

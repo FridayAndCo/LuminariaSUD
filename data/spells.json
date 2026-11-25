@@ -1,354 +1,347 @@
 {
-    "Cure Light Wounds": {
-        "level": 1,
-        "reagents": {
-            "Charcoal": 2,
-            "Sulfur": 1,
-            "Dried Sage": 2,
-            "Silver Dust": 1
-        }
-    },
-    "Detect Magic": {
-        "level": 1,
-        "reagents": {
-            "Charcoal": 1,
-            "Dried Sage": 1
-        }
-    },
-    "Light": {
-        "level": 1,
-        "reagents": {
-            "Charcoal": 1,
-            "Silver Dust": 1
-        }
-    },
-    "Protection": {
-        "level": 1,
-        "reagents": {
-            "Charcoal": 1,
-            "Silver Dust": 2
-        }
-    },
-    "Purify Food": {
-        "level": 1,
-        "reagents": {
-            "Charcoal": 4,
-            "Dried Sage": 4
-        }
-    },
-    "Charm Person": {
-        "level": 1,
-        "reagents": {
-            "Charcoal": 2,
-            "Void-Salt": 2
-        }
-    },
-    "Lock": {
-        "level": 1,
-        "reagents": {
-            "Crushed Quartz": 1,
-            "Silver Dust": 2
-        }
-    },
-    "Read Language": {
-        "level": 1,
-        "reagents": {
-            "Charcoal": 2,
-            "Dried Sage": 2
-        }
-    },
-    "Cure Poison": {
-        "level": 1,
-        "reagents": {
-            "Charcoal": 3,
-            "Dried Sage": 3,
-            "Silver Dust": 1
-        }
-    },
-    "Sleep": {
-        "level": 1,
-        "reagents": {
-            "Charcoal": 4,
-            "Dried Sage": 4,
-            "Sulfur": 4
-        }
-    },
-    "Bless": {
-        "level": 2,
-        "reagents": {
-            "Dried Sage": 2,
-            "Crushed Quartz": 1
-        }
-    },
-    "Find Traps": {
-        "level": 2,
-        "reagents": {
-            "Charcoal": 2,
-            "Silver Dust": 1,
-            "Phosphor-Moss": 1
-        }
-    },
-    "Hold Person": {
-        "level": 2,
-        "reagents": {
-            "Charcoal": 4,
-            "Void-Salt": 2
-        }
-    },
-    "Speak with Animals": {
-        "level": 2,
-        "reagents": {
-            "Silver Dust": 1,
-            "Charcoal": 3,
-            "Phosphor-Moss": 1
-        }
-    },
-    "Reveal Invisibility": {
-        "level": 2,
-        "reagents": {
-            "Charcoal": 2,
-            "Dried Sage": 2,
-            "Crushed Quartz": 1
-        }
-    },
-    "Knock": {
-        "level": 2,
-        "reagents": {
-            "Charcoal": 2,
-            "Sulfur": 2,
-            "Void-Salt": 2
-        }
-    },
-    "Levitate": {
-        "level": 2,
-        "reagents": {
-            "Charcoal": 1,
-            "Silver Dust": 1,
-            "Mercury-Dew": 2
-        }
-    },
-    "Web": {
-        "level": 2,
-        "reagents": {
-            "Charcoal": 2,
-            "Sulfur": 1,
-            "Void-Salt": 1
-        }
-    },
-    "Cure Disease": {
-        "level": 3,
-        "reagents": {
-            "Crushed Quartz": 2,
-            "Mercury-Dew": 4
-        }
-    },
-    "Continuous Light": {
-        "level": 3,
-        "reagents": {
-            "Charcoal": 3,
-            "Silver Dust": 3,
-            "Crushed Quartz": 3,
-            "Phosphor-Moss": 1
-        }
-    },
-    "Locate Object or Person": {
-        "level": 3,
-        "reagents": {
-            "Charcoal": 5,
-            "Dried Sage": 2,
-            "Phosphor-Moss": 1,
-            "Mercury-Dew": 1
-        }
-    },
-    "Remove Curse": {
-        "level": 3,
-        "reagents": {
-            "Silver Dust": 5,
-            "Crushed Quartz": 5,
-            "Mercury-Dew": 4
-        }
-    },
-    "Divinate": {
-        "level": 3,
-        "reagents": {
-            "Silver Dust": 5,
-            "Dried Sage": 3,
-            "Crushed Quartz": 3,
-            "Mercury-Dew": 2
-        }
-    },
-    "Dispel Magic": {
-        "level": 3,
-        "reagents": {
-            "Charcoal": 10,
-            "Void-Salt": 10
-        }
-    },
-    "Fireball": {
-        "level": 3,
-        "reagents": {
-            "Charcoal": 5,
-            "Sulfur": 5,
-            "Phosphor-Moss": 1,
-            "Crushed Quartz": 10
-        }
-    },
-    "Fly": {
-        "level": 3,
-        "reagents": {
-            "Charcoal": 5,
-            "Dried Sage": 5,
-            "Crushed Quartz": 3,
-            "Mercury-Dew": 3
-        }
-    },
-    "Invisibility": {
-        "level": 3,
-        "reagents": {
-            "Sulfur": 2,
-            "Dried Sage": 2,
-            "Void-Salt": 5
-        }
-    },
-    "Lightning Bolt": {
-        "level": 3,
-        "reagents": {
-            "Sulfur": 5,
-            "Silver Dust": 1,
-            "Phosphor-Moss": 1,
-            "Dried Mandrake Root": 1
-        }
-    },
-    "Water Breathing": {
-        "level": 3,
-        "reagents": {
-            "Dried Sage": 5,
-            "Silver Dust": 3,
-            "Crushed Quartz": 2,
-            "Luminous Petal": 1
-        }
-    },
-    "Cure Serious Wounds": {
-        "level": 4,
-        "reagents": {
-            "Crushed Quartz": 5,
-            "Mercury-Dew": 1,
-            "Luminous Petal": 1
-        }
-    },
-    "Neutralize Poison": {
-        "level": 4,
-        "reagents": {
-            "Dried Sage": 5,
-            "Crushed Quartz": 5,
-            "Luminous Petal": 1
-        }
-    },
-    "Speak with Plants": {
-        "level": 4,
-        "reagents": {
-            "Phosphor-Moss": 5,
-            "Crushed Quartz": 5,
-            "Nightshade": 1
-        }
-    },
-    "Charm Monster": {
-        "level": 4,
-        "reagents": {
-            "Charcoal": 6,
-            "Void-Salt": 6
-        }
-    },
-    "Confusion": {
-        "level": 4,
-        "reagents": {
-            "Crushed Quartz": 4,
-            "Void-Salt": 4,
-            "Mercury-Dew": 4
-        }
-    },
-    "Polymorph": {
-        "level": 4,
-        "reagents": {
-            "Mercury-Dew": 5,
-            "Nightshade": 1
-        }
-    },
-    "Wall of Fire": {
-        "level": 4,
-        "reagents": {
-            "Charcoal": 5,
-            "Crushed Quartz": 5,
-            "Obsidian Shard": 2
-        }
-    },
-    "Commune with the Dead": {
-        "level": 5,
-        "reagents": {
-            "Crushed Quartz": 3,
-            "Luminous Petal": 1,
-            "Void-Pearl": 1
-        }
-    },
-    "Raise Dead": {
-        "level": 5,
-        "reagents": {
-            "Silver Dust": 5,
-            "Crushed Quartz": 10,
-            "Luminous Petal": 1,
-            "Phoenix-Ash": 1
-        }
-    },
-    "Kill": {
-        "level": 5,
-        "reagents": {
-            "Charcoal": 5,
-            "Void-Salt": 5,
-            "Obsidian Shard": 1,
-            "Void-Pearl": 1
-        }
-    },
-    "Passwall": {
-        "level": 5,
-        "reagents": {
-            "Crushed Quartz": 3,
-            "Nightshade": 2
-        }
-    },
-    "Telekinesis": {
-        "level": 5,
-        "reagents": {
-            "Dried Sage": 3,
-            "Crushed Quartz": 3,
-            "Dried Mandrake Root": 2
-        }
-    },
-    "Teleport": {
-        "level": 5,
-        "reagents": {
-            "Crushed Quartz": 3,
-            "Aether-Crystal": 1
-        }
-    },
-    "Control Weather": {
-        "level": 6,
-        "reagents": {
-            "Stellar-Ichor": 1
-        }
-    },
-    "Disintegrate": {
-        "level": 6,
-        "reagents": {
-            "Void-Salt": 1,
-            "Void-Pearl": 1
-        }
-    },
-    "Wish": {
-        "level": 6,
-        "reagents": {
-            "Crushed Quartz": 5,
-            "Mercury-Dew": 5,
-            "Stellar-Ichor": 1
-        }
+  "Cure Light Wounds": {
+    "level": 1,
+    "reagents": {
+      "Charcoal": 2,
+      "Sulfur": 1,
+      "Dried Sage": 2,
+      "Silver Dust": 1
     }
+  },
+  "Detect Magic": {
+    "level": 1,
+    "reagents": {
+      "Charcoal": 1,
+      "Dried Sage": 1
+    }
+  },
+  "Light": {
+    "level": 1,
+    "reagents": {
+      "Charcoal": 1,
+      "Silver Dust": 1
+    }
+  },
+  "Protection": {
+    "level": 1,
+    "reagents": {
+      "Charcoal": 1,
+      "Silver Dust": 2
+    }
+  },
+  "Purify Food": {
+    "level": 1,
+    "reagents": {
+      "Charcoal": 4,
+      "Dried Sage": 4
+    }
+  },
+  "Charm Person": {
+    "level": 1,
+    "reagents": {
+      "Charcoal": 2,
+      "Void-Salt": 2
+    }
+  },
+  "Lock": {
+    "level": 1,
+    "reagents": {
+      "Crushed Quartz": 1,
+      "Silver Dust": 2
+    }
+  },
+  "Cure Poison": {
+    "level": 1,
+    "reagents": {
+      "Charcoal": 3,
+      "Dried Sage": 3,
+      "Silver Dust": 1
+    }
+  },
+  "Sleep": {
+    "level": 1,
+    "reagents": {
+      "Charcoal": 4,
+      "Dried Sage": 4,
+      "Sulfur": 4
+    }
+  },
+  "Bless": {
+    "level": 2,
+    "reagents": {
+      "Dried Sage": 2,
+      "Crushed Quartz": 1
+    }
+  },
+  "Find Traps": {
+    "level": 2,
+    "reagents": {
+      "Charcoal": 2,
+      "Silver Dust": 1,
+      "Phosphor-Moss": 1
+    }
+  },
+  "Hold Person": {
+    "level": 2,
+    "reagents": {
+      "Charcoal": 4,
+      "Void-Salt": 2
+    }
+  },
+  "Speak with Animals": {
+    "level": 2,
+    "reagents": {
+      "Silver Dust": 1,
+      "Charcoal": 3,
+      "Phosphor-Moss": 1
+    }
+  },
+  "Reveal Invisibility": {
+    "level": 2,
+    "reagents": {
+      "Charcoal": 2,
+      "Dried Sage": 2,
+      "Crushed Quartz": 1
+    }
+  },
+  "Knock": {
+    "level": 2,
+    "reagents": {
+      "Charcoal": 2,
+      "Sulfur": 2,
+      "Void-Salt": 2
+    }
+  },
+  "Levitate": {
+    "level": 2,
+    "reagents": {
+      "Charcoal": 1,
+      "Silver Dust": 1,
+      "Mercury-Dew": 2
+    }
+  },
+  "Web": {
+    "level": 2,
+    "reagents": {
+      "Charcoal": 2,
+      "Sulfur": 1,
+      "Void-Salt": 1
+    }
+  },
+  "Cure Disease": {
+    "level": 3,
+    "reagents": {
+      "Crushed Quartz": 2,
+      "Mercury-Dew": 4
+    }
+  },
+  "Continuous Light": {
+    "level": 3,
+    "reagents": {
+      "Charcoal": 3,
+      "Silver Dust": 3,
+      "Crushed Quartz": 3,
+      "Phosphor-Moss": 1
+    }
+  },
+  "Locate Object or Person": {
+    "level": 3,
+    "reagents": {
+      "Charcoal": 5,
+      "Dried Sage": 2,
+      "Phosphor-Moss": 1,
+      "Mercury-Dew": 1
+    }
+  },
+  "Remove Curse": {
+    "level": 3,
+    "reagents": {
+      "Silver Dust": 5,
+      "Crushed Quartz": 5,
+      "Mercury-Dew": 4
+    }
+  },
+  "Divinate": {
+    "level": 3,
+    "reagents": {
+      "Silver Dust": 5,
+      "Dried Sage": 3,
+      "Crushed Quartz": 3,
+      "Mercury-Dew": 2
+    }
+  },
+  "Dispel Magic": {
+    "level": 3,
+    "reagents": {
+      "Charcoal": 10,
+      "Void-Salt": 10
+    }
+  },
+  "Fireball": {
+    "level": 3,
+    "reagents": {
+      "Charcoal": 5,
+      "Sulfur": 5,
+      "Phosphor-Moss": 1,
+      "Crushed Quartz": 10
+    }
+  },
+  "Fly": {
+    "level": 3,
+    "reagents": {
+      "Charcoal": 5,
+      "Dried Sage": 5,
+      "Crushed Quartz": 3,
+      "Mercury-Dew": 3
+    }
+  },
+  "Invisibility": {
+    "level": 3,
+    "reagents": {
+      "Sulfur": 2,
+      "Dried Sage": 2,
+      "Void-Salt": 5
+    }
+  },
+  "Lightning Bolt": {
+    "level": 3,
+    "reagents": {
+      "Sulfur": 5,
+      "Silver Dust": 1,
+      "Phosphor-Moss": 1,
+      "Dried Mandrake Root": 1
+    }
+  },
+  "Water Breathing": {
+    "level": 3,
+    "reagents": {
+      "Dried Sage": 5,
+      "Silver Dust": 3,
+      "Crushed Quartz": 2,
+      "Luminous Petal": 1
+    }
+  },
+  "Cure Serious Wounds": {
+    "level": 4,
+    "reagents": {
+      "Crushed Quartz": 5,
+      "Mercury-Dew": 1,
+      "Luminous Petal": 1
+    }
+  },
+  "Neutralize Poison": {
+    "level": 4,
+    "reagents": {
+      "Dried Sage": 5,
+      "Crushed Quartz": 5,
+      "Luminous Petal": 1
+    }
+  },
+  "Speak with Plants": {
+    "level": 4,
+    "reagents": {
+      "Phosphor-Moss": 5,
+      "Crushed Quartz": 5,
+      "Nightshade": 1
+    }
+  },
+  "Charm Monster": {
+    "level": 4,
+    "reagents": {
+      "Charcoal": 6,
+      "Void-Salt": 6
+    }
+  },
+  "Confusion": {
+    "level": 4,
+    "reagents": {
+      "Crushed Quartz": 4,
+      "Void-Salt": 4,
+      "Mercury-Dew": 4
+    }
+  },
+  "Polymorph": {
+    "level": 4,
+    "reagents": {
+      "Mercury-Dew": 5,
+      "Nightshade": 1
+    }
+  },
+  "Wall of Fire": {
+    "level": 4,
+    "reagents": {
+      "Charcoal": 5,
+      "Crushed Quartz": 5,
+      "Obsidian Shard": 2
+    }
+  },
+  "Commune with the Dead": {
+    "level": 5,
+    "reagents": {
+      "Crushed Quartz": 3,
+      "Luminous Petal": 1,
+      "Void-Pearl": 1
+    }
+  },
+  "Raise Dead": {
+    "level": 5,
+    "reagents": {
+      "Silver Dust": 5,
+      "Crushed Quartz": 10,
+      "Luminous Petal": 1,
+      "Phoenix-Ash": 1
+    }
+  },
+  "Kill": {
+    "level": 5,
+    "reagents": {
+      "Charcoal": 5,
+      "Void-Salt": 5,
+      "Obsidian Shard": 1,
+      "Void-Pearl": 1
+    }
+  },
+  "Passwall": {
+    "level": 5,
+    "reagents": {
+      "Crushed Quartz": 3,
+      "Nightshade": 2
+    }
+  },
+  "Telekinesis": {
+    "level": 5,
+    "reagents": {
+      "Dried Sage": 3,
+      "Crushed Quartz": 3,
+      "Dried Mandrake Root": 2
+    }
+  },
+  "Teleport": {
+    "level": 5,
+    "reagents": {
+      "Crushed Quartz": 3,
+      "Aether-Crystal": 1
+    }
+  },
+  "Control Weather": {
+    "level": 6,
+    "reagents": {
+      "Stellar-Ichor": 1
+    }
+  },
+  "Disintegrate": {
+    "level": 6,
+    "reagents": {
+      "Void-Salt": 1,
+      "Void-Pearl": 1
+    }
+  },
+  "Wish": {
+    "level": 6,
+    "reagents": {
+      "Crushed Quartz": 5,
+      "Mercury-Dew": 5,
+      "Stellar-Ichor": 1
+    }
+  }
 }

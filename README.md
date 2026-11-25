@@ -197,7 +197,7 @@ INT 10 is a fizzle.
    movement), a shared monster-save helper, and the five damage spells —
    **Fireball**, **Lightning Bolt** (d20 to hit), **Wall of Fire** (damage
    over time), **Disintegrate** (no corpse), and **Kill** (instant).
-2. **Batch 2 — control spells** *(this push)*: **Sleep** (≤20 HP no save;
+2. **Batch 2 — control spells** *(done, v0.3.2)*: **Sleep** (≤20 HP no save;
    21+ gets a save; sleeping targets take 10× damage and can be passed by —
    killing one in sleep costs −3 Virtue), **Hold Person** (persons only, no
    save), **Web** (DEX attack, works on all types, held until it tears free),
@@ -206,9 +206,22 @@ INT 10 is a fizzle.
    attacks, 1-in-6 it strikes itself). A data-driven `kind` field was added to
    every bestiary entry (person / undead / beast / construct / elemental /
    demon) so Hold/Charm Person can't touch undead or monsters.
-3. **Batch 3 — utility spells**: Lock, Knock, Levitate, Fly, Invisibility,
-   Water Breathing, Passwall, Teleport, Locate Object, Read Language,
-   Continuous Light, Remove Curse, Dispel Magic, Control Weather, Find Traps.
+3. **Batch 3 — utility spells** *(done, v0.3.3)*: **Lock** (seals the
+   room's doors, both sides, persists), **Knock** (unlocks them —
+   locked→closed), **Levitate** (5-turn buff; pits / water / gaps don't catch
+   you) and **Fly** (10-turn buff; same gap bypass), **Invisibility** (5-turn
+   buff; no ambushes, and an existing encounter no longer blocks you —
+   slipping back the way you came past a hostile is a flee, −1 Virtue),
+   **Water Breathing** (10-turn buff; forward-compatible for future water
+   rooms / levels), **Passwall** (removes a wall obstacle, permanent),
+   **Teleport** (guaranteed (x, y, z) — out-of-bounds is a comedic void
+   death), **Locate Object or Person** (BFS the floor, direction + rooms
+   away), **Continuous Light** (100-turn glow), **Remove Curse** (clears
+   Cursed + restores max HP), **Dispel Magic** (clears your buffs + the
+   room's enchantments + light), and **Find Traps** (reports the trap here +
+   which adjoining rooms hold them). (Control Weather is deferred until there's
+   weather to control; Read Language was cut for now — nothing in the world
+   needs it yet, it may return with relevant mechanics.)
 4. **Batch 4 — LLM-tool spells**: Divinate (revisit later), Polymorph,
    Commune with the Dead, Telekinesis, Speak with Plants / Animals, and the
    wildcard **Wish**.

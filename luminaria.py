@@ -260,6 +260,8 @@ class Game:
         else:
             room = res.get("room", {})
             parts.append(f"You move. {room.get('name', 'Somewhere new')}.")
+            if res.get("control_note"):
+                parts.append(res["control_note"])
             if res.get("emerged"):
                 parts.append(self.eng.emergence_flavor())
             if room.get("encounter", "None") != "None":
@@ -974,6 +976,22 @@ class Game:
         self.last_narration = text
         return text
 
+    def _prompt_teleport_coords(self):
+        """Prompt for a Teleport destination (x, y, z). Returns (x, y, z) or None."""
+        raw = ui.prompt("Where do you know where you're going? (x, y, z) > ").strip()
+        if not raw:
+            return None
+        parts = [p.strip() for p in raw.replace(",", " ").split() if p.strip()]
+        try:
+            nums = [int(p) for p in parts]
+        except ValueError:
+            ui.warn("That's not a coordinate - give x, y, z as numbers.")
+            return None
+        if len(nums) != 3:
+            ui.warn("I need exactly three numbers: x, y, z.")
+            return None
+        return tuple(nums)
+
     def cmd_cast(self, in_combat=False):
         """Combine reagents into a spell. Returns the engine result dict (or None)."""
         formula = self._reagent_menu()
@@ -981,8 +999,24 @@ class Game:
             return None
         res = self.eng.mix_reagents(formula)
         if isinstance(res, dict):
+            # Teleport / Locate: the reagents are mixed; now prompt for the
+            # coordinate / target, then apply. (Out-of-combat only - mixing
+            # these mid-fight just shows the ready state and spends the turn.)
+            if not in_combat and res.get("spell") == "Teleport" and res.get("needs_coords"):
+                ui.say(res.get("message", ""))
+                res = self.eng._teleport_apply(self._prompt_teleport_coords())
+            elif not in_combat and res.get("spell") == "Locate Object or Person" and res.get("needs_target"):
+                ui.say(res.get("message", ""))
+                target = ui.prompt("What do you want to find? > ").strip()
+                res = self.eng._locate_apply(target)
             if res.get("spell") == "Detect Magic":
                 ui.narration(self._detect_prose(res))
+            elif res.get("void_death"):
+                # Out-of-bounds Teleport materialization: custom death, respawn,
+                # and clear death_message so the redraw tail doesn't double-handle.
+                ui.bad(res.get("message", ""))
+                self._respawn()
+                self.eng.death_message = None
             else:
                 ui.say(res.get("message", str(res)))
             return res
