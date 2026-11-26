@@ -823,7 +823,9 @@ class PlayerState:
         elif key in LIGHT_FUEL_KEYS:
             # Lights are not in the weapons table, and the burn-down maths
             # compares against the unit names "Torch"/"Lantern" - store those.
-            slot, canonical = "weapon", LIGHT_FUEL_KEYS[key]
+            # They occupy the SHIELD hand: a torch in the weapon hand would
+            # leave the player unable to fight (and largely defenseless).
+            slot, canonical = "shield", LIGHT_FUEL_KEYS[key]
         else:
             wkey = find_table_key(inv_key, WEAPON_DATA) or find_table_key(inv_key, RANGED_DATA)
             if wkey:
@@ -1391,10 +1393,12 @@ class GameEngine:
         eq = p_data["equipped"]
         fuel = p_data["light_fuel"]
 
-        if eq.get("weapon") == "Torch" and fuel["torch"] > 0:
+        if "Torch" in eq.values() and fuel["torch"] > 0:
             fuel["torch"] -= 1
             if fuel["torch"] <= 0:
-                eq["weapon"] = None
+                for slot, item in eq.items():
+                    if item == "Torch":
+                        eq[slot] = None
         if "Lantern" in eq.values() and fuel["lantern"] > 0:
             fuel["lantern"] -= 1
             if fuel["lantern"] <= 0:
