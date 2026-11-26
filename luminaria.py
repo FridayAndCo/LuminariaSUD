@@ -323,8 +323,10 @@ class Game:
         for d, ob in obs.items():
             name = ob.get("name", "obstacle")
             desc = E.OBSTACLE_DATA.get(name, "An obstacle blocks the way.")
-            lines.append(f"Way {d.lower()}: {name} - {desc}")
-        lines.append("(type 'force <way>' to muscle past it, or 'improvise')")
+            verb = "jump" if name in E.GameEngine.GAP_OBSTACLES else (
+                "bash" if name in E.GameEngine.BASH_OBSTACLES else "improvise")
+            lines.append(f"Way {d.lower()}: {name} - {desc} "
+                         f"(try '{verb} {d.lower()}' or 'improvise')")
         return "\n".join(lines)
 
     def _exits_line(self):
@@ -948,6 +950,23 @@ class Game:
         else:
             ui.say(self.narrate(str(self.eng.open_container(name))))
 
+    def cmd_bash(self, arg=None):
+        res = self.eng.bash(arg)
+        ui.say(self.narrate(res["text"]))
+        if self._room().get("encounter", "None") != "None":
+            self._combat(self._room().get("encounter"))
+            self.cmd_look()
+        else:
+            self.cmd_look()
+
+    def cmd_jump(self, arg=None):
+        res = self.eng.jump(arg)
+        if res.get("moved"):
+            self._move(res["direction"])
+        else:
+            ui.say(self.narrate(res["text"]))
+            self.cmd_look()
+
     def cmd_use(self, item):
         res = self.eng.use_item(item)
         if isinstance(res, dict):
@@ -1407,7 +1426,7 @@ class Game:
     # browsing keep their transcripts visible instead of being pushed away
     # by a room/HUD repaint.
     QUIET_CMDS = ("save", "help", "?", "roll", "narrate",
-                  "talk", "shop", "browse")
+                  "talk", "shop", "browse", "bash", "jump")
     HELP = (
         "FREE COMMANDS (no insight cost):\n"
         "  move      n / s / e / w / u / d   (north, south, east, west, up, down)\n"
@@ -1432,6 +1451,10 @@ class Game:
         "             its spoils wait inside until you take them)\n"
         "  disarm    disarm a trap you found\n"
         "  open      open [name] - door, gate, container, corpse\n"
+        "  bash      bash [way] - smash a locked chest, a locked door, a\n"
+        "            cave-in or a portcullis open (STR check). It is NOISY:\n"
+        "            a 1-in-6 chance of drawing an ambush\n"
+        "  jump      jump <way> - leap a broken floor (DEX check)\n"
         "  attack    attack / fight - engage the monster in this room\n"
         "            (combat auto-starts when you walk into one anyway)\n"
         "  pray      pray / meditate at a shrine\n"
@@ -1583,6 +1606,10 @@ class Game:
             ui.warn(f"LLM narration {'ON' if self.narrate_on else 'OFF'}.")
         elif verb == "status":
             pass  # the redraw tail below paints the room + HUD
+        elif verb in ("bash",):
+            self.cmd_bash(arg)
+        elif verb in ("jump", "leap", "hop"):
+            self.cmd_jump(arg)
         else:
             # parser miss -> offer improvise (confirmed, costs insight)
             if self.insight > 0:

@@ -1707,6 +1707,7 @@ class GameEngine:
 
     DARK_ROOM_TAGS = ("oppressive darkness", "darkness")
     GAP_OBSTACLES = ("Broken Floor",)
+    BASH_OBSTACLES = ("Cave-in", "Heavy Portcullis")
 
     def room_is_lit(self, room=None):
         """True if the room itself provides light (town, torch-lit dungeon).
@@ -4291,8 +4292,11 @@ class GameEngine:
         if door is None:
             ob = room.get("obstacles", {}).get(direction)
             if ob:
-                return (f"The {ob.get('name', 'obstacle')} bars the way to the {direction} - "
-                        "no hinge, no handle. Try 'force' (or improvise).")
+                _name = ob.get('name', 'obstacle')
+            _verb = "jump" if _name in self.GAP_OBSTACLES else (
+                "bash" if _name in self.BASH_OBSTACLES else "improvise")
+            return (f"The {_name} bars the way to the {direction} - "
+                    f"no hinge, no handle. Try '{_verb} {direction.lower()}' (or improvise).")
             return f"No door to the {direction}."
         pair = self._edge_rooms(rid, direction)
         if pair is None:
@@ -4328,51 +4332,114 @@ class GameEngine:
             return f"You fiddle with the lock (roll {roll} vs DC {dc}) but it won't give.{snap}"
         return f"The door to the {direction} is locked. You'll need a key or a lockpick."
 
-    def force_way(self, direction_word=None, action=""):
-        """'force <dir>' - throw yourself at an obstacle (or a stuck door).
-        The attempt costs an hour of effort; success clears the way for good.
-        Always retryable - a failure is time, never a tomb."""
+    def _ambush(self, z, rid):
+        """Spawn the floor's stock monster in the room - noise draws a
+        predator. Returns the monster's name."""
+        monster = self.world.generator._stock_monster(z)
+        room = self.world.rooms.get(rid)
+        if room is not None:
+            room["encounter"] = monster
+            self.world.save()
+        return monster
+
+    def _bash_check(self, z, rid, label, on_success):
+        """STR check (DC 12) to smash {label} open. The attempt is NOISY:
+        on a 1-in-6 roll an ambush draws in regardless of the bash result."""
+        self.player.update_satiety(-1)
+        roll = self.roll_dice(20, self.get_stat_bonus("STR"))
+        dc = 12
+        ambushed = self._ambush(z, rid) if self.roll_dice(6) == 1 else None
+        if roll >= dc:
+            on_success()
+            text = f"You bash {label} open (STR {roll} vs DC {dc})."
+        else:
+            text = f"You bash {label}, but it holds (STR {roll} vs DC {dc})."
+        if ambushed:
+            text += f" The noise draws a {ambushed}!"
+        return text
+
+    def jump(self, target):
+        """'jump <way>' - leap a broken floor. A plain DEX check (DC 12):
+        no insight, no LLM, no improvising - just legs and nerve."""
         pos = self.player.data["position"]
         rid = f"{pos['x']}_{pos['y']}_{pos['z']}"
         room = self.world.rooms.get(rid)
         if room is None:
-            return "Nothing to force here - you are in town."
-        direction = self._resolve_direction(direction_word)
+            return {"text": "Nothing to jump here - you are in town."}
+        direction = self._resolve_direction(target)
         if not direction:
-            return "Which way? (north, south, east, west)"
-        pair = self._edge_rooms(rid, direction)
-        if pair is None:
-            return f"No way to the {direction} to force."
+            return {"text": "Which way? (north, south, east, west)"}
         ob = room.get("obstacles", {}).get(direction)
         if ob is None:
-            if direction in room.get("doors", {}):
-                return (f"The door to the {direction} answers to 'open', not to force. "
-                        "(Unless you fancy the hinges.)")
-            return f"The way to the {direction} is already open."
+            return {"text": f"There is nothing to jump to the {direction}."}
         name = ob.get("name", "obstacle")
-        desc = OBSTACLE_DATA.get(name, "An obstacle blocks the way.")
-        low = str(action).lower()
-        if any(w in low for w in ("rubble", "shove", "push", "pull", "break", "crowbar",
-                                  "boulder", "muscle", "shoulder")):
-            stat = "STR"
-        elif any(w in low for w in ("jump", "leap", "balance", "squeeze", "climb", "gap",
-                                    "swing", "walk")):
-            stat = "DEX"
-        elif any(w in low for w in ("magic", "spell", "reagent", "chant", "ward", "barrier",
-                                    "elemental", "glyph", "knock")):
-            stat = "INT"
-        else:
-            stat = "WIS"
+        if name not in self.GAP_OBSTACLES:
+            return {"text": f"You can't jump the {name} to the {direction}."}
         self.player.update_satiety(-1)
-        roll = self.roll_dice(20, self.get_stat_bonus(stat))
+        roll = self.roll_dice(20, self.get_stat_bonus("DEX"))
         dc = 12
         if roll >= dc:
+            pair = self._edge_rooms(rid, direction)
+            if pair is None:
+                return {"text": f"You leap the {name} (DEX {roll} vs DC {dc}) - "
+                                f"but the far side is unreachable."}
             self._promote_edge(pair, direction)
             self.world.save()
-            return (f"You set yourself against the {name} ({stat} roll {roll} vs DC {dc}). "
-                    f"It resists once - then gives. The way to the {direction} is open.")
-        return (f"You set yourself against the {name} ({stat} roll {roll} vs DC {dc}) "
-                f"and it does not care. {desc}")
+            return {"text": f"You leap the {name} (DEX {roll} vs DC {dc}) - "
+                            f"the way to the {direction} is open.",
+                    "moved": True, "direction": direction}
+        return {"text": f"You lunge at the {name} (DEX {roll} vs DC {dc}) "
+                        f"and fall short."}
+
+    def bash(self, target=None):
+        """'bash' / 'bash <way>' - smash a locked chest (or a locked door,
+        or a cave-in / portcullis) open. A STR check (DC 12). The tradeoff:
+        it is NOISY - a 1-in-6 chance of activating an ambush."""
+        pos = self.player.data["position"]
+        rid = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        z = pos["z"]
+        room = self.world.rooms.get(rid)
+        if room is None:
+            return {"text": "Nothing to bash here - you are in town."}
+        if not target:
+            chest = room.get("chest")
+            if not chest:
+                return {"text": "There is no chest here to bash."}
+            if not chest.get("locked", False):
+                return {"text": "The chest is not locked - just open it."}
+            text = self._bash_check(z, rid, "the chest",
+                                    lambda: chest.update({"locked": False}))
+            self.world.save()
+            return {"text": text}
+        direction = self._resolve_direction(target)
+        if not direction:
+            return {"text": "Bash what? A chest, or a way (north, south, east, west)."}
+        door = room.get("doors", {}).get(direction)
+        if door is not None:
+            if door.get("state") != "locked":
+                return {"text": f"The door to the {direction} is not locked - "
+                                f"just open it."}
+            pair = self._edge_rooms(rid, direction)
+            if pair is None:
+                return {"text": f"The door to the {direction} leads nowhere "
+                                f"you can reach."}
+            text = self._bash_check(z, rid, f"the door to the {direction}",
+                                    lambda: self._promote_edge(pair, direction))
+            self.world.save()
+            return {"text": text}
+        ob = room.get("obstacles", {}).get(direction)
+        if ob is not None:
+            name = ob.get("name", "obstacle")
+            if name not in self.BASH_OBSTACLES:
+                return {"text": f"You can't bash the {name} to the {direction}."}
+            pair = self._edge_rooms(rid, direction)
+            if pair is None:
+                return {"text": f"The {name} leads nowhere you can reach."}
+            text = self._bash_check(z, rid, f"{name} to the {direction}",
+                                    lambda: self._promote_edge(pair, direction))
+            self.world.save()
+            return {"text": text}
+        return {"text": f"There is nothing to bash to the {direction}."}
 
     def open_container(self, container_name=None):
         pos = self.player.data["position"]
