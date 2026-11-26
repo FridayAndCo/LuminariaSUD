@@ -41,10 +41,12 @@ SCHEMAS = [
         "parameters": {"type": "object", "properties": {}, "required": []}}},
     {"type": "function", "function": {
         "name": "interact_environment",
-        "description": "Try a freeform interaction with the puzzle obstacle (e.g. 'push the rubble', 'chant the ward'). Rolls an ability check.",
+        "description": "Try a freeform interaction with the puzzle obstacle (e.g. 'push the rubble', 'chant the ward'). You pick which stat to test and judge the idea; the ENGINE rolls the die and is authoritative.",
         "parameters": {"type": "object", "properties": {
-            "action": {"type": "string", "description": "The physical or magical thing attempted."}},
-            "required": ["action"]}}},
+            "action": {"type": "string", "description": "The physical or magical thing attempted."},
+            "stat": {"type": "string", "description": "The single most relevant ability score for this attempt: STR, DEX, CON, INT, WIS, or CHA."},
+            "idea_bonus": {"type": "integer", "description": "Your qualitative judgment of the idea, from -5 (a terrible idea) to +5 (a great idea); 0 if average. The engine clamps it and rolls."}},
+            "required": ["action", "stat", "idea_bonus"]}}},
     {"type": "function", "function": {
         "name": "clear_obstacle",
         "description": "Declare the puzzle obstacle solved and remove it (only after a successful interact_environment).",
@@ -137,7 +139,9 @@ def dispatch(engine):
             if name == "disarm_trap":
                 return str(engine.disarm_trap())
             if name == "interact_environment":
-                return str(engine.interact_environment(args.get("action", "examine")))
+                return str(engine.interact_environment(args.get("action", "examine"),
+                                                       args.get("stat"),
+                                                       args.get("idea_bonus")))
             if name == "clear_obstacle":
                 return str(engine.clear_obstacle(args.get("obstacle_name")))
             if name == "open_container":

@@ -4172,7 +4172,7 @@ class GameEngine:
                 return d, ob
         return None, None
 
-    def interact_environment(self, action):
+    def interact_environment(self, action, stat=None, idea_bonus=None):
         pos = self.player.data["position"]
         room = self.world.get_room(pos["x"], pos["y"], pos["z"])
         action_lower = str(action).lower()
@@ -4183,7 +4183,13 @@ class GameEngine:
         description = OBSTACLE_DATA.get(obstacle, "An obstacle blocks the way.")
         if any(w in action_lower for w in ("examine", "inspect", "study", "look", "describe")):
             return f"You examine the {obstacle}: {description}"
-        if any(w in action_lower for w in ("rubble", "force", "push", "pull", "break", "crowbar", "portcullis")):
+        # The LLM picks the stat and judges the idea; the engine validates both
+        # and rolls the die. (Keyword fallback keeps the check usable if the
+        # LLM omits a stat.)
+        valid_stats = set(self.player.data["stats"].keys())
+        if stat and str(stat).upper() in valid_stats:
+            stat = str(stat).upper()
+        elif any(w in action_lower for w in ("rubble", "force", "push", "pull", "break", "crowbar", "portcullis")):
             stat = "STR"
         elif any(w in action_lower for w in ("jump", "leap", "balance", "squeeze", "climb", "gap")):
             stat = "DEX"
@@ -4191,12 +4197,18 @@ class GameEngine:
             stat = "INT"
         else:
             stat = "WIS"
-        roll = self.roll_dice(20, self.get_stat_bonus(stat))
+        try:
+            bonus = int(idea_bonus)
+        except (TypeError, ValueError):
+            bonus = 0
+        bonus = max(-5, min(5, bonus))
+        roll = self.roll_dice(20, self.get_stat_bonus(stat) + bonus)
         dc = 12
+        bonus_note = f"{bonus:+d}" if bonus else "\u00b10"
         if roll >= dc:
-            return (f"Check: {action} using {stat} against DC {dc} succeeded ({roll}). "
+            return (f"Check: {action} using {stat} {bonus_note} against DC {dc} succeeded ({roll}). "
                     "The obstacle has not been cleared automatically; call clear_obstacle() if the solution should finish the puzzle.")
-        return (f"Check: {action} using {stat} against DC {dc} failed ({roll}). The obstacle still blocks the way.")
+        return (f"Check: {action} using {stat} {bonus_note} against DC {dc} failed ({roll}). The obstacle still blocks the way.")
 
     def clear_obstacle(self, obstacle_name=None):
         pos = self.player.data["position"]

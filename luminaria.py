@@ -69,7 +69,12 @@ SYSTEM_IMPROV = (
     "authoritative - never invent mechanical results. Use tools if you need "
     "information; when the moment is resolved, reply in 1-3 sentences of "
     "second-person prose describing what happened. Do not call more than a "
-    "few tools."
+    "few tools. When you resolve the player's idea with interact_environment, "
+    "name the single most relevant stat (STR/DEX/CON/INT/WIS/CHA) and assign "
+    "an idea_bonus from -5 (a terrible idea) to +5 (a great idea) based on how "
+    "sensible the attempt is - a torch on a wall of thorns is a great idea, "
+    "lightning bolt underwater is a terrible one. You judge the idea; the "
+    "engine rolls the die."
 )
 
 SYSTEM_COMBAT_IMPROV = (
@@ -182,7 +187,7 @@ class Game:
         self.narrate_on = bool(cfg.get("narrate", True))
         self.llm_ready = llm_configured(cfg)
         wis = self.eng.player.data["stats"]["WIS"]
-        self.insight_max = max(1, int(cfg.get("insight_base", 1)) + max(0, wis - 10))
+        self.insight_max = max(1, int(cfg.get("insight_base", 5)) + max(0, wis - 10))
         self.insight = self.insight_max
         self.dispatch = T.dispatch(self.eng)
         self.last_narration = None
@@ -266,8 +271,8 @@ class Game:
                 f"PRESENT: {ctx['npc_presence']}\n"
                 f"CONTENTS: {ctx.get('room_contents', 'nothing of note')}\n"
                 f"PLAYER: HP {p['hp']}/{p['max_hp']}, AC {self.eng.calculate_ac()}, "
-                f"STR {p['stats']['STR']} DEX {p['stats']['DEX']} INT {p['stats']['INT']} "
-                f"WIS {p['stats']['WIS']}\n"
+                f"STR {p['stats']['STR']} DEX {p['stats']['DEX']} CON {p['stats']['CON']} "
+                f"INT {p['stats']['INT']} WIS {p['stats']['WIS']} CHA {p['stats']['CHA']}\n"
                 f"SITUATION: {focus or 'The player wants to try something creative here.'}")
         msgs = [{"role": "system", "content": SYSTEM_IMPROV},
                 {"role": "user", "content": user}]
