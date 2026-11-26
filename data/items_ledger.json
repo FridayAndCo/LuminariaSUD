@@ -1,1044 +1,1014 @@
 {
-  "reagents": {
-    "Charcoal": {
-      "price": 1,
-      "rarity": "Common"
+    "reagents": {
+        "Charcoal": {
+            "price": 1,
+            "rarity": "Common"
+        },
+        "Sulfur": {
+            "price": 2,
+            "rarity": "Common"
+        },
+        "Dried Sage": {
+            "price": 3,
+            "rarity": "Common"
+        },
+        "Silver Dust": {
+            "price": 5,
+            "rarity": "Common"
+        },
+        "Phosphor-Moss": {
+            "price": 12,
+            "rarity": "Uncommon"
+        },
+        "Crushed Quartz": {
+            "price": 15,
+            "rarity": "Uncommon"
+        },
+        "Void-Salt": {
+            "price": 20,
+            "rarity": "Uncommon"
+        },
+        "Mercury-Dew": {
+            "price": 25,
+            "rarity": "Uncommon"
+        },
+        "Obsidian Shard": {
+            "price": 60,
+            "rarity": "Rare"
+        },
+        "Luminous Petal": {
+            "price": 75,
+            "rarity": "Rare"
+        },
+        "Nightshade": {
+            "price": 100,
+            "rarity": "Rare"
+        },
+        "Dried Mandrake Root": {
+            "price": 150,
+            "rarity": "Rare"
+        },
+        "Aether-Crystal": {
+            "price": 300,
+            "rarity": "Exotic"
+        },
+        "Void-Pearl": {
+            "price": 500,
+            "rarity": "Exotic"
+        },
+        "Phoenix-Ash": {
+            "price": 1000,
+            "rarity": "Exotic"
+        },
+        "Stellar-Ichor": {
+            "price": 2500,
+            "rarity": "Exotic"
+        }
     },
-    "Sulfur": {
-      "price": 2,
-      "rarity": "Common"
+    "weapons": {
+        "Axe, Battle": {
+            "die": 6,
+            "mod": 2,
+            "price": 7,
+            "slots": 2,
+            "hands": 2
+        },
+        "Axe, Hand": {
+            "die": 6,
+            "mod": 0,
+            "price": 3,
+            "slots": 1,
+            "hands": 1,
+            "range": 30,
+            "type": "throwable"
+        },
+        "Club": {
+            "die": 6,
+            "mod": -1,
+            "price": 1,
+            "slots": 1,
+            "hands": 1
+        },
+        "Dagger": {
+            "die": 6,
+            "mod": -1,
+            "price": 3,
+            "slots": 1,
+            "hands": 1
+        },
+        "Flail": {
+            "die": 6,
+            "mod": 0,
+            "price": 8,
+            "slots": 1,
+            "hands": 1
+        },
+        "Mace": {
+            "die": 6,
+            "mod": 0,
+            "price": 5,
+            "slots": 1,
+            "hands": 1
+        },
+        "Morningstar": {
+            "die": 6,
+            "mod": 0,
+            "price": 6,
+            "slots": 1,
+            "hands": 1
+        },
+        "Polearm": {
+            "die": 6,
+            "mod": 1,
+            "price": 7,
+            "slots": 2,
+            "hands": 2
+        },
+        "Spear": {
+            "die": 6,
+            "mod": 0,
+            "price": 2,
+            "slots": 1,
+            "hands": 1,
+            "range": 60,
+            "type": "throwable"
+        },
+        "Staff": {
+            "die": 6,
+            "mod": -1,
+            "price": 1,
+            "slots": 2,
+            "hands": 2
+        },
+        "Sword, Long": {
+            "die": 6,
+            "mod": 1,
+            "price": 10,
+            "slots": 1,
+            "hands": 1
+        },
+        "Sword, Short": {
+            "die": 6,
+            "mod": 0,
+            "price": 8,
+            "slots": 1,
+            "hands": 1
+        },
+        "Sword, Two-Handed": {
+            "die": 6,
+            "mod": 2,
+            "price": 15,
+            "slots": 2,
+            "hands": 2
+        },
+        "Warhammer": {
+            "die": 6,
+            "mod": 0,
+            "price": 5,
+            "slots": 1,
+            "hands": 1
+        }
     },
-    "Dried Sage": {
-      "price": 3,
-      "rarity": "Common"
+    "ranged_weapons": {
+        "Bow, Long": {
+            "die": 6,
+            "mod": 0,
+            "price": 40,
+            "slots": 1,
+            "hands": 2,
+            "range": 210,
+            "type": "ranged"
+        },
+        "Bow, Short": {
+            "die": 6,
+            "mod": -1,
+            "price": 25,
+            "slots": 1,
+            "hands": 2,
+            "range": 150,
+            "type": "ranged"
+        },
+        "Crossbow": {
+            "die": 6,
+            "mod": -1,
+            "price": 25,
+            "slots": 1,
+            "hands": 2,
+            "range": 180,
+            "type": "ranged"
+        },
+        "Sling": {
+            "die": 6,
+            "mod": -2,
+            "price": 2,
+            "slots": 1,
+            "hands": 1,
+            "range": 90,
+            "type": "ranged"
+        }
     },
-    "Silver Dust": {
-      "price": 5,
-      "rarity": "Common"
+    "ammunition": {
+        "Arrows (20)": {
+            "price": 5
+        },
+        "Bolts, Case of 30": {
+            "price": 5
+        },
+        "Quiver": {
+            "price": 5
+        },
+        "Sling Stones (20)": {
+            "price": 1
+        }
     },
-    "Phosphor-Moss": {
-      "price": 12,
-      "rarity": "Uncommon"
+    "armor": {
+        "Cloth Robe": {
+            "ac": 1,
+            "price": 5,
+            "slots": 1,
+            "type": "body"
+        },
+        "Cloth Armor": {
+            "ac": 1,
+            "price": 5,
+            "slots": 1,
+            "type": "body"
+        },
+        "Leather Armor": {
+            "ac": 2,
+            "price": 15,
+            "slots": 1,
+            "type": "body"
+        },
+        "Ring Mail": {
+            "ac": 3,
+            "price": 22,
+            "slots": 1,
+            "type": "body"
+        },
+        "Scale Mail": {
+            "ac": 4,
+            "price": 30,
+            "slots": 1,
+            "type": "body"
+        },
+        "Chain Mail": {
+            "ac": 5,
+            "price": 50,
+            "slots": 1,
+            "type": "body"
+        },
+        "Plate Mail": {
+            "ac": 7,
+            "price": 150,
+            "slots": 1,
+            "type": "body"
+        },
+        "Small Wooden Shield": {
+            "ac": 1,
+            "price": 15,
+            "slots": 1,
+            "type": "shield"
+        },
+        "Kite Shield": {
+            "ac": 2,
+            "price": 75,
+            "slots": 1,
+            "type": "shield"
+        }
     },
-    "Crushed Quartz": {
-      "price": 15,
-      "rarity": "Uncommon"
+    "general": {
+        "Backpack": {
+            "price": 5
+        },
+        "Bedroll": {
+            "price": 2
+        },
+        "Case (map or scroll)": {
+            "price": 3
+        },
+        "Crowbar": {
+            "price": 5
+        },
+        "Flint and Steel": {
+            "price": 5
+        },
+        "Grappling Hook": {
+            "price": 5
+        },
+        "Hammer": {
+            "price": 2
+        },
+        "Holy Water, Small Vial": {
+            "price": 25
+        },
+        "Lantern": {
+            "price": 10
+        },
+        "Mirror (small)": {
+            "price": 5
+        },
+        "Oil (Lantern, 1 pint)": {
+            "price": 2
+        },
+        "Pole, 10 ft": {
+            "price": 1
+        },
+        "Rope, 50 ft": {
+            "price": 1
+        },
+        "Rope, 50 ft (silk)": {
+            "price": 5
+        },
+        "Sack": {
+            "price": 1
+        },
+        "Shovel": {
+            "price": 5
+        },
+        "Spikes, Iron (12)": {
+            "price": 1
+        },
+        "Stakes, Wooden (12)": {
+            "price": 1
+        },
+        "Tent": {
+            "price": 20
+        },
+        "Torches (6)": {
+            "price": 1
+        }
     },
-    "Void-Salt": {
-      "price": 20,
-      "rarity": "Uncommon"
+    "keys": {
+        "Rusty Key": {
+            "price": 5
+        },
+        "Iron Key": {
+            "price": 8
+        },
+        "Brass Key": {
+            "price": 10
+        },
+        "Silver Key": {
+            "price": 12
+        },
+        "Skeleton Key": {
+            "price": 20
+        }
     },
-    "Mercury-Dew": {
-      "price": 25,
-      "rarity": "Uncommon"
+    "lockpicks": {
+        "Lockpick": {
+            "price": 25
+        }
     },
-    "Obsidian Shard": {
-      "price": 60,
-      "rarity": "Rare"
+    "provisions": {
+        "Rations, Preserved": {
+            "price": 3
+        },
+        "Rations (meal in town)": {
+            "price": 1
+        },
+        "Spoiled Food": {
+            "price": 1,
+            "tradeable": false
+        },
+        "Monster Meat": {
+            "price": 1,
+            "tradeable": false
+        },
+        "Bottle (Glass)": {
+            "price": 1
+        }
     },
-    "Luminous Petal": {
-      "price": 75,
-      "rarity": "Rare"
+    "transport": {
+        "Horse Barding": {
+            "price": 320
+        },
+        "Saddle Bags": {
+            "price": 10
+        },
+        "Boat": {
+            "price": 100
+        },
+        "Cart": {
+            "price": 80
+        },
+        "Galley (Large)": {
+            "price": 30000
+        },
+        "Galley (Small)": {
+            "price": 10000
+        },
+        "Horse, draft": {
+            "price": 30
+        },
+        "Horse, Riding": {
+            "price": 40
+        },
+        "Mule": {
+            "price": 20
+        },
+        "Raft": {
+            "price": 40
+        },
+        "Saddle": {
+            "price": 25
+        },
+        "Ship, Sailing (Large)": {
+            "price": 20000
+        },
+        "Ship, sailing (small)": {
+            "price": 5000
+        },
+        "Wagon, small": {
+            "price": 160
+        },
+        "Warhorse": {
+            "price": 200
+        },
+        "Warship": {
+            "price": 40000
+        }
     },
-    "Nightshade": {
-      "price": 100,
-      "rarity": "Rare"
+    "potions": {
+        "Red Potion": {
+            "price": 25,
+            "effect": "Cure Light Wounds"
+        },
+        "Green Potion": {
+            "price": 25,
+            "effect": "Cure Poison"
+        },
+        "Blue Potion": {
+            "price": 50,
+            "effect": "Cure Disease"
+        }
     },
-    "Dried Mandrake Root": {
-      "price": 150,
-      "rarity": "Rare"
+    "pouches": {
+        "Reagent Pouch": {
+            "price": 25
+        }
     },
-    "Aether-Crystal": {
-      "price": 300,
-      "rarity": "Exotic"
-    },
-    "Void-Pearl": {
-      "price": 500,
-      "rarity": "Exotic"
-    },
-    "Phoenix-Ash": {
-      "price": 1000,
-      "rarity": "Exotic"
-    },
-    "Stellar-Ichor": {
-      "price": 2500,
-      "rarity": "Exotic"
+    "readables": {
+        "Page: Cure Light Wounds": {
+            "price": 12,
+            "kind": "page",
+            "text": "Cure Light Wounds (Level 1). To cast, mix 2 Charcoal + 1 Sulfur + 2 Dried Sage + 1 Silver Dust. When the mixture settles, knits flesh and closes wounds."
+        },
+        "Page: Detect Magic": {
+            "price": 12,
+            "kind": "page",
+            "text": "Detect Magic (Level 1). To cast, mix 1 Charcoal + 1 Dried Sage. When the mixture settles, lays bare the auras around you."
+        },
+        "Page: Light": {
+            "price": 12,
+            "kind": "page",
+            "text": "Light (Level 1). To cast, mix 1 Charcoal + 1 Silver Dust. When the mixture settles, kindles a steady, quiet glow that costs nothing to hold."
+        },
+        "Page: Protection": {
+            "price": 12,
+            "kind": "page",
+            "text": "Protection (Level 1). To cast, mix 1 Charcoal + 2 Silver Dust. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Purify Food": {
+            "price": 12,
+            "kind": "page",
+            "text": "Purify Food (Level 1). To cast, mix 4 Charcoal + 4 Dried Sage. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Charm Person": {
+            "price": 12,
+            "kind": "page",
+            "text": "Charm Person (Level 1). To cast, mix 2 Charcoal + 2 Void-Salt. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Lock": {
+            "price": 12,
+            "kind": "page",
+            "text": "Lock (Level 1). To cast, mix 1 Crushed Quartz + 2 Silver Dust. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Cure Poison": {
+            "price": 12,
+            "kind": "page",
+            "text": "Cure Poison (Level 1). To cast, mix 3 Charcoal + 3 Dried Sage + 1 Silver Dust. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Sleep": {
+            "price": 12,
+            "kind": "page",
+            "text": "Sleep (Level 1). To cast, mix 4 Charcoal + 4 Dried Sage + 4 Sulfur. When the mixture settles, drops a target into a deep, dreamless slumber."
+        },
+        "Page: Bless": {
+            "price": 16,
+            "kind": "page",
+            "text": "Bless (Level 2). To cast, mix 2 Dried Sage + 1 Crushed Quartz. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Find Traps": {
+            "price": 16,
+            "kind": "page",
+            "text": "Find Traps (Level 2). To cast, mix 2 Charcoal + 1 Silver Dust + 1 Phosphor-Moss. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Hold Person": {
+            "price": 16,
+            "kind": "page",
+            "text": "Hold Person (Level 2). To cast, mix 4 Charcoal + 2 Void-Salt. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Speak with Animals": {
+            "price": 16,
+            "kind": "page",
+            "text": "Speak with Animals (Level 2). To cast, mix 1 Silver Dust + 3 Charcoal + 1 Phosphor-Moss. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Reveal Invisibility": {
+            "price": 16,
+            "kind": "page",
+            "text": "Reveal Invisibility (Level 2). To cast, mix 2 Charcoal + 2 Dried Sage + 1 Crushed Quartz. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Knock": {
+            "price": 16,
+            "kind": "page",
+            "text": "Knock (Level 2). To cast, mix 2 Charcoal + 2 Sulfur + 2 Void-Salt. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Levitate": {
+            "price": 16,
+            "kind": "page",
+            "text": "Levitate (Level 2). To cast, mix 1 Charcoal + 1 Silver Dust + 2 Mercury-Dew. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Web": {
+            "price": 16,
+            "kind": "page",
+            "text": "Web (Level 2). To cast, mix 2 Charcoal + 1 Sulfur + 1 Void-Salt. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Cure Disease": {
+            "price": 20,
+            "kind": "page",
+            "text": "Cure Disease (Level 3). To cast, mix 2 Crushed Quartz + 4 Mercury-Dew. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Continuous Light": {
+            "price": 20,
+            "kind": "page",
+            "text": "Continuous Light (Level 3). To cast, mix 3 Charcoal + 3 Silver Dust + 3 Crushed Quartz + 1 Phosphor-Moss. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Locate Object or Person": {
+            "price": 20,
+            "kind": "page",
+            "text": "Locate Object or Person (Level 3). To cast, mix 5 Charcoal + 2 Dried Sage + 1 Phosphor-Moss + 1 Mercury-Dew. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Remove Curse": {
+            "price": 20,
+            "kind": "page",
+            "text": "Remove Curse (Level 3). To cast, mix 5 Silver Dust + 5 Crushed Quartz + 4 Mercury-Dew. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Dispel Magic": {
+            "price": 20,
+            "kind": "page",
+            "text": "Dispel Magic (Level 3). To cast, mix 10 Charcoal + 10 Void-Salt. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Fireball": {
+            "price": 20,
+            "kind": "page",
+            "text": "Fireball (Level 3). To cast, mix 5 Charcoal + 5 Sulfur + 1 Phosphor-Moss + 10 Crushed Quartz. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Fly": {
+            "price": 20,
+            "kind": "page",
+            "text": "Fly (Level 3). To cast, mix 5 Charcoal + 5 Dried Sage + 3 Crushed Quartz + 3 Mercury-Dew. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Invisibility": {
+            "price": 20,
+            "kind": "page",
+            "text": "Invisibility (Level 3). To cast, mix 2 Sulfur + 2 Dried Sage + 5 Void-Salt. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Lightning Bolt": {
+            "price": 20,
+            "kind": "page",
+            "text": "Lightning Bolt (Level 3). To cast, mix 5 Sulfur + 1 Silver Dust + 1 Phosphor-Moss + 1 Dried Mandrake Root. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Water Breathing": {
+            "price": 20,
+            "kind": "page",
+            "text": "Water Breathing (Level 3). To cast, mix 5 Dried Sage + 3 Silver Dust + 2 Crushed Quartz + 1 Luminous Petal. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Cure Serious Wounds": {
+            "price": 24,
+            "kind": "page",
+            "text": "Cure Serious Wounds (Level 4). To cast, mix 5 Crushed Quartz + 1 Mercury-Dew + 1 Luminous Petal. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Speak with Plants": {
+            "price": 24,
+            "kind": "page",
+            "text": "Speak with Plants (Level 4). To cast, mix 5 Phosphor-Moss + 5 Crushed Quartz + 1 Nightshade. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Charm Monster": {
+            "price": 24,
+            "kind": "page",
+            "text": "Charm Monster (Level 4). To cast, mix 10 Charcoal + 10 Void-Salt. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Confusion": {
+            "price": 24,
+            "kind": "page",
+            "text": "Confusion (Level 4). To cast, mix 4 Crushed Quartz + 4 Void-Salt + 4 Mercury-Dew. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Polymorph": {
+            "price": 24,
+            "kind": "page",
+            "text": "Polymorph (Level 4). To cast, mix 5 Mercury-Dew + 1 Nightshade. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Wall of Fire": {
+            "price": 24,
+            "kind": "page",
+            "text": "Wall of Fire (Level 4). To cast, mix 5 Charcoal + 5 Crushed Quartz + 2 Obsidian Shard. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Commune with the Dead": {
+            "price": 28,
+            "kind": "page",
+            "text": "Commune with the Dead (Level 5). To cast, mix 3 Crushed Quartz + 1 Luminous Petal + 1 Void-Pearl. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Raise Dead": {
+            "price": 28,
+            "kind": "page",
+            "text": "Raise Dead (Level 5). To cast, mix 5 Silver Dust + 10 Crushed Quartz + 1 Luminous Petal + 1 Phoenix-Ash. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Kill": {
+            "price": 28,
+            "kind": "page",
+            "text": "Kill (Level 5). To cast, mix 5 Charcoal + 5 Void-Salt + 1 Obsidian Shard + 1 Void-Pearl. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Passwall": {
+            "price": 28,
+            "kind": "page",
+            "text": "Passwall (Level 5). To cast, mix 3 Crushed Quartz + 2 Nightshade. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Telekinesis": {
+            "price": 28,
+            "kind": "page",
+            "text": "Telekinesis (Level 5). To cast, mix 3 Dried Sage + 3 Crushed Quartz + 2 Dried Mandrake Root. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Teleport": {
+            "price": 28,
+            "kind": "page",
+            "text": "Teleport (Level 5). To cast, mix 3 Crushed Quartz + 1 Aether-Crystal. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Control Weather": {
+            "price": 32,
+            "kind": "page",
+            "text": "Control Weather (Level 6). To cast, mix 1 Stellar-Ichor. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Disintegrate": {
+            "price": 32,
+            "kind": "page",
+            "text": "Disintegrate (Level 6). To cast, mix 1 Void-Salt + 1 Void-Pearl. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Page: Wish": {
+            "price": 32,
+            "kind": "page",
+            "text": "Wish (Level 6). To cast, mix 5 Crushed Quartz + 5 Mercury-Dew + 1 Stellar-Ichor. When the mixture settles, turns the air to your will.",
+            "tradeable": false
+        },
+        "Scrap: Cure Light Wounds": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Cure Light Wounds is made of - Charcoal Sulfur Dried Sage Silver Dust - but the quantities are lost to time."
+        },
+        "Scrap: Detect Magic": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Detect Magic is made of - Charcoal Dried Sage - but the quantities are lost to time."
+        },
+        "Scrap: Light": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Light is made of - Charcoal Silver Dust - but the quantities are lost to time."
+        },
+        "Scrap: Protection": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Protection is made of - Charcoal Silver Dust - but the quantities are lost to time."
+        },
+        "Scrap: Purify Food": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Purify Food is made of - Charcoal Dried Sage - but the quantities are lost to time."
+        },
+        "Scrap: Charm Person": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Charm Person is made of - Charcoal Void-Salt - but the quantities are lost to time."
+        },
+        "Scrap: Lock": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Lock is made of - Crushed Quartz Silver Dust - but the quantities are lost to time."
+        },
+        "Scrap: Cure Poison": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Cure Poison is made of - Charcoal Dried Sage Silver Dust - but the quantities are lost to time."
+        },
+        "Scrap: Sleep": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Sleep is made of - Charcoal Dried Sage Sulfur - but the quantities are lost to time."
+        },
+        "Scrap: Bless": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Bless is made of - Dried Sage Crushed Quartz - but the quantities are lost to time."
+        },
+        "Scrap: Find Traps": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Find Traps is made of - Charcoal Silver Dust Phosphor-Moss - but the quantities are lost to time."
+        },
+        "Scrap: Hold Person": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Hold Person is made of - Charcoal Void-Salt - but the quantities are lost to time."
+        },
+        "Scrap: Speak with Animals": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Speak with Animals is made of - Silver Dust Charcoal Phosphor-Moss - but the quantities are lost to time."
+        },
+        "Scrap: Reveal Invisibility": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Reveal Invisibility is made of - Charcoal Dried Sage Crushed Quartz - but the quantities are lost to time."
+        },
+        "Scrap: Knock": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Knock is made of - Charcoal Sulfur Void-Salt - but the quantities are lost to time."
+        },
+        "Scrap: Levitate": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Levitate is made of - Charcoal Silver Dust Mercury-Dew - but the quantities are lost to time."
+        },
+        "Scrap: Web": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Web is made of - Charcoal Sulfur Void-Salt - but the quantities are lost to time."
+        },
+        "Scrap: Cure Disease": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Cure Disease is made of - Crushed Quartz Mercury-Dew - but the quantities are lost to time."
+        },
+        "Scrap: Continuous Light": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Continuous Light is made of - Charcoal Silver Dust Crushed Quartz Phosphor-Moss - but the quantities are lost to time."
+        },
+        "Scrap: Locate Object or Person": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Locate Object or Person is made of - Charcoal Dried Sage Phosphor-Moss Mercury-Dew - but the quantities are lost to time."
+        },
+        "Scrap: Remove Curse": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Remove Curse is made of - Silver Dust Crushed Quartz Mercury-Dew - but the quantities are lost to time."
+        },
+        "Scrap: Dispel Magic": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Dispel Magic is made of - Charcoal Void-Salt - but the quantities are lost to time."
+        },
+        "Scrap: Fireball": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Fireball is made of - Charcoal Sulfur Phosphor-Moss Crushed Quartz - but the quantities are lost to time."
+        },
+        "Scrap: Fly": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Fly is made of - Charcoal Dried Sage Crushed Quartz Mercury-Dew - but the quantities are lost to time."
+        },
+        "Scrap: Invisibility": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Invisibility is made of - Sulfur Dried Sage Void-Salt - but the quantities are lost to time."
+        },
+        "Scrap: Lightning Bolt": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Lightning Bolt is made of - Sulfur Silver Dust Phosphor-Moss Dried Mandrake Root - but the quantities are lost to time."
+        },
+        "Scrap: Water Breathing": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Water Breathing is made of - Dried Sage Silver Dust Crushed Quartz Luminous Petal - but the quantities are lost to time."
+        },
+        "Scrap: Cure Serious Wounds": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Cure Serious Wounds is made of - Crushed Quartz Mercury-Dew Luminous Petal - but the quantities are lost to time."
+        },
+        "Scrap: Speak with Plants": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Speak with Plants is made of - Phosphor-Moss Crushed Quartz Nightshade - but the quantities are lost to time."
+        },
+        "Scrap: Charm Monster": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Charm Monster is made of - Charcoal Void-Salt - but the quantities are lost to time."
+        },
+        "Scrap: Confusion": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Confusion is made of - Crushed Quartz Void-Salt Mercury-Dew - but the quantities are lost to time."
+        },
+        "Scrap: Polymorph": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Polymorph is made of - Mercury-Dew Nightshade - but the quantities are lost to time."
+        },
+        "Scrap: Wall of Fire": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Wall of Fire is made of - Charcoal Crushed Quartz Obsidian Shard - but the quantities are lost to time."
+        },
+        "Scrap: Commune with the Dead": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Commune with the Dead is made of - Crushed Quartz Luminous Petal Void-Pearl - but the quantities are lost to time."
+        },
+        "Scrap: Raise Dead": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Raise Dead is made of - Silver Dust Crushed Quartz Luminous Petal Phoenix-Ash - but the quantities are lost to time."
+        },
+        "Scrap: Kill": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Kill is made of - Charcoal Void-Salt Obsidian Shard Void-Pearl - but the quantities are lost to time."
+        },
+        "Scrap: Passwall": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Passwall is made of - Crushed Quartz Nightshade - but the quantities are lost to time."
+        },
+        "Scrap: Telekinesis": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Telekinesis is made of - Dried Sage Crushed Quartz Dried Mandrake Root - but the quantities are lost to time."
+        },
+        "Scrap: Teleport": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Teleport is made of - Crushed Quartz Aether-Crystal - but the quantities are lost to time."
+        },
+        "Scrap: Control Weather": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Control Weather is made of - Stellar-Ichor - but the quantities are lost to time."
+        },
+        "Scrap: Disintegrate": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Disintegrate is made of - Void-Salt Void-Pearl - but the quantities are lost to time."
+        },
+        "Scrap: Wish": {
+            "price": 5,
+            "kind": "scrap",
+            "tradeable": false,
+            "text": "A torn scrap, ink half faded. It names what Wish is made of - Crushed Quartz Mercury-Dew Stellar-Ichor - but the quantities are lost to time."
+        },
+        "Book: Cure Disease": {
+            "price": 40,
+            "kind": "book",
+            "tradeable": false,
+            "text": "A bound volume on Cure Disease (Level 3). Its pages are worn, but the recipe survives: mix 2 Crushed Quartz + 4 Mercury-Dew. (The binding is older than the city; more of its lore will be restored later.)"
+        },
+        "Book: Continuous Light": {
+            "price": 40,
+            "kind": "book",
+            "tradeable": false,
+            "text": "A bound volume on Continuous Light (Level 3). Its pages are worn, but the recipe survives: mix 3 Charcoal + 3 Silver Dust + 3 Crushed Quartz + 1 Phosphor-Moss. (The binding is older than the city; more of its lore will be restored later.)"
+        },
+        "Book: Locate Object or Person": {
+            "price": 40,
+            "kind": "book",
+            "tradeable": false,
+            "text": "A bound volume on Locate Object or Person (Level 3). Its pages are worn, but the recipe survives: mix 5 Charcoal + 2 Dried Sage + 1 Phosphor-Moss + 1 Mercury-Dew. (The binding is older than the city; more of its lore will be restored later.)"
+        },
+        "Book: Remove Curse": {
+            "price": 40,
+            "kind": "book",
+            "tradeable": false,
+            "text": "A bound volume on Remove Curse (Level 3). Its pages are worn, but the recipe survives: mix 5 Silver Dust + 5 Crushed Quartz + 4 Mercury-Dew. (The binding is older than the city; more of its lore will be restored later.)"
+        },
+        "Book: Dispel Magic": {
+            "price": 40,
+            "kind": "book",
+            "tradeable": false,
+            "text": "A bound volume on Dispel Magic (Level 3). Its pages are worn, but the recipe survives: mix 10 Charcoal + 10 Void-Salt. (The binding is older than the city; more of its lore will be restored later.)"
+        },
+        "Book: Fireball": {
+            "price": 40,
+            "kind": "book",
+            "tradeable": false,
+            "text": "A bound volume on Fireball (Level 3). Its pages are worn, but the recipe survives: mix 5 Charcoal + 5 Sulfur + 1 Phosphor-Moss + 10 Crushed Quartz. (The binding is older than the city; more of its lore will be restored later.)"
+        },
+        "Book: Fly": {
+            "price": 40,
+            "kind": "book",
+            "tradeable": false,
+            "text": "A bound volume on Fly (Level 3). Its pages are worn, but the recipe survives: mix 5 Charcoal + 5 Dried Sage + 3 Crushed Quartz + 3 Mercury-Dew. (The binding is older than the city; more of its lore will be restored later.)"
+        },
+        "Book: Invisibility": {
+            "price": 40,
+            "kind": "book",
+            "tradeable": false,
+            "text": "A bound volume on Invisibility (Level 3). Its pages are worn, but the recipe survives: mix 2 Sulfur + 2 Dried Sage + 5 Void-Salt. (The binding is older than the city; more of its lore will be restored later.)"
+        },
+        "Book: Lightning Bolt": {
+            "price": 40,
+            "kind": "book",
+            "tradeable": false,
+            "text": "A bound volume on Lightning Bolt (Level 3). Its pages are worn, but the recipe survives: mix 5 Sulfur + 1 Silver Dust + 1 Phosphor-Moss + 1 Dried Mandrake Root. (The binding is older than the city; more of its lore will be restored later.)"
+        },
+        "Book: Water Breathing": {
+            "price": 40,
+            "kind": "book",
+            "tradeable": false,
+            "text": "A bound volume on Water Breathing (Level 3). Its pages are worn, but the recipe survives: mix 5 Dried Sage + 3 Silver Dust + 2 Crushed Quartz + 1 Luminous Petal. (The binding is older than the city; more of its lore will be restored later.)"
+        }
     }
-  },
-  "weapons": {
-    "Axe, Battle": {
-      "die": 6,
-      "mod": 2,
-      "price": 7,
-      "slots": 2,
-      "hands": 2
-    },
-    "Axe, Hand": {
-      "die": 6,
-      "mod": 0,
-      "price": 3,
-      "slots": 1,
-      "hands": 1,
-      "range": 30,
-      "type": "throwable"
-    },
-    "Club": {
-      "die": 6,
-      "mod": -1,
-      "price": 1,
-      "slots": 1,
-      "hands": 1
-    },
-    "Dagger": {
-      "die": 6,
-      "mod": -1,
-      "price": 3,
-      "slots": 1,
-      "hands": 1
-    },
-    "Flail": {
-      "die": 6,
-      "mod": 0,
-      "price": 8,
-      "slots": 1,
-      "hands": 1
-    },
-    "Mace": {
-      "die": 6,
-      "mod": 0,
-      "price": 5,
-      "slots": 1,
-      "hands": 1
-    },
-    "Morningstar": {
-      "die": 6,
-      "mod": 0,
-      "price": 6,
-      "slots": 1,
-      "hands": 1
-    },
-    "Polearm": {
-      "die": 6,
-      "mod": 1,
-      "price": 7,
-      "slots": 2,
-      "hands": 2
-    },
-    "Spear": {
-      "die": 6,
-      "mod": 0,
-      "price": 2,
-      "slots": 1,
-      "hands": 1,
-      "range": 60,
-      "type": "throwable"
-    },
-    "Staff": {
-      "die": 6,
-      "mod": -1,
-      "price": 1,
-      "slots": 2,
-      "hands": 2
-    },
-    "Sword, Long": {
-      "die": 6,
-      "mod": 1,
-      "price": 10,
-      "slots": 1,
-      "hands": 1
-    },
-    "Sword, Short": {
-      "die": 6,
-      "mod": 0,
-      "price": 8,
-      "slots": 1,
-      "hands": 1
-    },
-    "Sword, Two-Handed": {
-      "die": 6,
-      "mod": 2,
-      "price": 15,
-      "slots": 2,
-      "hands": 2
-    },
-    "Warhammer": {
-      "die": 6,
-      "mod": 0,
-      "price": 5,
-      "slots": 1,
-      "hands": 1
-    }
-  },
-  "ranged_weapons": {
-    "Bow, Long": {
-      "die": 6,
-      "mod": 0,
-      "price": 40,
-      "slots": 1,
-      "hands": 2,
-      "range": 210,
-      "type": "ranged"
-    },
-    "Bow, Short": {
-      "die": 6,
-      "mod": -1,
-      "price": 25,
-      "slots": 1,
-      "hands": 2,
-      "range": 150,
-      "type": "ranged"
-    },
-    "Crossbow": {
-      "die": 6,
-      "mod": -1,
-      "price": 25,
-      "slots": 1,
-      "hands": 2,
-      "range": 180,
-      "type": "ranged"
-    },
-    "Sling": {
-      "die": 6,
-      "mod": -2,
-      "price": 2,
-      "slots": 1,
-      "hands": 1,
-      "range": 90,
-      "type": "ranged"
-    }
-  },
-  "ammunition": {
-    "Arrows (20)": {
-      "price": 5
-    },
-    "Bolts, Case of 30": {
-      "price": 5
-    },
-    "Quiver": {
-      "price": 5
-    },
-    "Sling Stones (20)": {
-      "price": 1
-    }
-  },
-  "armor": {
-    "Cloth Robe": {
-      "ac": 1,
-      "price": 5,
-      "slots": 1,
-      "type": "body"
-    },
-    "Cloth Armor": {
-      "ac": 1,
-      "price": 5,
-      "slots": 1,
-      "type": "body"
-    },
-    "Leather Armor": {
-      "ac": 2,
-      "price": 15,
-      "slots": 1,
-      "type": "body"
-    },
-    "Ring Mail": {
-      "ac": 3,
-      "price": 22,
-      "slots": 1,
-      "type": "body"
-    },
-    "Scale Mail": {
-      "ac": 4,
-      "price": 30,
-      "slots": 1,
-      "type": "body"
-    },
-    "Chain Mail": {
-      "ac": 5,
-      "price": 50,
-      "slots": 1,
-      "type": "body"
-    },
-    "Plate Mail": {
-      "ac": 7,
-      "price": 150,
-      "slots": 1,
-      "type": "body"
-    },
-    "Small Wooden Shield": {
-      "ac": 1,
-      "price": 15,
-      "slots": 1,
-      "type": "shield"
-    },
-    "Kite Shield": {
-      "ac": 2,
-      "price": 75,
-      "slots": 1,
-      "type": "shield"
-    }
-  },
-  "general": {
-    "Backpack": {
-      "price": 5
-    },
-    "Bedroll": {
-      "price": 2
-    },
-    "Case (map or scroll)": {
-      "price": 3
-    },
-    "Crowbar": {
-      "price": 5
-    },
-    "Flint and Steel": {
-      "price": 5
-    },
-    "Grappling Hook": {
-      "price": 5
-    },
-    "Hammer": {
-      "price": 2
-    },
-    "Holy Water, Small Vial": {
-      "price": 25
-    },
-    "Lantern": {
-      "price": 10
-    },
-    "Mirror (small)": {
-      "price": 5
-    },
-    "Oil (Lantern, 1 pint)": {
-      "price": 2
-    },
-    "Pole, 10 ft": {
-      "price": 1
-    },
-    "Rope, 50 ft": {
-      "price": 1
-    },
-    "Rope, 50 ft (silk)": {
-      "price": 5
-    },
-    "Sack": {
-      "price": 1
-    },
-    "Shovel": {
-      "price": 5
-    },
-    "Spikes, Iron (12)": {
-      "price": 1
-    },
-    "Stakes, Wooden (12)": {
-      "price": 1
-    },
-    "Tent": {
-      "price": 20
-    },
-    "Torches (6)": {
-      "price": 1
-    }
-  },
-  "keys": {
-    "Rusty Key": {
-      "price": 5
-    },
-    "Iron Key": {
-      "price": 8
-    },
-    "Brass Key": {
-      "price": 10
-    },
-    "Silver Key": {
-      "price": 12
-    },
-    "Skeleton Key": {
-      "price": 20
-    }
-  },
-  "lockpicks": {
-    "Lockpick": {
-      "price": 25
-    }
-  },
-  "provisions": {
-    "Rations, Preserved": {
-      "price": 3
-    },
-    "Rations (meal in town)": {
-      "price": 1
-    },
-    "Spoiled Food": {
-      "price": 1,
-      "tradeable": false
-    },
-    "Monster Meat": {
-      "price": 1,
-      "tradeable": false
-    },
-    "Bottle (Glass)": {
-      "price": 1
-    }
-  },
-  "transport": {
-    "Horse Barding": {
-      "price": 320
-    },
-    "Saddle Bags": {
-      "price": 10
-    },
-    "Boat": {
-      "price": 100
-    },
-    "Cart": {
-      "price": 80
-    },
-    "Galley (Large)": {
-      "price": 30000
-    },
-    "Galley (Small)": {
-      "price": 10000
-    },
-    "Horse, draft": {
-      "price": 30
-    },
-    "Horse, Riding": {
-      "price": 40
-    },
-    "Mule": {
-      "price": 20
-    },
-    "Raft": {
-      "price": 40
-    },
-    "Saddle": {
-      "price": 25
-    },
-    "Ship, Sailing (Large)": {
-      "price": 20000
-    },
-    "Ship, sailing (small)": {
-      "price": 5000
-    },
-    "Wagon, small": {
-      "price": 160
-    },
-    "Warhorse": {
-      "price": 200
-    },
-    "Warship": {
-      "price": 40000
-    }
-  },
-  "potions": {
-    "Red Potion": {
-      "price": 25,
-      "effect": "Cure Light Wounds"
-    },
-    "Green Potion": {
-      "price": 25,
-      "effect": "Cure Poison"
-    },
-    "Blue Potion": {
-      "price": 50,
-      "effect": "Cure Disease"
-    }
-  },
-  "pouches": {
-    "Reagent Pouch": {
-      "price": 25
-    }
-  },
-  "readables": {
-    "Page: Cure Light Wounds": {
-      "price": 12,
-      "kind": "page",
-      "text": "Cure Light Wounds (Level 1). To cast, mix 2 Charcoal + 1 Sulfur + 2 Dried Sage + 1 Silver Dust. When the mixture settles, knits flesh and closes wounds."
-    },
-    "Page: Detect Magic": {
-      "price": 12,
-      "kind": "page",
-      "text": "Detect Magic (Level 1). To cast, mix 1 Charcoal + 1 Dried Sage. When the mixture settles, lays bare the auras around you."
-    },
-    "Page: Light": {
-      "price": 12,
-      "kind": "page",
-      "text": "Light (Level 1). To cast, mix 1 Charcoal + 1 Silver Dust. When the mixture settles, kindles a steady, quiet glow that costs nothing to hold."
-    },
-    "Page: Protection": {
-      "price": 12,
-      "kind": "page",
-      "text": "Protection (Level 1). To cast, mix 1 Charcoal + 2 Silver Dust. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Purify Food": {
-      "price": 12,
-      "kind": "page",
-      "text": "Purify Food (Level 1). To cast, mix 4 Charcoal + 4 Dried Sage. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Charm Person": {
-      "price": 12,
-      "kind": "page",
-      "text": "Charm Person (Level 1). To cast, mix 2 Charcoal + 2 Void-Salt. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Lock": {
-      "price": 12,
-      "kind": "page",
-      "text": "Lock (Level 1). To cast, mix 1 Crushed Quartz + 2 Silver Dust. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Cure Poison": {
-      "price": 12,
-      "kind": "page",
-      "text": "Cure Poison (Level 1). To cast, mix 3 Charcoal + 3 Dried Sage + 1 Silver Dust. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Sleep": {
-      "price": 12,
-      "kind": "page",
-      "text": "Sleep (Level 1). To cast, mix 4 Charcoal + 4 Dried Sage + 4 Sulfur. When the mixture settles, drops a target into a deep, dreamless slumber."
-    },
-    "Page: Bless": {
-      "price": 16,
-      "kind": "page",
-      "text": "Bless (Level 2). To cast, mix 2 Dried Sage + 1 Crushed Quartz. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Find Traps": {
-      "price": 16,
-      "kind": "page",
-      "text": "Find Traps (Level 2). To cast, mix 2 Charcoal + 1 Silver Dust + 1 Phosphor-Moss. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Hold Person": {
-      "price": 16,
-      "kind": "page",
-      "text": "Hold Person (Level 2). To cast, mix 4 Charcoal + 2 Void-Salt. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Speak with Animals": {
-      "price": 16,
-      "kind": "page",
-      "text": "Speak with Animals (Level 2). To cast, mix 1 Silver Dust + 3 Charcoal + 1 Phosphor-Moss. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Reveal Invisibility": {
-      "price": 16,
-      "kind": "page",
-      "text": "Reveal Invisibility (Level 2). To cast, mix 2 Charcoal + 2 Dried Sage + 1 Crushed Quartz. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Knock": {
-      "price": 16,
-      "kind": "page",
-      "text": "Knock (Level 2). To cast, mix 2 Charcoal + 2 Sulfur + 2 Void-Salt. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Levitate": {
-      "price": 16,
-      "kind": "page",
-      "text": "Levitate (Level 2). To cast, mix 1 Charcoal + 1 Silver Dust + 2 Mercury-Dew. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Web": {
-      "price": 16,
-      "kind": "page",
-      "text": "Web (Level 2). To cast, mix 2 Charcoal + 1 Sulfur + 1 Void-Salt. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Cure Disease": {
-      "price": 20,
-      "kind": "page",
-      "text": "Cure Disease (Level 3). To cast, mix 2 Crushed Quartz + 4 Mercury-Dew. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Continuous Light": {
-      "price": 20,
-      "kind": "page",
-      "text": "Continuous Light (Level 3). To cast, mix 3 Charcoal + 3 Silver Dust + 3 Crushed Quartz + 1 Phosphor-Moss. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Locate Object or Person": {
-      "price": 20,
-      "kind": "page",
-      "text": "Locate Object or Person (Level 3). To cast, mix 5 Charcoal + 2 Dried Sage + 1 Phosphor-Moss + 1 Mercury-Dew. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Remove Curse": {
-      "price": 20,
-      "kind": "page",
-      "text": "Remove Curse (Level 3). To cast, mix 5 Silver Dust + 5 Crushed Quartz + 4 Mercury-Dew. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Divinate": {
-      "price": 20,
-      "kind": "page",
-      "text": "Divinate (Level 3). To cast, mix 5 Silver Dust + 3 Dried Sage + 3 Crushed Quartz + 2 Mercury-Dew. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Dispel Magic": {
-      "price": 20,
-      "kind": "page",
-      "text": "Dispel Magic (Level 3). To cast, mix 10 Charcoal + 10 Void-Salt. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Fireball": {
-      "price": 20,
-      "kind": "page",
-      "text": "Fireball (Level 3). To cast, mix 5 Charcoal + 5 Sulfur + 1 Phosphor-Moss + 10 Crushed Quartz. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Fly": {
-      "price": 20,
-      "kind": "page",
-      "text": "Fly (Level 3). To cast, mix 5 Charcoal + 5 Dried Sage + 3 Crushed Quartz + 3 Mercury-Dew. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Invisibility": {
-      "price": 20,
-      "kind": "page",
-      "text": "Invisibility (Level 3). To cast, mix 2 Sulfur + 2 Dried Sage + 5 Void-Salt. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Lightning Bolt": {
-      "price": 20,
-      "kind": "page",
-      "text": "Lightning Bolt (Level 3). To cast, mix 5 Sulfur + 1 Silver Dust + 1 Phosphor-Moss + 1 Dried Mandrake Root. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Water Breathing": {
-      "price": 20,
-      "kind": "page",
-      "text": "Water Breathing (Level 3). To cast, mix 5 Dried Sage + 3 Silver Dust + 2 Crushed Quartz + 1 Luminous Petal. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Cure Serious Wounds": {
-      "price": 24,
-      "kind": "page",
-      "text": "Cure Serious Wounds (Level 4). To cast, mix 5 Crushed Quartz + 1 Mercury-Dew + 1 Luminous Petal. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Neutralize Poison": {
-      "price": 24,
-      "kind": "page",
-      "text": "Neutralize Poison (Level 4). To cast, mix 5 Dried Sage + 5 Crushed Quartz + 1 Luminous Petal. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Speak with Plants": {
-      "price": 24,
-      "kind": "page",
-      "text": "Speak with Plants (Level 4). To cast, mix 5 Phosphor-Moss + 5 Crushed Quartz + 1 Nightshade. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Charm Monster": {
-      "price": 24,
-      "kind": "page",
-      "text": "Charm Monster (Level 4). To cast, mix 10 Charcoal + 10 Void-Salt. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Confusion": {
-      "price": 24,
-      "kind": "page",
-      "text": "Confusion (Level 4). To cast, mix 4 Crushed Quartz + 4 Void-Salt + 4 Mercury-Dew. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Polymorph": {
-      "price": 24,
-      "kind": "page",
-      "text": "Polymorph (Level 4). To cast, mix 5 Mercury-Dew + 1 Nightshade. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Wall of Fire": {
-      "price": 24,
-      "kind": "page",
-      "text": "Wall of Fire (Level 4). To cast, mix 5 Charcoal + 5 Crushed Quartz + 2 Obsidian Shard. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Commune with the Dead": {
-      "price": 28,
-      "kind": "page",
-      "text": "Commune with the Dead (Level 5). To cast, mix 3 Crushed Quartz + 1 Luminous Petal + 1 Void-Pearl. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Raise Dead": {
-      "price": 28,
-      "kind": "page",
-      "text": "Raise Dead (Level 5). To cast, mix 5 Silver Dust + 10 Crushed Quartz + 1 Luminous Petal + 1 Phoenix-Ash. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Kill": {
-      "price": 28,
-      "kind": "page",
-      "text": "Kill (Level 5). To cast, mix 5 Charcoal + 5 Void-Salt + 1 Obsidian Shard + 1 Void-Pearl. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Passwall": {
-      "price": 28,
-      "kind": "page",
-      "text": "Passwall (Level 5). To cast, mix 3 Crushed Quartz + 2 Nightshade. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Telekinesis": {
-      "price": 28,
-      "kind": "page",
-      "text": "Telekinesis (Level 5). To cast, mix 3 Dried Sage + 3 Crushed Quartz + 2 Dried Mandrake Root. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Teleport": {
-      "price": 28,
-      "kind": "page",
-      "text": "Teleport (Level 5). To cast, mix 3 Crushed Quartz + 1 Aether-Crystal. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Control Weather": {
-      "price": 32,
-      "kind": "page",
-      "text": "Control Weather (Level 6). To cast, mix 1 Stellar-Ichor. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Disintegrate": {
-      "price": 32,
-      "kind": "page",
-      "text": "Disintegrate (Level 6). To cast, mix 1 Void-Salt + 1 Void-Pearl. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Page: Wish": {
-      "price": 32,
-      "kind": "page",
-      "text": "Wish (Level 6). To cast, mix 5 Crushed Quartz + 5 Mercury-Dew + 1 Stellar-Ichor. When the mixture settles, turns the air to your will.",
-      "tradeable": false
-    },
-    "Scrap: Cure Light Wounds": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Cure Light Wounds is made of - Charcoal Sulfur Dried Sage Silver Dust - but the quantities are lost to time."
-    },
-    "Scrap: Detect Magic": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Detect Magic is made of - Charcoal Dried Sage - but the quantities are lost to time."
-    },
-    "Scrap: Light": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Light is made of - Charcoal Silver Dust - but the quantities are lost to time."
-    },
-    "Scrap: Protection": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Protection is made of - Charcoal Silver Dust - but the quantities are lost to time."
-    },
-    "Scrap: Purify Food": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Purify Food is made of - Charcoal Dried Sage - but the quantities are lost to time."
-    },
-    "Scrap: Charm Person": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Charm Person is made of - Charcoal Void-Salt - but the quantities are lost to time."
-    },
-    "Scrap: Lock": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Lock is made of - Crushed Quartz Silver Dust - but the quantities are lost to time."
-    },
-    "Scrap: Cure Poison": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Cure Poison is made of - Charcoal Dried Sage Silver Dust - but the quantities are lost to time."
-    },
-    "Scrap: Sleep": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Sleep is made of - Charcoal Dried Sage Sulfur - but the quantities are lost to time."
-    },
-    "Scrap: Bless": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Bless is made of - Dried Sage Crushed Quartz - but the quantities are lost to time."
-    },
-    "Scrap: Find Traps": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Find Traps is made of - Charcoal Silver Dust Phosphor-Moss - but the quantities are lost to time."
-    },
-    "Scrap: Hold Person": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Hold Person is made of - Charcoal Void-Salt - but the quantities are lost to time."
-    },
-    "Scrap: Speak with Animals": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Speak with Animals is made of - Silver Dust Charcoal Phosphor-Moss - but the quantities are lost to time."
-    },
-    "Scrap: Reveal Invisibility": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Reveal Invisibility is made of - Charcoal Dried Sage Crushed Quartz - but the quantities are lost to time."
-    },
-    "Scrap: Knock": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Knock is made of - Charcoal Sulfur Void-Salt - but the quantities are lost to time."
-    },
-    "Scrap: Levitate": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Levitate is made of - Charcoal Silver Dust Mercury-Dew - but the quantities are lost to time."
-    },
-    "Scrap: Web": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Web is made of - Charcoal Sulfur Void-Salt - but the quantities are lost to time."
-    },
-    "Scrap: Cure Disease": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Cure Disease is made of - Crushed Quartz Mercury-Dew - but the quantities are lost to time."
-    },
-    "Scrap: Continuous Light": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Continuous Light is made of - Charcoal Silver Dust Crushed Quartz Phosphor-Moss - but the quantities are lost to time."
-    },
-    "Scrap: Locate Object or Person": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Locate Object or Person is made of - Charcoal Dried Sage Phosphor-Moss Mercury-Dew - but the quantities are lost to time."
-    },
-    "Scrap: Remove Curse": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Remove Curse is made of - Silver Dust Crushed Quartz Mercury-Dew - but the quantities are lost to time."
-    },
-    "Scrap: Divinate": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Divinate is made of - Silver Dust Dried Sage Crushed Quartz Mercury-Dew - but the quantities are lost to time."
-    },
-    "Scrap: Dispel Magic": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Dispel Magic is made of - Charcoal Void-Salt - but the quantities are lost to time."
-    },
-    "Scrap: Fireball": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Fireball is made of - Charcoal Sulfur Phosphor-Moss Crushed Quartz - but the quantities are lost to time."
-    },
-    "Scrap: Fly": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Fly is made of - Charcoal Dried Sage Crushed Quartz Mercury-Dew - but the quantities are lost to time."
-    },
-    "Scrap: Invisibility": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Invisibility is made of - Sulfur Dried Sage Void-Salt - but the quantities are lost to time."
-    },
-    "Scrap: Lightning Bolt": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Lightning Bolt is made of - Sulfur Silver Dust Phosphor-Moss Dried Mandrake Root - but the quantities are lost to time."
-    },
-    "Scrap: Water Breathing": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Water Breathing is made of - Dried Sage Silver Dust Crushed Quartz Luminous Petal - but the quantities are lost to time."
-    },
-    "Scrap: Cure Serious Wounds": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Cure Serious Wounds is made of - Crushed Quartz Mercury-Dew Luminous Petal - but the quantities are lost to time."
-    },
-    "Scrap: Neutralize Poison": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Neutralize Poison is made of - Dried Sage Crushed Quartz Luminous Petal - but the quantities are lost to time."
-    },
-    "Scrap: Speak with Plants": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Speak with Plants is made of - Phosphor-Moss Crushed Quartz Nightshade - but the quantities are lost to time."
-    },
-    "Scrap: Charm Monster": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Charm Monster is made of - Charcoal Void-Salt - but the quantities are lost to time."
-    },
-    "Scrap: Confusion": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Confusion is made of - Crushed Quartz Void-Salt Mercury-Dew - but the quantities are lost to time."
-    },
-    "Scrap: Polymorph": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Polymorph is made of - Mercury-Dew Nightshade - but the quantities are lost to time."
-    },
-    "Scrap: Wall of Fire": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Wall of Fire is made of - Charcoal Crushed Quartz Obsidian Shard - but the quantities are lost to time."
-    },
-    "Scrap: Commune with the Dead": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Commune with the Dead is made of - Crushed Quartz Luminous Petal Void-Pearl - but the quantities are lost to time."
-    },
-    "Scrap: Raise Dead": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Raise Dead is made of - Silver Dust Crushed Quartz Luminous Petal Phoenix-Ash - but the quantities are lost to time."
-    },
-    "Scrap: Kill": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Kill is made of - Charcoal Void-Salt Obsidian Shard Void-Pearl - but the quantities are lost to time."
-    },
-    "Scrap: Passwall": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Passwall is made of - Crushed Quartz Nightshade - but the quantities are lost to time."
-    },
-    "Scrap: Telekinesis": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Telekinesis is made of - Dried Sage Crushed Quartz Dried Mandrake Root - but the quantities are lost to time."
-    },
-    "Scrap: Teleport": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Teleport is made of - Crushed Quartz Aether-Crystal - but the quantities are lost to time."
-    },
-    "Scrap: Control Weather": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Control Weather is made of - Stellar-Ichor - but the quantities are lost to time."
-    },
-    "Scrap: Disintegrate": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Disintegrate is made of - Void-Salt Void-Pearl - but the quantities are lost to time."
-    },
-    "Scrap: Wish": {
-      "price": 5,
-      "kind": "scrap",
-      "tradeable": false,
-      "text": "A torn scrap, ink half faded. It names what Wish is made of - Crushed Quartz Mercury-Dew Stellar-Ichor - but the quantities are lost to time."
-    },
-    "Book: Cure Disease": {
-      "price": 40,
-      "kind": "book",
-      "tradeable": false,
-      "text": "A bound volume on Cure Disease (Level 3). Its pages are worn, but the recipe survives: mix 2 Crushed Quartz + 4 Mercury-Dew. (The binding is older than the city; more of its lore will be restored later.)"
-    },
-    "Book: Continuous Light": {
-      "price": 40,
-      "kind": "book",
-      "tradeable": false,
-      "text": "A bound volume on Continuous Light (Level 3). Its pages are worn, but the recipe survives: mix 3 Charcoal + 3 Silver Dust + 3 Crushed Quartz + 1 Phosphor-Moss. (The binding is older than the city; more of its lore will be restored later.)"
-    },
-    "Book: Locate Object or Person": {
-      "price": 40,
-      "kind": "book",
-      "tradeable": false,
-      "text": "A bound volume on Locate Object or Person (Level 3). Its pages are worn, but the recipe survives: mix 5 Charcoal + 2 Dried Sage + 1 Phosphor-Moss + 1 Mercury-Dew. (The binding is older than the city; more of its lore will be restored later.)"
-    },
-    "Book: Remove Curse": {
-      "price": 40,
-      "kind": "book",
-      "tradeable": false,
-      "text": "A bound volume on Remove Curse (Level 3). Its pages are worn, but the recipe survives: mix 5 Silver Dust + 5 Crushed Quartz + 4 Mercury-Dew. (The binding is older than the city; more of its lore will be restored later.)"
-    },
-    "Book: Divinate": {
-      "price": 40,
-      "kind": "book",
-      "tradeable": false,
-      "text": "A bound volume on Divinate (Level 3). Its pages are worn, but the recipe survives: mix 5 Silver Dust + 3 Dried Sage + 3 Crushed Quartz + 2 Mercury-Dew. (The binding is older than the city; more of its lore will be restored later.)"
-    },
-    "Book: Dispel Magic": {
-      "price": 40,
-      "kind": "book",
-      "tradeable": false,
-      "text": "A bound volume on Dispel Magic (Level 3). Its pages are worn, but the recipe survives: mix 10 Charcoal + 10 Void-Salt. (The binding is older than the city; more of its lore will be restored later.)"
-    },
-    "Book: Fireball": {
-      "price": 40,
-      "kind": "book",
-      "tradeable": false,
-      "text": "A bound volume on Fireball (Level 3). Its pages are worn, but the recipe survives: mix 5 Charcoal + 5 Sulfur + 1 Phosphor-Moss + 10 Crushed Quartz. (The binding is older than the city; more of its lore will be restored later.)"
-    },
-    "Book: Fly": {
-      "price": 40,
-      "kind": "book",
-      "tradeable": false,
-      "text": "A bound volume on Fly (Level 3). Its pages are worn, but the recipe survives: mix 5 Charcoal + 5 Dried Sage + 3 Crushed Quartz + 3 Mercury-Dew. (The binding is older than the city; more of its lore will be restored later.)"
-    },
-    "Book: Invisibility": {
-      "price": 40,
-      "kind": "book",
-      "tradeable": false,
-      "text": "A bound volume on Invisibility (Level 3). Its pages are worn, but the recipe survives: mix 2 Sulfur + 2 Dried Sage + 5 Void-Salt. (The binding is older than the city; more of its lore will be restored later.)"
-    },
-    "Book: Lightning Bolt": {
-      "price": 40,
-      "kind": "book",
-      "tradeable": false,
-      "text": "A bound volume on Lightning Bolt (Level 3). Its pages are worn, but the recipe survives: mix 5 Sulfur + 1 Silver Dust + 1 Phosphor-Moss + 1 Dried Mandrake Root. (The binding is older than the city; more of its lore will be restored later.)"
-    },
-    "Book: Water Breathing": {
-      "price": 40,
-      "kind": "book",
-      "tradeable": false,
-      "text": "A bound volume on Water Breathing (Level 3). Its pages are worn, but the recipe survives: mix 5 Dried Sage + 3 Silver Dust + 2 Crushed Quartz + 1 Luminous Petal. (The binding is older than the city; more of its lore will be restored later.)"
-    }
-  }
 }

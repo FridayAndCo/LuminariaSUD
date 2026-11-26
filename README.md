@@ -222,16 +222,33 @@ INT 10 is a fizzle.
    which adjoining rooms hold them). (Control Weather is deferred until there's
    weather to control; Read Language was cut for now — nothing in the world
    needs it yet, it may return with relevant mechanics.)
-4. **Batch 4 — LLM-tool spells**: Divinate (revisit later), Polymorph,
-   Commune with the Dead, Telekinesis, Speak with Plants / Animals, and the
-   wildcard **Wish**.
+4. **Batch 4 — LLM-tool spells** *(done, v0.3.4)*: the seam where the
+   engine returns a **validated fact** and the LLM only writes the voice /
+   roleplay around it — the LLM never invents game state. **Polymorph**
+   (L4; after mixing, name a creature with caution and precision — if it's
+   in the bestiary you take its AC + attack bonus for 3 turns, otherwise the
+   reagents fizzle; the bestiary is the guardrail), **Commune with the Dead**
+   (L5; a corpse in the room answers three yes/no questions — the LLM
+   answers *as the creature it was*, so a rat or a spider has little to say
+   about dungeon trap engineering), **Telekinesis** (L5; throw a room object
+   at the encounter for Xd4+X, or pull one to you — the room's object list
+   is the guardrail), **Speak with Plants** (L4; 5-turn buff; the plants
+   reveal a page, a lore line, or a secret the engine picks from the readable
+   ledger), **Speak with Animals** (L2; 5-turn buff; the beast here answers
+   questions via the LLM), and the wildcard **Wish** (L6; the player describes
+   the effect and the LLM gets access to all engine tools and executes the
+   plan as closely as the rules allow — the cost is already controlled by
+   the Stellar-Ichor reagent). (Divinate was cut for now — too many
+   pitfalls, it may return later; Neutralize Poison was cut as redundant,
+   superseded by Remove Curse / Purify. Both are out of `spells.json` — 42
+   spells remain.)
 5. **Batch 5 — counter-features**: `see_invisible` monster trait, the glyph
    feature, and Raise-Dead curses.
 
 The full per-spell design (what each one does, whether it's mechanical, a
 buff, or an LLM tool) is tracked in the project notes. If you're forking,
 batches 1–3 are pure engine work you can read and extend; batch 4 is where
-the LLM-tool seam lives.
+the LLM-tool seam lives (the engine validates the fact, the LLM only voices it).
 
 Everyone is free to build on this however they wish — it's GPL-3.0. We'll
 keep adding to it; consider this a world with room in it.

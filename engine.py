@@ -1690,6 +1690,9 @@ class GameEngine:
         return not any(t in self.DARK_ROOM_TAGS for t in tags)
 
     def calculate_ac(self):
+        poly = self._polymorph_active()
+        if poly:
+            return poly.get("ac", 10)
         armor_bonus = (ARMOR_DATA[self.player.data["equipped"]["armor"]]["ac"]
                        if self.player.data["equipped"]["armor"] in ARMOR_DATA else 0)
         shield_bonus = (ARMOR_DATA[self.player.data["equipped"]["shield"]]["ac"]
@@ -1701,10 +1704,16 @@ class GameEngine:
         return armor_bonus + shield_bonus + dex + buff_ac
 
     def calculate_attack_bonus(self, weapon_name):
+        poly = self._polymorph_active()
+        if poly:
+            return poly.get("atk", 0)
         weapon_stats = WEAPON_DATA.get(weapon_name, {})
         w_type = weapon_stats.get("type", "melee")
         w_mod = weapon_stats.get("mod", 0)
-        return (self.get_stat_bonus("DEX") if w_type == "ranged" else self.get_stat_bonus("STR")) + w_mod
+        buff_atk = 0
+        for b in self.player.data.get("buffs", []):
+            buff_atk += b.get("tags", {}).get("attack_bonus", 0)
+        return (self.get_stat_bonus("DEX") if w_type == "ranged" else self.get_stat_bonus("STR")) + w_mod + buff_atk
 
     def resolve_attack(self, attacker_weapon, defender_ac, penalty=0):
         attack_roll = self.roll_dice(20, self.calculate_attack_bonus(attacker_weapon)) + penalty
@@ -1860,6 +1869,12 @@ class GameEngine:
             "Remove Curse": lambda: self._spell_remove_curse(),
             "Dispel Magic": lambda: self._spell_dispel_magic(),
             "Find Traps": lambda: self._spell_find_traps(),
+            "Polymorph": lambda: self._spell_polymorph(),
+            "Commune with the Dead": lambda: self._spell_commune(),
+            "Telekinesis": lambda: self._spell_telekinesis(),
+            "Speak with Plants": lambda: self._spell_speak_with_plants(),
+            "Speak with Animals": lambda: self._spell_speak_with_animals(),
+            "Wish": lambda: self._spell_wish(),
         }
         if cast_spell in effects:
             result = effects[cast_spell]()
@@ -2621,6 +2636,180 @@ class GameEngine:
             lines.append("The adjoining passages feel clean.")
         return {"success": True, "spell": "Find Traps",
                 "message": " " + " ".join(lines)}
+
+    # --- spell: batch 4 (LLM tools) ---
+    def _room_id(self):
+        pos = self.player.data["position"]
+        return f"{pos['x']}_{pos['y']}_{pos['z']}"
+
+    def _polymorph_active(self):
+        """Return the active Polymorph buff's creature tag, or None."""
+        for b in self.player.data.get("buffs", []):
+            if b.get("name") == "Polymorph" and b.get("turns", 0) > 0:
+                return b.get("tags", {}).get("polymorph")
+        return None
+
+    def _spell_polymorph(self):
+        """Polymorph: reagents mixed; the player names a creature (with caution
+        and precision, or it fizzles). Returns needs_target so the game layer
+        can prompt, then call _polymorph_apply(creature)."""
+        return {"success": True, "spell": "Polymorph", "needs_target": True,
+                "message": "The mixture shivers, ready to fold your form. Choose your creature with caution and precision - name one that is in the bestiary, or it will fizzle. What do you wish to become?"}
+
+    def _polymorph_apply(self, creature):
+        """Apply a Polymorph to a named creature - reagents already consumed.
+        If it is in the bestiary, take its AC + attack bonus for 3 turns;
+        otherwise the reagents fizzle (you are unchanged)."""
+        if not creature:
+            return {"success": False, "spell": "Polymorph",
+                    "message": "You lose your nerve and the mixture fizzles out. (The reagents are spent.)"}
+        key = self._find_monster(creature.strip())
+        if not key:
+            return {"success": True, "spell": "Polymorph", "fizzled": True,
+                    "message": f"The mixture writhes and snaps back to itself - no such creature is in the bestiary. The reagents fizzle. (You are unchanged.)"}
+        b = self.world.generator.bestiary.get(key, {})
+        self._apply_buff("Polymorph", 3, {"polymorph": {"ac": b.get("ac", 10),
+                                                        "atk": b.get("atk", 0),
+                                                        "name": key}})
+        return {"success": True, "spell": "Polymorph", "creature": key,
+                "ac": b.get("ac", 10), "atk": b.get("atk", 0),
+                "message": f"Your flesh folds and reshapes into a {key}. (3 turns: AC {b.get('ac', 10)}, attack bonus {b.get('atk', 0)}.)"}
+
+    def _room_objects(self, room):
+        """The unanimate objects actually in the room (the telekinesis guardrail)."""
+        objs = []
+        if not room:
+            return objs
+        for dr in room.get("dropped_items") or []:
+            n = dr.get("name")
+            if n:
+                objs.append(n)
+        if (room.get("loot") or room.get("chest")) and not room.get("loot_taken"):
+            cont = room.get("container") or (room.get("chest") or {}).get("item") or "chest"
+            objs.append(cont)
+        return objs
+
+    def _spell_telekinesis(self):
+        """Telekinesis: reagents mixed; the player describes the action
+        (throw an object at the encounter, or pull an object to you). Returns
+        needs_target + the room's object list (the guardrail)."""
+        room = self._authoritative_room(self._room_id())
+        objs = self._room_objects(room)
+        return {"success": True, "spell": "Telekinesis", "needs_target": True,
+                "objects": objs,
+                "message": "The air trembles at your command. What do you do? (throw <object> / pull <object>)"}
+
+    def _telekinesis_apply(self, action):
+        """Apply a Telekinesis action - reagents already consumed.
+        'throw <object>': Xd4+X to the encounter. 'pull <object>': bring it close."""
+        if not action:
+            return {"success": False, "spell": "Telekinesis",
+                    "message": "You lose your nerve and the air stills. (The reagents are spent.)"}
+        action = action.strip()
+        parts = action.split(None, 1)
+        verb = parts[0].lower()
+        target = parts[1].strip() if len(parts) > 1 else ""
+        room = self._authoritative_room(self._room_id())
+        objs = self._room_objects(room)
+        match, ambig = resolve_item_name(target, objs)
+        if not match:
+            if ambig:
+                return {"success": True, "spell": "Telekinesis",
+                        "message": f"Which {target}? I sense: {', '.join(ambig)}."}
+            return {"success": True, "spell": "Telekinesis",
+                    "message": f"There is no {target or 'object'} here to move. (The air stills.)"}
+        if verb in ("throw", "hurl", "fling", "launch", "toss"):
+            X = self._int_bonus()
+            enc = self._room_encounter()
+            if not enc:
+                return {"success": True, "spell": "Telekinesis",
+                        "message": f"You hurl the {match} - but there is nothing there to strike."}
+            dice = max(0, X)
+            dmg = sum(random.randint(1, 4) for _ in range(dice)) + dice
+            res = self._spell_damage_encounter(enc, dmg,
+                        source=f"A telekinetic blast hurls the {match} into the {enc}. ")
+            res["spell"] = "Telekinesis"
+            res["object"] = match
+            return res
+        if verb in ("pull", "draw", "fetch", "bring", "grab", "snatch"):
+            cont_name = room.get("container") or (room.get("chest") or {}).get("item") or "chest"
+            if (room.get("loot") or room.get("chest")) and not room.get("loot_taken") \
+                    and match.lower() == cont_name.lower():
+                return {"success": True, "spell": "Telekinesis",
+                        "message": f"The {match} slides across the floor to your feet. (Try 'open {match.lower()}'.)"}
+            for dr in room.get("dropped_items") or []:
+                if dr.get("name") == match:
+                    room["dropped_items"].remove(dr)
+                    break
+            self.world.save()
+            res = self.player.add_item(match, 1)
+            if res.get("success"):
+                return {"success": True, "spell": "Telekinesis",
+                        "message": f"The {match} drifts across the floor into your pack."}
+            return {"success": True, "spell": "Telekinesis",
+                    "message": f"The {match} drifts to you - but you cannot carry it. ({res.get('message', '')})"}
+        return {"success": True, "spell": "Telekinesis",
+                "message": "Throw or pull? (throw <object> / pull <object>)"}
+
+    def _spell_speak_with_plants(self):
+        """Speak with Plants: 5-turn buff; plant obstacles (Wall of Thorns)
+        yield a page, a lore line, or a secret."""
+        self._apply_buff("Speak with Plants", 5, {"speak": "plants"})
+        return {"success": True, "spell": "Speak with Plants",
+                "message": "The thorns lean in and whisper. (5 turns: the plants here will speak to you - ask them.)"}
+
+    def _speak_with_plants_reveal(self):
+        """Pick a validated readable from the ledger for Speak with Plants to
+        reveal. Returns {'name','kind','text'} or None if the ledger is empty."""
+        if not READABLE_DATA:
+            return None
+        key = random.choice(list(READABLE_DATA.keys()))
+        v = READABLE_DATA.get(key, {})
+        return {"name": key, "kind": v.get("kind", "page"), "text": v.get("text", "")}
+
+    def _spell_speak_with_animals(self):
+        """Speak with Animals: 5-turn buff; animal (beast) encounters can be
+        asked questions. Returns the animal sheet (the validated identity the
+        LLM roleplays) + room context. If no beast here, just the buff."""
+        self._apply_buff("Speak with Animals", 5, {"speak": "animals"})
+        room = self._authoritative_room(self._room_id())
+        monster = (room or {}).get("encounter", "None")
+        b = self.world.generator.bestiary.get(monster, {})
+        if monster == "None" or b.get("kind") != "beast":
+            return {"success": True, "spell": "Speak with Animals", "no_animal": True,
+                    "message": "The words settle - but there is no animal here to speak with. (5 turns: the animals here will answer you, if any.)"}
+        ctx = self.get_scene_context()
+        return {"success": True, "spell": "Speak with Animals", "needs_target": True,
+                "animal": monster, "kind": b.get("kind", "unknown"),
+                "special": b.get("special", []),
+                "room_name": ctx.get("room_name"), "room_contents": ctx.get("room_contents"),
+                "message": f"The {monster} turns its gaze on you, and its growls resolve into words. (5 turns: ask it what you will.)"}
+
+    def _spell_commune(self):
+        """Commune with the Dead: reagents mixed; a corpse in the room answers
+        up to 3 yes/no questions. Returns needs_target + the corpse sheet
+        (the validated identity the LLM roleplays) + room context for truthful
+        answers. If no corpse, the reagents fizzle."""
+        room = self._authoritative_room(self._room_id())
+        corpse = (room or {}).get("corpse")
+        if not corpse:
+            return {"success": True, "spell": "Commune with the Dead",
+                    "message": "The incense curls - but there is no corpse here to commune with. (The reagents are spent.)"}
+        monster = corpse.get("monster", "it")
+        b = self.world.generator.bestiary.get(monster, {})
+        ctx = self.get_scene_context()
+        return {"success": True, "spell": "Commune with the Dead", "needs_target": True,
+                "corpse": monster, "kind": b.get("kind", "unknown"),
+                "special": b.get("special", []),
+                "room_name": ctx.get("room_name"), "room_contents": ctx.get("room_contents"),
+                "message": f"The corpse of the {monster} stirs. It will answer three questions - yes or no. Ask wisely."}
+
+    def _spell_wish(self):
+        """Wish: wildcard - the player describes the effect; the LLM gets all
+        tools and executes the plan as closely as possible. Returns needs_wish
+        so the game layer can prompt, then run the improvise loop."""
+        return {"success": True, "spell": "Wish", "needs_wish": True,
+                "message": "The mixture blazes with potential. What do you wish for?"}
 
     def meditate(self, shrine_type, stat_name):
         if stat_name not in self.player.data["stats"]:

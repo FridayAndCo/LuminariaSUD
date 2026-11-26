@@ -114,6 +114,44 @@ SYSTEM_DETECT = (
     "reads as dead/ordinary. Output only the prose, no chain of thought."
 )
 
+SYSTEM_COMMUNE = (
+    "You are roleplaying a DEAD creature in a dark-fantasy terminal RPG set in "
+    "Luminaria, a city-dungeon where memories drift like fog. The player has "
+    "cast COMMUNE WITH THE DEAD and asks up to three questions. You answer ONLY "
+    "yes or no, in character, as the creature you were. A beast or a simple "
+    "creature knows little of the wider dungeon - do NOT grant it knowledge it "
+    "could not have had; a plain 'no' or a limited, confused answer is truthful "
+    "and in-character. The room facts in the sheet are what is really here - "
+    "trust them and answer honestly. Keep each answer to one short line. When "
+    "the player asks to leave, put the single word FAREWELL at the end of your "
+    "reply. Use second person for the player."
+)
+
+SYSTEM_SPEAK = (
+    "You are roleplaying a single creature (an animal, or the plants in a room) "
+    "in a dark-fantasy terminal RPG set in Luminaria, a city-dungeon where "
+    "memories drift like fog. The player has cast SPEAK WITH ANIMALS or SPEAK "
+    "WITH PLANTS and talks to you. Stay strictly in character using the sheet "
+    "provided. Answer AS THE CREATURE YOU ARE: an animal knows the immediate "
+    "area (what it has seen, smelled, heard) but little of the wider dungeon; "
+    "the plants hold a secret the engine has already decided - reveal only that "
+    "secret, do not invent new ones. Be truthful; the room facts in the sheet "
+    "are what is really here. Keep replies to 1-3 short lines. When the player "
+    "asks to leave, put the single word FAREWELL at the end of your reply. Use "
+    "second person for the player."
+)
+
+SYSTEM_WISH = (
+    "You are the rules-lawyer game master of Luminaria, a dark-fantasy "
+    "dungeon-crawl. The player has cast WISH and described an effect. You may "
+    "call engine tools to inspect or resolve it, but the ENGINE is "
+    "authoritative - never invent mechanical results. Use the tools that best "
+    "fulfil the wish as closely as the game's rules allow; if the wish cannot "
+    "be granted within the rules, say so plainly in 1-3 sentences. When the "
+    "moment is resolved, reply in 1-3 sentences of second-person prose "
+    "describing what happened. Do not call more than a few tools."
+)
+
 
 def load_cfg():
     cfg = dict(DEFAULT_CFG)
@@ -992,6 +1030,172 @@ class Game:
             return None
         return tuple(nums)
 
+    # ---------- batch 4: LLM roleplay sub-loops ----------
+    def _roleplay_loop(self, system, sheet, greeting, prompts, max_turns=6,
+                       farewell=("farewell", "bye", "leave", "q", "quit", "exit")):
+        """Shared roleplay sub-loop (modeled on cmd_talk, stripped of shop/quest).
+
+        The ENGINE has already validated the identity/facts (in `sheet`); the
+        LLM only voices the creature/plant. Returns when the player leaves or
+        the exchange budget runs out. Falls back to a plain note if no LLM.
+        """
+        if not self.llm_ready:
+            ui.say("  (The magic holds, but there is no voice to answer - "
+                   "the LLM is not configured.)")
+            return
+        msgs = [{"role": "system", "content": system + "\n" + sheet}]
+        ui.warn(f"  ({prompts} - 'farewell' to leave)")
+        msgs.append({"role": "user", "content": greeting})
+        reply = self.llm.chat(msgs, max_tokens=self.cfg.get("conversation_max_tokens", 200))
+        if "error" in reply:
+            ui.say("  (a silence where a voice should be...)")
+            msgs.pop()
+        else:
+            text = (reply.get("content") or "").strip()
+            if text:
+                msgs.append({"role": "assistant", "content": text})
+                ui.say(f"  {text}")
+            else:
+                ui.say("  (a silence where a voice should be...)")
+                msgs.pop()
+        turns = 0
+        while turns < max_turns:
+            try:
+                line = ui.prompt("  you > ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print()
+                break
+            if not line:
+                continue
+            if line.lower() in farewell:
+                ui.say("  The presence settles back into stillness.")
+                break
+            msgs.append({"role": "user", "content": line})
+            reply = self.llm.chat(msgs, max_tokens=self.cfg.get("conversation_max_tokens", 200))
+            if "error" in reply:
+                ui.warn(f"  (it seems not to hear you: {reply['error']})")
+                msgs.pop()
+                break
+            text = (reply.get("content") or "").strip()
+            if not text:
+                ui.warn("  (a long, drifting silence...)")
+                continue
+            msgs.append({"role": "assistant", "content": text})
+            ui.say(f"  {text}")
+            turns += 1
+            if "FAREWELL" in text.upper():
+                ui.say("  The presence settles back into stillness.")
+                break
+
+    def _commune_loop(self, res):
+        """Commune with the Dead: 3 yes/no questions answered AS THE CREATURE
+        IT WAS. The corpse's identity + the room facts are the guardrail."""
+        name = res.get("corpse", "it")
+        kind = res.get("kind", "unknown")
+        special = ", ".join(res.get("special", [])) or "none"
+        sheet = (f"YOU ARE THE DEAD {name.upper()} (kind: {kind}; traits: {special}). "
+                 f"You are a corpse in the room and answer ONLY yes or no. "
+                 f"Answer AS THE CREATURE YOU WERE - a beast or a simple creature "
+                 f"knows little of the wider dungeon; do not grant it knowledge it "
+                 f"could not have had. Be truthful. The room facts below are what "
+                 f"is really here - trust them:\n"
+                 f"  LOCATION: {res.get('room_name')}\n"
+                 f"  CONTENTS: {res.get('room_contents')}")
+        greeting = ("(The player kneels by your corpse and asks their first "
+                    "question. Answer in ONE short line - yes or no, in "
+                    "character. You may add a whisper of context, but the "
+                    "answer itself is yes or no.)")
+        self._roleplay_loop(SYSTEM_COMMUNE, sheet, greeting,
+                            "the dead answers - three yes/no questions")
+
+    def _speak_with_animals_loop(self, res):
+        """Speak with Animals: the beast answers questions. Its identity + the
+        room facts are the guardrail."""
+        animal = res.get("animal", "it")
+        kind = res.get("kind", "beast")
+        special = ", ".join(res.get("special", [])) or "none"
+        sheet = (f"YOU ARE THE {animal.upper()} (kind: {kind}; traits: {special}). "
+                 f"You are a living beast and answer the player's questions. "
+                 f"Answer AS THE ANIMAL YOU ARE - you know the immediate area "
+                 f"(what you have seen, smelled, heard) but little of the wider "
+                 f"dungeon; do not grant yourself knowledge you could not have "
+                 f"had. Be truthful. The room facts below are what is really "
+                 f"here - trust them:\n"
+                 f"  LOCATION: {res.get('room_name')}\n"
+                 f"  CONTENTS: {res.get('room_contents')}")
+        greeting = ("(The player speaks to you. Greet them in 1-3 short lines "
+                    "in character, then answer whatever they ask. You are a "
+                    "beast - keep it simple and true.)")
+        self._roleplay_loop(SYSTEM_SPEAK, sheet, greeting,
+                            f"the {animal} answers")
+
+    def _speak_with_plants_loop(self, res):
+        """Speak with Plants: the plant reveals a page, a lore line, or a
+        secret. The ENGINE picks the validated fact (a readable from the
+        ledger); the LLM only roleplays the delivery."""
+        if not self.llm_ready:
+            ui.say("  (The thorns whisper, but no words reach you - the LLM "
+                   "is not configured.)")
+            return
+        key = self.eng._speak_with_plants_reveal()
+        if not key:
+            ui.say("  The thorns curl and say nothing more. (No secret to give here.)")
+            return
+        text = (key.get("text") or "").strip()
+        kind = key.get("kind", "page")
+        label = key.get("name", "a page")
+        sheet = (f"YOU ARE THE PLANTS IN THIS ROOM (a wall of thorns). The "
+                 f"ENGINE has decided the secret you will reveal - a "
+                 f"{kind} the player will learn of. Reveal it in character, in "
+                 f"1-3 lines of thorn-whisper, as if the plants are telling "
+                 f"the player what it is or where to find it. Do NOT invent "
+                 f"new secrets or change the content. The secret:\n"
+                 f"  {label}\n  \"{text}\"")
+        greeting = ("(The player asks the plants what they know. Reveal the "
+                    "secret the engine gave you, in 1-3 lines of "
+                    "character - thorn-whisper. Then the player may follow up "
+                    "briefly.)")
+        self._roleplay_loop(SYSTEM_SPEAK, sheet, greeting,
+                            "the plants whisper a secret")
+
+    def _wish_loop(self, res):
+        """Wish: the player describes the effect; the LLM gets ALL tools and
+        executes the plan as closely as possible. The engine stays authoritative."""
+        if not self.llm_ready:
+            ui.say("  (The potential blazes and fades - the LLM is not "
+                   "configured to grant a wish.)")
+            return
+        ui.warn("  (Describe what you wish for - the LLM will try to make it "
+                "happen with the game's own tools. The engine stays in charge.)")
+        try:
+            wish = ui.prompt("  your wish > ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return
+        if not wish:
+            ui.say("  The potential fades unspent. (The reagents are spent.)")
+            return
+        ctx = self.eng.get_scene_context()
+        p = self.eng.player.data
+        user = (f"LOCATION: {ctx['room_name']} ({ctx['description'][:250]})\n"
+                f"PRESENT: {ctx['npc_presence']}\n"
+                f"CONTENTS: {ctx.get('room_contents', 'nothing of note')}\n"
+                f"PLAYER: HP {p['hp']}/{p['max_hp']}, AC {self.eng.calculate_ac()}, "
+                f"gold {p['gold']}\n"
+                f"THE WISH: {wish}")
+        msgs = [{"role": "system", "content": SYSTEM_WISH},
+                {"role": "user", "content": user}]
+        text, log = self.llm.improvise(msgs, T.SCHEMAS, self.dispatch,
+                                       max_steps=self.cfg.get("max_improvise_steps", 5))
+        for line in log:
+            ui.warn(f"  \u00b7 {line}")
+        if text:
+            ui.narration(text)
+            self.last_narration = text
+        else:
+            ui.warn("  (The wish strains against the game's rules and comes "
+                    "to nothing - the engine holds.)")
+
     def cmd_cast(self, in_combat=False):
         """Combine reagents into a spell. Returns the engine result dict (or None)."""
         formula = self._reagent_menu()
@@ -1009,6 +1213,30 @@ class Game:
                 ui.say(res.get("message", ""))
                 target = ui.prompt("What do you want to find? > ").strip()
                 res = self.eng._locate_apply(target)
+            elif not in_combat and res.get("spell") == "Polymorph" and res.get("needs_target"):
+                ui.say(res.get("message", ""))
+                creature = ui.prompt("What do you wish to become? > ").strip()
+                res = self.eng._polymorph_apply(creature)
+            elif not in_combat and res.get("spell") == "Telekinesis" and res.get("needs_target"):
+                ui.say(res.get("message", ""))
+                action = ui.prompt("What do you do? (throw <object> / pull <object>) > ").strip()
+                res = self.eng._telekinesis_apply(action)
+            elif not in_combat and res.get("spell") == "Commune with the Dead" and res.get("needs_target"):
+                ui.say(res.get("message", ""))
+                self._commune_loop(res)
+                return res
+            elif not in_combat and res.get("spell") == "Speak with Animals" and res.get("needs_target"):
+                ui.say(res.get("message", ""))
+                self._speak_with_animals_loop(res)
+                return res
+            elif not in_combat and res.get("spell") == "Speak with Plants":
+                ui.say(res.get("message", ""))
+                self._speak_with_plants_loop(res)
+                return res
+            elif not in_combat and res.get("spell") == "Wish" and res.get("needs_wish"):
+                ui.say(res.get("message", ""))
+                self._wish_loop(res)
+                return res
             if res.get("spell") == "Detect Magic":
                 ui.narration(self._detect_prose(res))
             elif res.get("void_death"):
