@@ -213,5 +213,345 @@
    "The Perfect Shot": "It's all in the fletching. A single millimeter of deviation in the feather and your arrow is just a very expensive stick."
   },
   "location_id": "3_0_0"
+ },
+ "99_99_0": {
+  "name": "Bram 'Nightowl' Ketch",
+  "description": "A heavyset man behind the inn's back counter, eyelids like closing shutters, a lantern half-burnt.",
+  "traits": [
+   "Sleep-deprived",
+   "Long-serving",
+   "Knows every regular by their cough",
+   "Polite to a fault"
+  ],
+  "hints": {
+   "The Night Shift": "Mistress Valerica keeps the front till the lamps go blue. After that, the back rooms are mine. If a guest asks for the bill at dawn, tell her it was already paid in sleep.",
+   "Regulars": "The lamp-keeper comes in when the light is dimmest. The sergeant comes in when he's off the wall. The preacher comes in when he's out of words. I keep a shelf of mugs for all three.",
+   "Lost Things": "Coats, keys, one very frightened cat. If you lost something, it's on that shelf. If it's not, I'll find it by morning, and you'll pay for the night it stayed."
+  },
+  "location_id": "99_99_0",
+  "notes": "Second-shift innkeeper at Mistress Valerica's inn (all-night business). Intended use: night-shift staff, shopkeeper flavor, lost-guest/lost-item quest givers. Relationships: works under Mistress Valerica; keeps mugs for lamp-keeper Ivo, Sergeant Dool, and Preacher Hollis; runs the lost-thing shelf."
+ },
+ "99_99_1": {
+  "name": "Oona Fitch",
+  "description": "A thin, quick girl with a flour-dusted cap and a stopwatch she checks more than the oven.",
+  "traits": [
+   "Competitive",
+   "Fast on her feet",
+   "Argues in recipes",
+   "Proud of the pre-dawn batch"
+  ],
+  "hints": {
+   "The Pre-Dawn Batch": "Ma Baker bakes the day bread. I bake the dawn bread, when the street is still cold. The twins bet on which of us hits the market first. I've never lost. Once.",
+   "Bread Debts": "Wren owes me a crust. He says he'll pay in shiny things. Shiny things don't rise, dearie.",
+   "The Oven": "If the pre-dawn batch is late, it's the twins' fault. They race past the oven and I have to chase them. If it's early, it's my fault. I planned for it."
+  },
+  "location_id": "99_99_1",
+  "notes": "Night baker, apprentice of Ma Baker (all-night business, second shift). Intended use: shift staff, delivery-race quests, kid-adjacent flavor. Relationships: Ma Baker's apprentice; rivals with the twins Rook and Rilla; Wren's creditor."
+ },
+ "99_99_2": {
+  "name": "Sergeant Dool",
+  "description": "A night-watch sergeant with a straight back and a quiet voice, boots already on.",
+  "traits": [
+   "Competent",
+   "Hates paperwork",
+   "Watches the walls",
+   "Respected, not liked"
+  ],
+  "hints": {
+   "The Wall": "Halloway signs the forms. I keep the wall. The crier screams news I already know; the preacher screams news I don't want to know. Both get a stern look.",
+   "Shift Change": "I report to Captain Halloway once a day, for two minutes, and he makes it an hour. The lamp-keeper and I share a silence that's worth more than his whole ledger.",
+   "The Dungeon Door": "I stand at the dungeon entrance at blue hour. I don't go in. I count who goes in, and I count who comes out. The count doesn't always match. I don't talk about it."
+  },
+  "location_id": "99_99_2",
+  "notes": "Sergeant of the night watch, under Captain Halloway (guardhouse second shift). Intended use: security quests, dungeon-entrance watch, night-shift staff. Relationships: reports to Captain Halloway; quiet ally of lamp-keeper Ivo; stern look to the crier and Preacher Hollis; counts the dungeon door."
+ },
+ "99_99_3": {
+  "name": "Lamp-keeper Ivo",
+  "description": "A gaunt man with a long pole and a tin of oil, standing where the canal light bends.",
+  "traits": [
+   "Melancholy",
+   "Patient",
+   "Keeps the light",
+   "Speaks of the dimming"
+  ],
+  "hints": {
+   "The Dimming": "You feel it too. The Eternal Light used to reach the far wall. Now it stops short, and I pour more oil and say nothing. My sister's acolyte says the temple knows why. The temple is too tired to say.",
+   "The Rounds": "I walk the canal at blue hour. Sergeant Dool watches the wall; I keep the wall lit. We nod. That's the whole ceremony.",
+   "The Oil": "The oil runs out faster now. I don't know if the light is dimming or if I'm using more. I've started keeping a tally of the tins. The tally is getting longer."
+  },
+  "location_id": "99_99_3",
+  "notes": "Lamp-keeper of the canal district (all-night duty). Intended use: worldbuilding tie-in (the dimming light), night-shift staff, melancholy quest givers. Relationships: sister is a temple acolyte (Fenna's aunt); quiet ally of Sergeant Dool; old classmate of Preacher Hollis; a regular at Bram's."
+ },
+ "99_99_4": {
+  "name": "Old Maren",
+  "description": "A stout woman with a midwife's satchel and a voice that settles a room like a door closing.",
+  "traits": [
+   "Authoritative",
+   "Warm underneath",
+   "Sees through fuss",
+   "Keeps the village on its feet"
+  ],
+  "hints": {
+   "Gullwick": "The hamlet on the road past the fletcher's shop is mine to keep. Cato's wagon, Petrus's school, Ysolde's herbs. When a child is born, I name the hour; when one is sick, I name the remedy.",
+   "The City": "I don't go into Luminaria. The city keeps its memories; the village keeps its names. I prefer names.",
+   "The Kids": "Wren, Toby, Fenna, and the twins all think they're too big for me. I've delivered every one of them. I'll deliver the next one too, and I'll name the hour."
+  },
+  "location_id": "99_99_4",
+  "notes": "Midwife of the Gullwick hamlet (future village). Intended use: village quest hub (lost child, sick farmer, naming quests), quest-giver for village missions. Relationships: Cato's mother-in-law; Petrus's aunt; Ysolde's neighbor; delivered the village kids (Wren, Toby, Fenna, the twins)."
+ },
+ "99_99_5": {
+  "name": "Cato the Cartwright",
+  "description": "A broad man with a mallet and a plan, standing in a yard of half-built wagons.",
+  "traits": [
+   "Methodical",
+   "Proud of his joints",
+   "Grumbles about the city's roads",
+   "Loyal to his wife"
+  ],
+  "hints": {
+   "The Roads": "The city's roads are a liar. They say 'short cut' and mean 'long argument.' I build wagons that forgive both. Maren says I should forgive people too. I work on it.",
+   "The Order Book": "The alchemist orders a herb tumbrel. The dyer orders a vat cart. The preacher orders nothing, which is the most expensive order of all.",
+   "The Wheel": "If a wheel is true, the wagon is true. If the wagon is true, the road is true. If the road is true, the city is true. The city is not true. I keep building."
+  },
+  "location_id": "99_99_5",
+  "notes": "Cartwright of Gullwick (future village). Intended use: delivery/transport quests, village crafting, quest givers for wagon jobs. Relationships: Maren's son-in-law; builds for Ysolde (herbalist) and Dagny (dyer); Preacher Hollis's unpaid customer."
+ },
+ "99_99_6": {
+  "name": "Petrus the Schoolmaster",
+  "description": "A thin man with a pointer stick and a patience that shows its seams.",
+  "traits": [
+   "Pedantic",
+   "Secretly kind",
+   "Dreads the summer",
+   "Believes in the village"
+  ],
+  "hints": {
+   "The School": "Wren, Toby, Fenna, and the twins all sit in my yard, and all of them learn at different speeds. Wren learns in shiny things. Toby learns in hay. Fenna learns in light. The twins learn in bets.",
+   "The City": "I taught in Luminaria once. The city forgets its students. Here, I remember every one of them, which is the whole job.",
+   "The Reading": "If a child can't read, I teach them. If they can read but won't, I make them read to the class. If they can read and will, I make them read to the class anyway. It's the whole job."
+  },
+  "location_id": "99_99_6",
+  "notes": "Schoolmaster of Gullwick (future village). Intended use: kid quest hub (lost toy, school errand), village flavor, quest givers for teaching/reading quests. Relationships: Maren's nephew; teaches Wren, Toby, Fenna, Rook and Rilla; former city teacher."
+ },
+ "99_99_7": {
+  "name": "Wren",
+  "description": "A small, quick kid with a flour-dusted cap and a guilty grin, hat in hand.",
+  "traits": [
+   "Mischievous",
+   "Brave about it",
+   "Terrified of the dungeon",
+   "Loyal to the other kids"
+  ],
+  "hints": {
+   "The Crust": "I stole a crust from Ma Baker. Oona says I owe her. I say I'll pay in shiny things. Shiny things don't rise, she says. I say shiny things don't have to rise. I say they have to shine.",
+   "The Dungeon": "I don't go in there. The walls breathe, the sentry says. I say the walls are just shy. I say I'll go in when I'm bigger. I say I'm already bigger.",
+   "The Shiny Things": "I have a pouch of shiny things. Toby says they're just buttons. Mira says they're just glass. I say they're just shiny. I say I'll trade them for a crust. I say I'll trade them for a whole loaf."
+  },
+  "location_id": "99_99_7",
+  "notes": "Market kid, age 7 (kid NPC). Intended use: kid quest-givers (lost toy, find coin, retrieve item), flavor, errand quests. Relationships: Ma Baker's favorite; Oona's debtor; Petrus's student; Toby's friend; Mira's fan; the twins' bet subject."
+ },
+ "99_99_8": {
+  "name": "Toby 'Two-Toes'",
+  "description": "A lean, barefoot kid in a loft of hay, one boot on the floor and one in the air.",
+  "traits": [
+   "Restless",
+   "Loyal",
+   "Lives in the loft",
+   "Knows every horse by name"
+  ],
+  "hints": {
+   "The Loft": "Silas says the loft is mine. I say the loft is the city's best seat. I say the horses talk up there. I say the stablemaster listens. I say I'm the only one who hears.",
+   "The City": "I've seen the dungeon from the stable door. I say it's just a big hole. I say I'll fill it with hay. I say I'm the only one who can.",
+   "The Boots": "I have one boot. The other one is in the loft. I say I'll find it. I say I'll find it by morning. I say I'll find it by noon. I say I'll find it by the time the bread is warm."
+  },
+  "location_id": "99_99_8",
+  "notes": "Stablehand kid, age 9, ward of Silas the stablemaster (kid NPC). Intended use: kid quest-givers (feed the horse, find a lost shoe, retrieve item), stable flavor. Relationships: Silas's ward; Wren's friend; Petrus's student; the twins' bet subject."
+ },
+ "99_99_9": {
+  "name": "Fenna",
+  "description": "A small, solemn kid in a temple sash, holding a candle that's too big for her.",
+  "traits": [
+   "Solemn",
+   "Curious",
+   "Adores the priestess",
+   "Keeps the light"
+  ],
+  "hints": {
+   "The Light": "My aunt says the temple knows why the light is dimming. The temple is too tired to say. I say I'll ask the priestess. I say she'll tell me. I say I'm the only one who'll ask.",
+   "The School": "Petrus says I learn in light. I say I learn in everything. I say Wren learns in shiny things. I say shiny things are just light that fell down.",
+   "The Candle": "My candle is too big for me. I say I'll hold it anyway. I say I'll hold it till the light comes back. I say I'll hold it till the temple tells me why. I say I'll hold it till I'm bigger."
+  },
+  "location_id": "99_99_9",
+  "notes": "Temple acolyte kid, age 6, niece of lamp-keeper Ivo (kid NPC). Intended use: kid quest-givers (light the candle, find the sash, retrieve item), temple flavor. Relationships: Ivo's niece (sister's daughter); adores the high priestess; Petrus's student; Wren's friend."
+ },
+ "99_99_10": {
+  "name": "The Riddle-Grinder",
+  "description": "A wandering fortune-teller with a hood and a voice like a door on a hinge.",
+  "traits": [
+   "Mysterious",
+   "Actually a con artist",
+   "Genuinely kind",
+   "Sells riddles for coins"
+  ],
+  "hints": {
+   "The Riddles": "A coin for a riddle. Two coins for the answer. Three coins for the truth. Most people stop at two. The ones who pay three are the ones I remember.",
+   "The City": "I've seen Luminaria forget its name. I say the city is just a riddle that's too tired to solve. I say I'm the only one who'll solve it. I say I'm the only one who cares.",
+   "The Truth": "The truth is a coin you don't get back. I sell it anyway. The ones who buy it are the ones who remember. The ones who don't are the ones I forget."
+  },
+  "location_id": "99_99_10",
+  "notes": "Wandering fortune-teller/riddle-seller (flavor NPC, con artist). Intended use: riddle quests, flavor, quest givers for riddle/truth quests. Relationships: no fixed relationships; a regular at Bram's; the crier's confidant."
+ },
+ "99_99_11": {
+  "name": "Grist the Chime-Tuner",
+  "description": "A stooped man with a tuning fork and a grudge, standing by the temple chimes.",
+  "traits": [
+   "Grumpy",
+   "Proud of his work",
+   "Hates the crier",
+   "Keeps the chimes true"
+  ],
+  "hints": {
+   "The Chimes": "I tune the temple chimes. The crier blames me for his muffled voice. I say his voice is muffled because he's screaming. The chimes are true; the crier is the problem.",
+   "The City": "The city's bells all ring 'all is well.' I've tuned them and they're flat. A flat bell is a lying bell. I fix the temple chimes because the temple can't. The city's bells I leave, to ring their flat lies.",
+   "The Fork": "I carry a tuning fork. If a chime won't ring true, I strike the fork and hold it to the chime's throat. If a person won't speak true, I strike the fork and hold it to theirs. The crier has been forked nine times. He's still screaming."
+  },
+  "location_id": "99_99_11",
+  "notes": "Chime-tuner of the temple (flavor NPC, grumpy). Intended use: flavor, quest givers for chime/bell quests, temple staff. Relationships: the crier's rival; tunes the temple chimes; a regular at Bram's."
+ },
+ "99_99_12": {
+  "name": "Ada the Cartographer",
+  "description": "A sharp-eyed woman with a compass and a map that's always half-finished.",
+  "traits": [
+   "Precise",
+   "Obsessive",
+   "Argues with the archivist",
+   "Maps the dungeon entrances"
+  ],
+  "hints": {
+   "The Maps": "I map the dungeon entrances. The archivist says the dungeon is fickle. I say a fickle dungeon is just a map nobody's finished. I'll finish it. I'll finish it whether the dungeon wants to be finished or not.",
+   "The City": "The city's streets say 'short cut' and mean 'long argument.' I've walked every short cut. I've marked every long argument. My maps are the only thing in the city that tells you which is which. The city would rather you get lost. I won't let you.",
+   "The Compass": "My compass doesn't point north. It points to the dungeon. I've tried to fix it. It's not broken. It's just more honest than a north. If you're ever lost, follow my compass. If you're never lost, you've never been lost in a dungeon."
+  },
+  "location_id": "99_99_12",
+  "notes": "Cartographer of the dungeon entrances (flavor NPC, obsessive). Intended use: dungeon mapping quests, flavor, quest givers for map/navigation quests. Relationships: collaborates with the archivist Xylos; argues with the fletcher Elias; a regular at Bram's."
+ },
+ "99_99_13": {
+  "name": "Brother Anselm",
+  "description": "A quiet monk with a virtue ledger and a patience that shows its seams.",
+  "traits": [
+   "Quiet",
+   "Dutiful",
+   "Resents the priestess",
+   "Keeps the virtue ledger"
+  ],
+  "hints": {
+   "The Ledger": "I keep the virtue ledger. The priestess calls it a chore. A chore is what you call a duty when you're too tired to do it. I do it. Every sin, every redemption, every 50-for-a-point exchange. The ledger doesn't forget, so the city doesn't have to.",
+   "The City": "The city says 'all is well' and means 'all is quiet.' Quiet is just well that's stopped moving. I've written down every time the city went quiet. The ledger is the only record of what the city pretends it wasn't. I keep it because the priestess won't.",
+   "The Pen": "I have a pen and a well of ink. The priestess has a sigh and a schedule. The pen is faster. The ink is longer. When the city's virtue runs out, the ledger still has a line for it. I'll write the line. I always write the line."
+  },
+  "location_id": "99_99_13",
+  "notes": "Temple monk, keeper of the virtue ledger (flavor NPC, dutiful). Intended use: temple staff, virtue quests, flavor. Relationships: the high priestess's reluctant assistant; a regular at Bram's."
+ },
+ "99_99_14": {
+  "name": "Mira the Tumbler",
+  "description": "A quick, laughing woman with a juggling bag and a crowd that's always half-formed.",
+  "traits": [
+   "Joyful",
+   "Competitive",
+   "The kids' idol",
+   "Rivals Slippery Pete"
+  ],
+  "hints": {
+   "The Crowd": "I juggle. The kids watch. Slippery Pete sells. I don't sell. I give. The kids are the only honest thing in the market, and I'm the only one who gives them back. Pete's got a bag of glass. I've got a bag of light.",
+   "The City": "The city's crowds say 'all is well' and mean 'all is quiet.' A quiet crowd is a crowd that's stopped clapping. I haven't stopped clapping. I haven't stopped juggling. If the city's crowd goes quiet, I start a new one. I start it with the kids. The kids never go quiet.",
+   "The Bag": "My juggling bag holds three balls and a secret. The three balls are for the crowd. The secret is for the kids. If a kid ever looks like they're going to stop believing, I pull the secret out. It's just a fourth ball. But it's a fourth ball that only they can see. It's enough."
+  },
+  "location_id": "99_99_14",
+  "notes": "Street performer/juggler (flavor NPC, the kids' idol). Intended use: kid flavor, market quests, quest givers for crowd/performance quests. Relationships: Wren's idol; Slippery Pete's rival; a regular at Bram's."
+ },
+ "99_99_15": {
+  "name": "Cornelius 'Corn' Vane",
+  "description": "A retired soldier with a gruff voice and a pocket full of old poetry.",
+  "traits": [
+   "Gruff",
+   "Secretly a poet",
+   "Old friend of the captain",
+   "Sells military surplus"
+  ],
+  "hints": {
+   "The Surplus": "I sell old military surplus. The captain calls me a hazard. A hazard is what you call a man who's still got his head after the war. I've got my head. I've got a cart of swords that don't need to be. I sell them to people who think they do.",
+   "The City": "The city's soldiers say 'all is well' and mean 'all is quiet.' I've been quiet. I've been well. Now I'm neither, and I'm selling the proof. The surplus is the only honest thing in the market. It's all the gear the war left behind. I'm the only one who'll sell it. I'm the only one who'll remember it.",
+   "The Poetry": "I've got a pocket full of old poetry. I wrote it in the war. I don't read it out loud. I read it to the captain, once, and he signed a form. I read it to the city, sometimes, in the margins of the surplus list. The city doesn't rhyme. I rhyme anyway. Rhyming is the only surplus the war left me that I can't sell."
+  },
+  "location_id": "99_99_15",
+  "notes": "Retired soldier, seller of military surplus (flavor NPC, gruff veteran). Intended use: military quests, flavor, quest givers for surplus/weapon quests. Relationships: old friend of Captain Halloway; a regular at Bram's."
+ },
+ "99_99_16": {
+  "name": "Ysolde the Herbalist",
+  "description": "A quiet woman with a basket of herbs and a patience that shows its seams.",
+  "traits": [
+   "Quiet",
+   "Knowledgeable",
+   "Supplies the alchemist",
+   "Keeps the village's remedies"
+  ],
+  "hints": {
+   "The Herbs": "I forage medicinal herbs. The alchemist calls me his supplier. A supplier is what you call a woman who knows more than you do and won't say it. I know more than Zale. I know it because the herbs tell me. I tell the village. I tell Zale only what he can afford.",
+   "The City": "The city's remedies say 'all is well' and mean 'all is quiet.' A quiet remedy is one that's stopped working. I've kept the village's remedies working. I keep the alchemist's working too, for a price. The herbs are the only honest thing in the village. They don't pretend. They just grow, or they don't. I plant them either way.",
+   "The Basket": "My basket holds what the season gives and what the season withholds. The season withholds a lot these days. The light's dimming and the herbs know it before I do. I've started keeping a tally of what the basket comes up short on. The tally's getting longer. I plant extra. I always plant extra."
+  },
+  "location_id": "99_99_16",
+  "notes": "Herbalist of Gullwick (future village). Intended use: village quests, alchemy supply, quest givers for herb/remedy quests. Relationships: Zale the alchemist's supplier; Maren's neighbor; Cato's customer."
+ },
+ "99_99_17": {
+  "name": "Rook and Rilla",
+  "description": "A pair of street racers with a bet and a grin, always half a step ahead.",
+  "traits": [
+   "Competitive",
+   "Fast",
+   "The crier's confidant",
+   "Bet on everything"
+  ],
+  "hints": {
+   "The Bets": "We bet on everything. Oona says we're her rivals. Rivals is what you call two kids who've never lost and are about to. We've bet on bread, on bells, on the crier's next word. We've never lost. Once. We're not telling who lost.",
+   "The City": "The city's bets say 'all is well' and mean 'all is quiet.' A quiet bet is one nobody's making. We make bets. We make them loud. If the city's bets go quiet, we start a new one. We start it with Oona. Oona never goes quiet. Oona never loses either. That's the bet we can't win.",
+   "The Race": "We race. The crier screams. Oona chases. We don't run for first. We run for the bet. If you're ever lost, follow us. If you're ever won, don't follow us. We've won everything except the bet against Oona. We'll keep racing. We'll keep racing till Oona blinks. Oona doesn't blink."
+  },
+  "location_id": "99_99_17",
+  "notes": "Street racer twins (flavor NPC, competitive). Intended use: race quests, market flavor, quest givers for bet/race quests. Relationships: Oona's rivals; the crier's confidant; Petrus's students; Wren and Toby's bet subjects."
+ },
+ "99_99_18": {
+  "name": "Preacher Hollis",
+  "description": "A traveling preacher with a voice that's always half a step too loud.",
+  "traits": [
+   "Earnest",
+   "Slightly unhinged",
+   "The villagers love him",
+   "Preaches about the dimming"
+  ],
+  "hints": {
+   "The Dimming": "I preach about the dimming light. The villagers say I'm the only one who'll save them. I'm not. The light's not a thing you save. It's a thing you keep. You keep it the way you keep a candle. You keep it by not letting it go out. I'm the only one who's noticed it's going out. I'll keep it.",
+   "The City": "The city's light says 'all is well' and means 'all is quiet.' A quiet light is one that's stopped reaching. I've watched it stop reaching. I've watched it stop. I'm the only one who'll say it's stopping. I'll say it loud. I'll say it till the city hears. The city's been quiet too long. I'm the only one who'll make it loud again.",
+   "The Words": "I've got a voice. It's too loud. I know it's too loud. The crier's voice is too loud too, but he screams news. I scream truth. The villagers love me because I scream it in their direction. I've got words that don't stop. I'll keep them going. I'll keep them going till the light comes back. I'll keep them going even if it doesn't."
+  },
+  "location_id": "99_99_18",
+  "notes": "Traveling preacher (flavor NPC, earnest). Intended use: village quests, flavor, quest givers for sermon/light quests. Relationships: Ivo's old classmate; a regular at Bram's; Cato's unpaid customer."
+ },
+ "99_99_19": {
+  "name": "Dagny the Dyer",
+  "description": "A sharp-eyed woman with a vat of dye and a patience that shows its seams.",
+  "traits": [
+   "Sharp",
+   "Proud of her vats",
+   "Supplies the inn",
+   "The kids dare each other to get close"
+  ],
+  "hints": {
+   "The Vats": "I dye cloth. The inn calls me her supplier. A supplier is what you call a woman whose vats are too hot to argue with. My vats are too hot to argue with. I dye Mistress Valerica's silks. I dye the city's cloth. I dye what the season gives and what the season withholds. The vats are the only honest thing in the canal district. They don't pretend. They just color, or they scorch. I color.",
+   "The City": "The city's cloth says 'all is well' and means 'all is quiet.' A quiet cloth is one that's stopped being dyed. I've kept the city's cloth dyed. I keep it dyed whether the city wants it or not. The vats are the only honest thing in the city. They don't lie about what they're. I dye what they are. The city's been quiet too long. I'll dye it loud.",
+   "The Silk": "I dye silk. The silk is too fine to argue with. I dye it anyway. I dye Mistress Valerica's silks for the front rooms. I dye the back-room silks for the 'private' suites. I don't ask what the back rooms are for. I just dye them. The silk doesn't ask either. It just takes the color. The city's been quiet too long. I'll dye it a color it's never had."
+  },
+  "location_id": "99_99_19",
+  "notes": "Dyer of the canal district (flavor NPC, sharp). Intended use: canal district quests, flavor, quest givers for dye/cloth quests. Relationships: supplies Mistress Valerica with silks; Cato's customer; the kids' dare subject."
  }
 }
