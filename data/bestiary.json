@@ -4,7 +4,8 @@
         "hp": 30,
         "atk": 6,
         "special": [
-            "petrify"
+            "petrify",
+            "see_invisible"
         ],
         "kind": "beast"
     },
@@ -145,7 +146,8 @@
         "hp": 20,
         "atk": 4,
         "special": [
-            "flying"
+            "flying",
+            "see_invisible"
         ],
         "kind": "construct"
     },

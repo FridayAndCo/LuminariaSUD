@@ -41,5 +41,12 @@
     "dc": 16,
     "lethality": "high",
     "location": "Exit"
+  },
+  "Warding Glyph (Curse)": {
+    "damage": 1,
+    "effect": "curse",
+    "dc": 13,
+    "lethality": "low",
+    "location": "Floor"
   }
 }

@@ -896,10 +896,17 @@ class Game:
         if room and room.get("type") == "Discovery":
             self.cmd_discovery("discovery_meditate", "meditate")
             return
-        # A shrine room: trade virtue for a stat.
-        if room and room.get("shrine"):
+        # A shrine room: town Temple has shrine=True; dungeon Shrine rooms have
+        # type=="Shrine" (some are negative). Trade virtue for a stat (positive)
+        # or offer your soul to the black altar (negative).
+        is_shrine_room = room and (room.get("shrine") or room.get("type") == "Shrine")
+        if is_shrine_room:
+            negative = bool(room.get("shrine_negative"))
             stats = list(self.eng.player.data["stats"].keys())
-            ui.warn("You may trade 50 Virtue for a permanent +1 to one attribute. Which?")
+            if negative:
+                ui.warn("The black altar watches you. If your soul is dark enough it may empower you; if it is light, it will curse you. Choose an attribute to offer (or decline).")
+            else:
+                ui.warn("You may trade 50 Virtue for a permanent +1 to one attribute. Which?")
             for i, s in enumerate(stats, 1):
                 ui.say(f"  {i}. {s} ({self.eng.player.data['stats'][s]})")
             try:
@@ -917,7 +924,7 @@ class Game:
             else:
                 ui.warn("Never mind, then.")
                 return
-            res = self.eng.meditate("town", stat)
+            res = self.eng.meditate("negative_shrine" if negative else "town", stat)
             (ui.say if res.get("success") else ui.warn)(res.get("message", str(res)))
             return
         ui.warn("There is no shrine here to meditate at.")

@@ -419,6 +419,13 @@ class DungeonGenerator:
                     ["Chest", "Sack", "Iron Lockbox"]
                 )
 
+            if room_type == "Shrine" and random.random() < 0.5:
+                # Half of dungeon shrines are negative: a blackened altar that
+                # curses the light and empowers the dark.
+                processed_rooms[room_id]["shrine_negative"] = True
+                processed_rooms[room_id]["visual_tags"].extend(
+                    ["a blackened altar", "candlelight guttering in a cold draft"])
+
         entrance_id = "0_0_" + str(z)
         if z == -1:
             processed_rooms[entrance_id]["exits"]["Up"] = "0_-1_0"
@@ -1416,7 +1423,7 @@ class GameEngine:
         controlled = (ctrl.get("sleep", 0) > 0 or ctrl.get("hold", 0) > 0
                       or ctrl.get("web", 0) > 0 or ctrl.get("confuse", 0) > 0)
 
-        invisible = self._buff_active("Invisibility")
+        invisible = self._buff_active("Invisibility") and not self._monster_sees_invisible(monster)
         if monster != "None" and not controlled and not invisible:
             opposites = {"North": "South", "South": "North", "East": "West", "West": "East",
                          "Up": "Down", "Down": "Up"}
@@ -1431,7 +1438,10 @@ class GameEngine:
                     res["monster_attack"] = attack_res
                 return res
             else:
-                return {"error": "The monster blocks your path!",
+                block_msg = "The monster blocks your path!"
+                if self._buff_active("Invisibility") and self._monster_sees_invisible(monster):
+                    block_msg = f"The {monster} sees through your illusion and blocks your path!"
+                return {"error": block_msg,
                         "combat_event": "blocked", "monster_attack": attack_res,
                         "position": current_pos, "room": current_room}
 
@@ -1479,8 +1489,22 @@ class GameEngine:
         if save_roll < trap_info["dc"]:
             damage = trap_info["damage"] + (abs(self.player.data["position"]["z"]) // 2)
             self.player.update_hp(-damage)
-            return {"triggered": True, "damage": damage,
-                    "msg": f"The {trap_type} triggered! You take {damage} damage."}
+            msg = f"The {trap_type} triggered! You take {damage} damage."
+            effect = trap_info.get("effect")
+            if effect == "poison":
+                poison = self._roll_poison_save(trap_info.get("dc", 10))
+                if poison.get("applied"):
+                    msg += f" The venom burns (CON save failed, roll {poison['roll']} vs DC {poison['dc']})."
+                elif poison.get("refreshed"):
+                    msg += " The venom burns again (CON save failed)."
+                elif poison.get("success"):
+                    msg += " You shake off the venom (CON save succeeded)."
+            elif effect == "curse":
+                if "Cursed" not in self.player.data.get("status_effects", []):
+                    self.player.data.setdefault("status_effects", []).append("Cursed")
+                    self.player.save()
+                msg += " A cold glyph sears your brow - you are CURSED (-1 to hit)."
+            return {"triggered": True, "damage": damage, "msg": msg}
         return {"triggered": False, "msg": f"You narrowly avoid the {trap_type}!"}
 
     def _execute_move(self, direction):
@@ -1708,16 +1732,17 @@ class GameEngine:
         return armor_bonus + shield_bonus + dex + buff_ac
 
     def calculate_attack_bonus(self, weapon_name):
+        cursed = -1 if "Cursed" in self.player.data.get("status_effects", []) else 0
         poly = self._polymorph_active()
         if poly:
-            return poly.get("atk", 0)
+            return poly.get("atk", 0) + cursed
         weapon_stats = WEAPON_DATA.get(weapon_name, {})
         w_type = weapon_stats.get("type", "melee")
         w_mod = weapon_stats.get("mod", 0)
         buff_atk = 0
         for b in self.player.data.get("buffs", []):
             buff_atk += b.get("tags", {}).get("attack_bonus", 0)
-        return (self.get_stat_bonus("DEX") if w_type == "ranged" else self.get_stat_bonus("STR")) + w_mod + buff_atk
+        return (self.get_stat_bonus("DEX") if w_type == "ranged" else self.get_stat_bonus("STR")) + w_mod + buff_atk + cursed
 
     def resolve_attack(self, attacker_weapon, defender_ac, penalty=0):
         attack_roll = self.roll_dice(20, self.calculate_attack_bonus(attacker_weapon)) + penalty
@@ -2335,6 +2360,13 @@ class GameEngine:
                            f"(3 rounds: -4 to its attacks, and 1 time in 6 it strikes itself)"}
 
     # --- spell utility infrastructure (sub-phase 2d, batch 3) ---
+    def _monster_sees_invisible(self, monster_name):
+        """True if the named monster can see through Invisibility."""
+        if not monster_name:
+            return False
+        monster = self.world.generator.bestiary.get(monster_name, {})
+        return "see_invisible" in set(monster.get("special", []))
+
     def _buff_active(self, *names):
         """True if any of the named buffs is currently active."""
         for b in self.player.data.get("buffs", []):
@@ -2833,6 +2865,19 @@ class GameEngine:
             self.player.data["stats"][stat_name] += 1
             self.player.save()
             return {"success": True, "message": f"Darkness empowers {stat_name}!"}
+        elif shrine_type == "negative_shrine":
+            if virtue > 0:
+                if "Cursed" not in self.player.data.get("status_effects", []):
+                    self.player.data.setdefault("status_effects", []).append("Cursed")
+                self.player.save()
+                return {"success": True, "message": "The darkness recoils from your light - you are CURSED (-1 to hit)."}
+            elif virtue <= -50:
+                self.player.data["virtue"] += 50
+                self.player.data["stats"][stat_name] += 1
+                self.player.save()
+                return {"success": True, "message": f"The darkness drinks your guilt. {stat_name} increases! (Virtue +50)"}
+            else:
+                return {"success": True, "message": "The black altar is silent. Your soul is neither light nor dark enough to stir it."}
         return {"success": False, "message": "Meditation failed."}
 
     def sleep(self):

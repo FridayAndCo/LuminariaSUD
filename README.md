@@ -242,8 +242,23 @@ INT 10 is a fizzle.
    pitfalls, it may return later; Neutralize Poison was cut as redundant,
    superseded by Remove Curse / Purify. Both are out of `spells.json` — 42
    spells remain.)
-5. **Batch 5 — counter-features**: `see_invisible` monster trait, the glyph
-   feature, and Raise-Dead curses.
+5. **Batch 5 — curses + counter-features** *(done, v0.3.5)*: the `Cursed`
+   status finally has a body — it's permanent until **Remove Curse**, and it
+   costs **−1 to hit** in `calculate_attack_bonus`. It's applied two ways: the
+   new **Warding Glyph (Curse)** trap (a failed DEX save sears you) and
+   **negative shrines**. Half of dungeon Shrine rooms now generate as negative
+   (a blackened altar): meditating there with positive Virtue **curses** you,
+   with Virtue ≤ −50 it **drinks your guilt** (+50 Virtue, +1 stat — it
+   "spends" the negativity), and mid-range souls it leaves alone. Positive
+   dungeon shrines trade 50 Virtue for +1 stat, like the town Temple. This
+   batch also **repairs dungeon-shrine meditation** (Shrine rooms were
+   unreachable — only the town `shrine` flag worked) and **fixes the Poison
+   Needle** (it now rolls a CON save and actually applies Poisoned, instead of
+   dealing its 1 damage and dropping the effect). The **`see_invisible`**
+   monster trait (Basilisk, Gargoyle) nullifies the **Invisibility**
+   move-bypass — those creatures see through the illusion and block you.
+   (The glyph feature and Raise-Dead curses from the original Batch 5 scope
+   were dropped — the glyph may return with Read Language.)
 
 The full per-spell design (what each one does, whether it's mechanical, a
 buff, or an LLM tool) is tracked in the project notes. If you're forking,
