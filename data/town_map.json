@@ -236,9 +236,10 @@
  "-1_-1_0": {
   "name": "The Gilded Flagon Inn",
   "type": "Town",
-  "description": "A cozy establishment with a roaring fireplace and the comforting scent of roasted meat and ale.",
+  "description": "A cozy establishment with a roaring fireplace and the comforting scent of roasted meat and ale. A narrow stairway leads up to the guest rooms, its door locked - ask the barkeep for a key.",
   "exits": {
-   "North": "-1_0_0"
+   "North": "-1_0_0",
+   "Up": "-1_-1_1"
   },
   "visual_tags": [
    "wooden beams",
@@ -248,6 +249,12 @@
   "time_descriptions": {
    "morning": "The inn at morning: hearth re-laid, beds made up, the smell of breakfast and last night's spilled ale in honest competition. The barmaid polishes a mug that was clean already.",
    "evening": "A cozy establishment with a roaring fireplace and the comforting scent of roasted meat and ale. The common room fills, the talk rises, and the fire wins the argument with the dark."
+  },
+  "doors": {
+   "Inn Key": {
+    "to": "-1_-1_1",
+    "state": "locked"
+   }
   }
  },
  "2_-1_0": {
@@ -283,6 +290,23 @@
   "time_descriptions": {
    "morning": "A quiet shop smelling of cedar and beeswax. Morning light slants across the fletching bench, where a half-dozen bows hang waiting for owners who may or may not come back.",
    "evening": "A quiet shop smelling of cedar and beeswax, closed up for the night by the look of it - though a lamp burns in the back, where Zale is clearly working late and pretending not to."
+  }
+ },
+ "-1_-1_1": {
+  "name": "The Gilded Flagon Inn Room",
+  "type": "Town",
+  "description": "A small, tidy guest room on the inn's upper floor. A narrow bed with clean linens sits by the window, and a candle burns on the nightstand. You may sleep here.",
+  "exits": {
+   "Down": "-1_-1_0"
+  },
+  "visual_tags": [
+   "narrow bed",
+   "candlelit",
+   "upper floor"
+  ],
+  "time_descriptions": {
+   "morning": "The guest room at morning: the bed still holds the hollow of your sleep, and the candle has burned to a stub. Sunlight leans through the window.",
+   "evening": "The guest room at evening: the candle gutters against the dark, the bed made and waiting, the window a square of blue-black night."
   }
  }
 }

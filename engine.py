@@ -94,6 +94,15 @@ CLOSED_DOOR_CHANCE = 0.20
 LOCKED_DOOR_CHANCE = 0.10
 OBSTACLE_EDGE_CHANCE = 0.30
 
+# --- The inn's upper guest room: a locked stairway keyed to a consumable Inn
+# Key (3 gp). The key is the whole transaction - sleeping in the room is free.
+# An open door re-locks on its own after INN_LOCK_TICKS satiety ticks, or
+# immediately if the guest sleeps and leaves. ---
+INN_ROOM_ID = "-1_-1_1"
+INN_BASE_ID = "-1_-1_0"
+INN_KEY_ITEM = "Inn Key"
+INN_LOCK_TICKS = 50
+
 TRAP_DATA = _load_json("traps.json", {})
 
 
@@ -1238,6 +1247,7 @@ class GameEngine:
                 rolled = True
         self.world.engine_phase = t["phase"]
         self._age_perishables(int(ticks))
+        self._inn_tick()
         return rolled
 
     def advance_phases(self, n):
@@ -1324,6 +1334,10 @@ class GameEngine:
         npcs = self._npcs_in_room(room_id)
         monsters = self._normalize_encounter(room.get("encounter"))
         is_dark = (not self.room_is_lit(room)) and not self.player.is_lit()
+        sleep_hint = None
+        if room_id == INN_ROOM_ID:
+            sleep_hint = ("You may sleep here ('sleep') - a full, restful night. "
+                          "The Inn Key was the only cost.")
 
         if is_dark:
             description = DARKNESS_DESCRIPTION
@@ -1383,6 +1397,7 @@ class GameEngine:
             "npc_presence": npc_presence,
             "room_contents": room_contents,
             "discovery_hint": discovery_hint,
+            "sleep_hint": sleep_hint,
             "shrine_slot": shrine_slot,
             "time_of_day": self.time_label(),
             "lore_grounding": NARRATIVE_CONTEXT,
@@ -1537,7 +1552,33 @@ class GameEngine:
                         self.world.save()
                     return {"error": res["msg"], "position": current_pos, "room": current_room}
 
-        if direction in current_room.get("doors", {}):
+        # The inn's locked stairway: a consumable Inn Key is the only key that
+        # fits (the generic dungeon keys and lockpicks do not).
+        if (direction == "Up" and current_pos["x"] == -1 and current_pos["y"] == -1
+                and current_pos["z"] == 0 and INN_KEY_ITEM in current_room.get("doors", {})):
+            door = current_room["doors"][INN_KEY_ITEM]
+            if door.get("state") == "locked":
+                inv = self.player.data["inventory"]
+                if inv.get(INN_KEY_ITEM, 0) > 0:
+                    # The key turns and is consumed; the guest rises to the room.
+                    self.player.remove_item(INN_KEY_ITEM, 1)
+                    _ages = self.player.data.get("inn_key_ages")
+                    if _ages:
+                        _ages.pop(0)
+                    door["state"] = "closed"
+                    self.player.data["inn_key"] = self.player.data["satiety"]
+                    self.player.data["inn_slept"] = False
+                    self.player.save()
+                    self._save_room(INN_BASE_ID)
+                    tx, ty, tz = -1, -1, 1
+                    self._inn_unlock_msg = True
+                else:
+                    return {"error": "The stairway door is locked. Only the inn's own "
+                                     "key will open it - ask the barkeep ('shop').",
+                            "position": current_pos, "room": current_room}
+            # open: go up
+            tx, ty, tz = -1, -1, 1
+        elif direction in current_room.get("doors", {}):
             door = current_room["doors"][direction]
             if door.get("state") == "locked":
                 return {"error": f"The door to the {direction} is locked. "
@@ -1578,13 +1619,30 @@ class GameEngine:
         else:
             return {"error": "You cannot go that way."}
 
+        # Leaving the inn's guest room: if the guest slept and the stairway
+        # stands open, it re-locks behind them (the door lives on the base inn).
+        if (current_pos["x"] == -1 and current_pos["y"] == -1 and current_pos["z"] == 1
+                and (tx, ty, tz) != (-1, -1, 1)
+                and self.player.data.get("inn_slept")):
+            door = self._inn_door()
+            if door is not None and door.get("state") == "closed":
+                door["state"] = "locked"
+                self.player.data["inn_key"] = None
+                self.player.data["inn_slept"] = False
+                self.player.save()
+                self._save_room(INN_BASE_ID)
+
         self.player.data["position"] = {"x": tx, "y": ty, "z": tz}
         self.player.data["last_direction"] = direction
         self.player.save()
         room = self.world.get_room(tx, ty, tz)
-        return {"position": self.player.data["position"], "room": room,
-                "satiety": self.player.data["satiety"],
-                "wandering_check": (self.turn_count % 10 == 0), "lore_grounding": NARRATIVE_CONTEXT}
+        res = {"position": self.player.data["position"], "room": room,
+               "satiety": self.player.data["satiety"],
+               "wandering_check": (self.turn_count % 10 == 0), "lore_grounding": NARRATIVE_CONTEXT}
+        if getattr(self, "_inn_unlock_msg", False):
+            res["inn_key_unlock"] = True
+            self._inn_unlock_msg = False
+        return res
 
     # --- town / shops ---
     def get_town_map_context(self):
@@ -1660,6 +1718,11 @@ class GameEngine:
             if not result.get("success"):
                 return result
             self.player.update_gold(-total)
+            if item_name == INN_KEY_ITEM:
+                # A key is only "fresh" for a 50-tick window (anti-stockpile).
+                self.player.data.setdefault("inn_key_ages", []).extend(
+                    [self.player.data["satiety"]] * qty)
+                self.player.save()
             message = f"You bought {qty}x {item_name} for {total} gold."
             if item_name in ("Sack", "Reagent Pouch"):
                 # Warn if the shared max-2 sack slot pool displaced a container.
@@ -3067,27 +3130,60 @@ class GameEngine:
                 return {"success": True, "message": "The black altar is silent. Your soul is neither light nor dark enough to stir it."}
         return {"success": False, "message": "Meditation failed."}
 
+    # --- The inn's upper guest room (Inn Key / free sleep / auto re-lock) ---
+    def _inn_door(self):
+        # Live dict of the inn's locked stairway door, or None.
+        room = self.world.town_rooms.get(INN_BASE_ID)
+        if room is None:
+            return None
+        return room.get("doors", {}).get(INN_KEY_ITEM)
+
+    def _inn_tick(self):
+        # Per-tick inn upkeep (runs as the satiety clock advances):
+        #   (a) an open stairway re-locks on its own after INN_LOCK_TICKS ticks;
+        #   (b) unused Inn Keys in the pack expire after INN_LOCK_TICKS ticks
+        #       (anti-stockpile: a key is only "fresh" for a 50-tick window, so
+        #       pre-purchasing a pile of keys is not an exploit).
+        p = self.player.data
+        if p.get("inn_key"):
+            door = self._inn_door()
+            if door is not None and door.get("state") == "closed" \
+                    and p["satiety"] <= p["inn_key"] - INN_LOCK_TICKS:
+                door["state"] = "locked"
+                p["inn_key"] = None
+                p["inn_slept"] = False
+                self.player.save()
+                self._save_room(INN_BASE_ID)
+        ages = p.get("inn_key_ages")
+        if ages and p["inventory"].get(INN_KEY_ITEM, 0) > 0:
+            keep = [a for a in ages if p["satiety"] > a - INN_LOCK_TICKS]
+            expired = len(ages) - len(keep)
+            if expired > 0:
+                p["inventory"][INN_KEY_ITEM] = max(0, p["inventory"][INN_KEY_ITEM] - expired)
+                p["inn_key_ages"] = keep
+                self.player.save()
+
     def sleep(self):
         pos = self.player.data["position"]
         z = pos["z"]
         satiety_cost = 15
+        # The inn's upper guest room: a full, restful sleep. The Inn Key (3 gp)
+        # was the whole transaction, so nothing is charged here.
+        if pos["x"] == -1 and pos["y"] == -1 and z == 1:
+            if self.player.data["satiety"] < satiety_cost:
+                return {"success": False, "message": "You are too hungry to sleep properly; you need more food."}
+            self.player.data["satiety"] = max(0, self.player.data["satiety"] - satiety_cost)
+            self.player.update_hp(self.player.data["max_hp"] - self.player.data["hp"])
+            self._bump_virtue_day()
+            self.sleep_until_morning()
+            self.player.data["inn_slept"] = True
+            self.player.save()
+            label = self.time_label()
+            return {"success": True, "message": "You sleep deeply in the inn's guest room and wake fully refreshed."
+                    + (f" It is {label}." if label else "")}
         if z == 0:
             if pos["x"] == -1 and pos["y"] == -1:
-                gold_cost = 1
-                if self.player.data["gold"] < gold_cost:
-                    return {"success": False, "message": "You don't have enough gold for a room at the inn."}
-                if self.player.data["satiety"] < satiety_cost:
-                    return {"success": False, "message": "You are too hungry to sleep properly; you need more food."}
-                self.player.update_gold(-gold_cost)
-                self.player.data["satiety"] = max(0, self.player.data["satiety"] - satiety_cost)
-                self.player.update_hp(self.player.data["max_hp"] - self.player.data["hp"])
-                self._bump_virtue_day()
-                self.sleep_until_morning()
-                label = self.time_label()
-                return {"success": True, "message": "You spend a restful night at the Gilded Flagon Inn. You wake up fully refreshed."
-                        + (f" It is {label}." if label else "")}
-            else:
-                return {"success": False, "message": "You are in town, but not at the inn. You can't just sleep on the street!"}
+                return {"success": False, "message": "The common room is no place to sleep. Go up the locked stairway to the guest room - the barkeep keeps the keys ('shop')."}
         else:
             if "Bedroll" not in self.player.data["inventory"]:
                 return {"success": False, "message": "You don't have a bedroll. Sleeping on the cold dungeon floor is a recipe for disaster"}

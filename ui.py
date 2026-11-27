@@ -161,6 +161,8 @@ def show_room(engine, narration=None, exits_line=None):
         body += f"\n{ctx['npc_presence']}"
     if ctx.get("discovery_hint"):
         body += f"\nDiscovery: {ctx['discovery_hint']}"
+    if ctx.get("sleep_hint"):
+        body += f"\n{ctx['sleep_hint']}"
     if ctx.get("shrine_slot"):
         body += "\nA shrine stands here - try 'meditate', or feed the coin slot ('confess')."
     if exits_line:

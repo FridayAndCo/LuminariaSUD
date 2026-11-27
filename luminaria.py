@@ -303,6 +303,8 @@ class Game:
         else:
             room = res.get("room", {})
             parts.append(f"You move. {room.get('name', 'Somewhere new')}.")
+            if res.get("inn_key_unlock"):
+                parts.append("You turn the Inn Key (consumed) - the stairway door swings open, and you climb to the guest room.")
             if res.get("control_note"):
                 parts.append(res["control_note"])
             if res.get("emerged"):

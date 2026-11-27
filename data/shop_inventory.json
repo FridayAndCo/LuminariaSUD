@@ -16,7 +16,8 @@
   "specialty": "lockpicks"
  },
  "The Gilded Flagon Inn": {
-  "provisions": "provisions"
+  "provisions": "provisions",
+  "rooms": "inn_supplies"
  },
  "The Black Candle": {
   "reagents": "reagents",
