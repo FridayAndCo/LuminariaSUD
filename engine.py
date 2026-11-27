@@ -1321,17 +1321,16 @@ class GameEngine:
         self.world.engine_phase = self.player.data.setdefault(
             "time", {"day": 1, "phase": 0, "tick": 0})["phase"]
         room = self.world.get_room(pos["x"], pos["y"], pos["z"])
-        npc = NPC_REGISTRY.get(room_id)
-        monster = room.get("encounter", "None")
+        npcs = self._npcs_in_room(room_id)
+        monsters = self._normalize_encounter(room.get("encounter"))
         is_dark = (not self.room_is_lit(room)) and not self.player.is_lit()
 
         if is_dark:
             description = DARKNESS_DESCRIPTION
             visual_elements = "Absolute darkness"
             npc_presence = ("You hear something stirring in the dark..."
-                            if (npc or monster != "None") else "The silence is absolute.")
+                            if (npcs or monsters) else "The silence is absolute.")
             # In the dark the player cannot see the room's objects, so we do not
-            # claim a chest/trap is visible - only what a light would reveal.
             room_contents = "unseen in the darkness (light a torch and look)"
         else:
             description = room.get("description")
@@ -1340,7 +1339,7 @@ class GameEngine:
             # A cleared Combat room (no live monster) should not keep claiming
             # something lurks - the 'Combat' type is stale once its threat is
             # dead. Any corpse left behind is reported separately in PRESENT.
-            if room.get("type") == "Combat" and monster == "None":
+            if room.get("type") == "Combat" and not monsters:
                 description = "A quiet chamber - the danger here has passed."
             if room.get("type") == "Discovery" and room.get("discovery"):
                 description = DISCOVERY_DATA.get(room["discovery"], {}).get(
@@ -1348,18 +1347,19 @@ class GameEngine:
             elif room.get("atmosphere"):
                 description = f"{description} {room['atmosphere']}"
             visual_elements = ", ".join(room.get("visual_tags", [])) if room.get("visual_tags") else "none"
-            if npc:
-                npc_presence = f"NPC Present: {npc.name}"
-            elif monster != "None":
-                npc_presence = f"Monster Present: {monster}"
+            if npcs and monsters:
+                npc_presence = "Present: " + ", ".join([n.name for n in npcs] + monsters)
+            elif npcs:
+                npc_presence = "NPCs Present: " + ", ".join(n.name for n in npcs)
+            elif monsters:
+                npc_presence = "Monsters Present: " + ", ".join(monsters)
             else:
                 npc_presence = "No NPCs or monsters present."
-            corpse = room.get("corpse")
-            if corpse:
-                state = ("picked clean" if corpse.get("searched")
-                         else "unsearched - try 'search corpse'")
-                npc_presence += (f" | The corpse of the {corpse.get('monster', 'creature')} "
-                                 f"lies here ({state}).")
+            for c in self._clear_all_corpses(room_id):
+                cstate = ("picked clean" if c.get("searched")
+                          else "unsearched - try 'search corpse'")
+                npc_presence += (f" | The corpse of the {c.get('monster', 'creature')} "
+                                 f"lies here ({cstate}).")
             if room_id == VIRTUE_DATA.get("beggar_room", "-1_0_0"):
                 # Aelric the Beggar is a real NPC now (talk works); nudge 'alms'.
                 if npc_presence == "No NPCs or monsters present.":
@@ -1394,7 +1394,7 @@ class GameEngine:
         was_underground = self.player.data["position"]["z"] < 0
         current_pos = self.player.data["position"]
         current_room = self.world.get_room(current_pos["x"], current_pos["y"], current_pos["z"])
-        monster = current_room.get("encounter", "None")
+        monsters = self._normalize_encounter(current_room.get("encounter"))
         old_last_dir = self.player.data.get("last_direction")
         p_data = self.player.data
         eq = p_data["equipped"]
@@ -1419,49 +1419,60 @@ class GameEngine:
         self.player.save()
 
         cur_room_id = f"{current_pos['x']}_{current_pos['y']}_{current_pos['z']}"
-        ctrl = self.monster_control.get(cur_room_id, {})
-        controlled = (ctrl.get("sleep", 0) > 0 or ctrl.get("hold", 0) > 0
-                      or ctrl.get("web", 0) > 0 or ctrl.get("confuse", 0) > 0)
-
-        invisible = self._buff_active("Invisibility") and not self._monster_sees_invisible(monster)
-        if monster != "None" and not controlled and not invisible:
+        def _ctrl_of(label):
+            return self.monster_control.get(f"{cur_room_id}|{label}", {})
+        def _controlled(label):
+            c = _ctrl_of(label)
+            return (c.get("sleep", 0) > 0 or c.get("hold", 0) > 0
+                    or c.get("web", 0) > 0 or c.get("confuse", 0) > 0)
+        invisible = (self._buff_active("Invisibility")
+                     and not any(self._monster_sees_invisible(m) for m in monsters))
+        hostiles = [m for m in monsters if not _controlled(m)]
+        if hostiles and not invisible:
             opposites = {"North": "South", "South": "North", "East": "West", "West": "East",
                          "Up": "Down", "Down": "Up"}
             last_dir = self.player.data.get("last_direction")
-            attack_res = self.resolve_monster_attack(monster)
-            if attack_res["hit"]:
-                self.player.update_hp(-attack_res["damage"])
+            attacks = []
+            for m in hostiles:
+                ar = self.resolve_monster_attack(m)
+                if ar["hit"]:
+                    self.player.update_hp(-ar["damage"])
+                attacks.append(ar)
+            first_hit = next((a for a in attacks if a["hit"]), attacks[0])
             if last_dir and direction == opposites.get(last_dir):
                 res = self._execute_move(direction)
                 if "error" not in res:
                     res["combat_event"] = "escaped"
-                    res["monster_attack"] = attack_res
+                    res["monster_attack"] = first_hit
                 return res
             else:
-                block_msg = "The monster blocks your path!"
-                if self._buff_active("Invisibility") and self._monster_sees_invisible(monster):
-                    block_msg = f"The {monster} sees through your illusion and blocks your path!"
+                block_msg = "The monsters block your path!"
+                if self._buff_active("Invisibility") and any(self._monster_sees_invisible(m) for m in hostiles):
+                    seer = next(m for m in hostiles if self._monster_sees_invisible(m))
+                    block_msg = f"The {seer} sees through your illusion and blocks your path!"
                 return {"error": block_msg,
-                        "combat_event": "blocked", "monster_attack": attack_res,
+                        "combat_event": "blocked", "monster_attack": first_hit,
                         "position": current_pos, "room": current_room}
 
         res = self._execute_move(direction)
-        if "error" not in res and invisible and monster != "None":
+        if "error" not in res and invisible and monsters:
             opposites = {"North": "South", "South": "North", "East": "West", "West": "East",
                          "Up": "Down", "Down": "Up"}
             if old_last_dir and direction == opposites.get(old_last_dir):
                 # Slipping back the way you came past a hostile = a flee.
                 self.player.update_virtue(-1)
-                res["control_note"] = (f"You vanish and slip back past the {monster}, the way "
+                res["control_note"] = (f"You vanish and slip back past the {monsters[0]}, the way "
                                        f"you came. The Protector ran. (Virtue -1)")
             else:
-                res["control_note"] = f"You vanish and slip past the {monster} without a fight."
-        elif "error" not in res and controlled:
-            which = ("sleeping" if ctrl.get("sleep", 0) > 0
-                     else "held" if ctrl.get("hold", 0) > 0
-                     else "webbed" if ctrl.get("web", 0) > 0
+                res["control_note"] = f"You vanish and slip past the {monsters[0]} without a fight."
+        elif "error" not in res and any(_controlled(m) for m in monsters):
+            which_m = next(m for m in monsters if _controlled(m))
+            c = _ctrl_of(which_m)
+            which = ("sleeping" if c.get("sleep", 0) > 0
+                     else "held" if c.get("hold", 0) > 0
+                     else "webbed" if c.get("web", 0) > 0
                      else "confused")
-            res["control_note"] = f"You slip past the {which} {monster} without a fight."
+            res["control_note"] = f"You slip past the {which} {which_m} without a fight."
         if "error" not in res:
             if was_underground and res.get("position", {}).get("z", 0) == 0:
                 res["emerged"] = True
@@ -1611,10 +1622,10 @@ class GameEngine:
         if shop_data:
             return shop_name, shop_data
         # ...but a street merchant (Slippery Pete) shares a public room, so
-        # fall back to the shop registered on the NPC standing here.
-        npc = NPC_REGISTRY.get(room_id)
-        if npc and getattr(npc, "shop", None) and npc.shop in inventories:
-            return npc.shop, inventories[npc.shop]
+        for npc in self._npcs_in_room(room_id):
+            if getattr(npc, "shop", None) and npc.shop in inventories:
+                return npc.shop, inventories[npc.shop]
+        return shop_name, None
         return shop_name, None
 
     def trade_item(self, item_name, action="sell", qty=1):
@@ -1693,6 +1704,10 @@ class GameEngine:
         bestiary = self.world.generator.bestiary
         if not monster_name:
             return None
+        # A multi-monster label like 'Goblin 2' resolves to the bestiary entry 'Goblin'.
+        _m = re.match(r"^(.*\S)\s+(\d+)$", monster_name.strip())
+        if _m:
+            monster_name = _m.group(1)
         if monster_name in bestiary:
             return monster_name
 
@@ -1704,6 +1719,175 @@ class GameEngine:
             if search_words == get_words(key):
                 return key
         return None
+
+    # --- Multi-actor room support ---------------------------------------- #
+    # A room may hold more than one monster and more than one NPC. Monsters
+    # are stored in room['encounter'] as a list (a bare string is normalized
+    # on read); NPCs are stored in room['npcs'] as a list of NPC_REGISTRY
+    # keys. combat_state and monster_control are keyed by room_id|label so
+    # each actor tracks its own HP and control effects.
+    def _normalize_encounter(self, enc):
+        """The room's live monsters as a list (bare 'None'/'None'-string -> [])."""
+        if enc is None:
+            return []
+        if isinstance(enc, str):
+            return [enc] if enc and enc != "None" else []
+        if isinstance(enc, (list, tuple)):
+            return [m for m in enc if m and m != "None"]
+        return []
+
+    def _encounter_list(self, room_id=None):
+        """Live monster list for a room (current room by default)."""
+        if room_id is None:
+            room_id = self._room_id()
+        room = self._authoritative_room(room_id)
+        return self._normalize_encounter((room or {}).get("encounter"))
+
+    def _clear_room_monster(self, room_id, label):
+        """Remove one monster (by label) from a room and persist."""
+        room = self._authoritative_room(room_id)
+        if room is None:
+            return False
+        enc = self._normalize_encounter(room.get("encounter"))
+        if label in enc:
+            enc.remove(label)
+            room["encounter"] = enc
+            self._save_room(room_id)
+        return True
+
+    def _clear_room_encounter(self, room_id):
+        """Remove ALL monsters from a room (dungeon or town) and persist."""
+        self._clear_monster_control(room_id)
+        cleared = False
+        room = self._authoritative_room(room_id)
+        if room is not None and room.get("encounter") not in (None, "None", []):
+            room["encounter"] = []
+            self._save_room(room_id)
+            cleared = True
+        return cleared
+
+    def _remove_npc_from_room(self, room_id, key):
+        """Remove one NPC (by registry key) from a room and persist."""
+        room = self._authoritative_room(room_id)
+        if room is None:
+            return False
+        npcs = room.get("npcs")
+        if isinstance(npcs, list) and key in npcs:
+            npcs.remove(key)
+            room["npcs"] = npcs
+            self._save_room(room_id)
+        return True
+
+    def _monster_control_for(self, room_id, label):
+        """Per-actor control state (room_id|label)."""
+        key = f"{room_id}|{label}"
+        if key not in self.monster_control:
+            self.monster_control[key] = {"sleep": 0, "hold": 0, "web": 0, "confuse": 0}
+        return self.monster_control[key]
+
+    def _clear_monster_control(self, room_id, label=None):
+        """Clear control for one actor (label) or every actor in the room."""
+        if label is None:
+            for key in [k for k in self.monster_control if k.split("|")[0] == room_id]:
+                self.monster_control.pop(key, None)
+        else:
+            self.monster_control.pop(f"{room_id}|{label}", None)
+
+    def _clear_all_corpses(self, room_id):
+        """Every corpse dict in a room (a list, or a single dict, or none)."""
+        room = self._authoritative_room(room_id)
+        if room is None:
+            return []
+        c = room.get("corpse")
+        if c is None:
+            return []
+        return c if isinstance(c, list) else [c]
+
+    def _deposit_corpse(self, room_id, monster_name, loot):
+        """Leave a searchable corpse holding the kill's loot in the room.
+        A room may hold several corpses (one per slain monster). Returns a
+        one-line flavour message for the combat report."""
+        room = self._authoritative_room(room_id)
+        if room is None:
+            return f"The {monster_name}'s corpse lies here - search it for spoils."
+        corpse = {"monster": monster_name, "loot": loot, "searched": False}
+        existing = room.get("corpse")
+        if existing is None:
+            room["corpse"] = [corpse]
+        elif isinstance(existing, list):
+            existing.append(corpse)
+        else:
+            room["corpse"] = [existing, corpse]
+        self._save_room(room_id)
+        return f"The {monster_name}'s corpse lies here - search it for spoils."
+
+    def _name_is_corpse(self, name, corpse):
+        """True if `name` refers to this corpse (an alias, the monster's own
+        name, or nothing at all - a bare 'search' means the corpse)."""
+        low = (name or "").strip().lower()
+        if not low:
+            return True
+        if any(a in low for a in self.CORPSE_ALIASES):
+            return True
+        monster = (corpse.get("monster") or "").lower()
+        return bool(monster) and (low in monster or monster in low)
+
+    def search_corpse(self, name=None):
+        """Loot a corpse left by a slain monster in the current room. A bare
+        'search' loots the only corpse (or the first unsearched one); naming a
+        monster loots that specific corpse. Takes its gold and items, then
+        marks it picked clean (leftovers stay behind for a fuller pack)."""
+        room_id = self._room_id()
+        corpses = [c for c in self._clear_all_corpses(room_id) if c]
+        if not corpses:
+            return "There is no corpse here to search."
+        low = (name or "").strip().lower()
+        named = bool(low) and not any(a in low for a in self.CORPSE_ALIASES)
+        if named:
+            targets = [c for c in corpses if self._name_is_corpse(name, c)]
+            if not targets:
+                mons = ", ".join(c.get("monster", "it") for c in corpses)
+                return f"There is no {name} here - only the corpse(s) of: {mons}."
+        else:
+            unsearched = [c for c in corpses if not c.get("searched")]
+            targets = unsearched if unsearched else [corpses[0]]
+        taken_all, notes_all = [], []
+        for corpse in targets:
+            if corpse.get("searched"):
+                notes_all.append(f"The corpse of the {corpse.get('monster', 'it')} has already been picked clean.")
+                continue
+            loot = corpse.get("loot") or {}
+            gold = int(loot.get("gold", 0) or 0)
+            items = [list(e) for e in (loot.get("items", []) or [])]
+            taken, notes, leftovers = [], [], []
+            if gold > 0:
+                self.player.update_gold(gold)
+                taken.append(f"{gold} gold")
+            for entry in items:
+                item_name = entry[0]
+                qty = entry[1] if len(entry) > 1 else 1
+                res = self.player.add_item(item_name, qty)
+                if res.get("success"):
+                    taken.append(item_name + (f" x{qty}" if qty > 1 else ""))
+                else:
+                    leftovers.append(entry)
+                    notes.append(res.get("message", f"You cannot carry the {item_name}."))
+            corpse["loot"] = {"gold": 0, "items": leftovers}
+            corpse["searched"] = not leftovers
+            if taken:
+                if len(taken) == 1:
+                    head = f"You search the corpse of the {corpse.get('monster', 'it')} and take {taken[0]}."
+                else:
+                    head = (f"You search the corpse of the {corpse.get('monster', 'it')} and take "
+                            + ", ".join(taken[:-1]) + " and " + taken[-1] + ".")
+            elif leftovers:
+                head = f"You search the corpse of the {corpse.get('monster', 'it')}, but your hands are too full."
+            else:
+                head = f"You search the corpse of the {corpse.get('monster', 'it')}, but it yields nothing you can carry."
+            taken_all.append(head)
+            notes_all.extend(notes)
+        self._save_room(room_id)
+        return " ".join(taken_all + notes_all)
 
     DARK_ROOM_TAGS = ("oppressive darkness", "darkness")
     GAP_OBSTACLES = ("Broken Floor",)
@@ -2105,24 +2289,24 @@ class GameEngine:
         return lines
 
     def _room_encounter(self):
-        pos = self.player.data["position"]
-        room = self.world.get_room(pos["x"], pos["y"], pos["z"])
-        enc = room.get("encounter", "None")
-        return enc if enc and enc != "None" else None
+        """Live monsters in the current room, as a list (may be empty)."""
+        return self._encounter_list()
 
     def _spell_damage_encounter(self, monster_name, damage, no_corpse=False, source=""):
-        """Apply spell damage to the room's encounter; handle death/corpse/virtue."""
-        pos = self.player.data["position"]
-        room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        """Apply spell damage to one monster; handle death/corpse/virtue (per-actor)."""
+        room_id = self._room_id()
         bestiary = self.world.generator.bestiary
-        mdata = bestiary.get(monster_name, {})
-        if room_id not in self.combat_state:
-            self.combat_state[room_id] = mdata.get("hp", 10)
-        self.combat_state[room_id] -= damage
-        dead = self.combat_state[room_id] <= 0
+        mdata = bestiary.get(self._find_monster(monster_name) or monster_name, {})
+        ckey = f"{room_id}|{monster_name}"
+        if ckey not in self.combat_state:
+            self.combat_state[ckey] = mdata.get("hp", 10)
+        self.combat_state[ckey] -= damage
+        dead = self.combat_state[ckey] <= 0
         msg = f"{source}The {monster_name} takes {damage} damage."
         if dead:
-            self._clear_room_encounter(room_id)
+            self._clear_room_monster(room_id, monster_name)
+            self._clear_monster_control(room_id, monster_name)
+            self.combat_state.pop(ckey, None)
             self.player.update_virtue(2)
             if not no_corpse:
                 self._deposit_corpse(room_id, monster_name, self.roll_monster_drops(monster_name))
@@ -2137,7 +2321,7 @@ class GameEngine:
                     "message": "The fireball erupts in a wash of light - but there is nothing there to burn."}
         dice = max(0, X)
         dmg = sum(random.randint(1, 6) for _ in range(dice)) + dice
-        res = self._spell_damage_encounter(enc, dmg, source="A roaring fireball engulfs the room. ")
+        res = self._spell_damage_encounter(enc[0], dmg, source="A roaring fireball engulfs the room. ")
         res["spell"] = "Fireball"
         return res
 
@@ -2148,14 +2332,14 @@ class GameEngine:
             return {"success": True, "spell": "Lightning Bolt",
                     "message": "The bolt crackles and dies in the air - nothing to strike."}
         bestiary = self.world.generator.bestiary
-        mdata = bestiary.get(enc, {})
+        mdata = bestiary.get(enc[0], {})
         roll = self.roll_dice(20, 0)
         if roll < mdata.get("ac", 10):
             return {"success": True, "spell": "Lightning Bolt",
-                    "message": f"A lightning bolt arcs toward the {enc} and misses. (roll {roll} vs AC {mdata.get('ac',10)})"}
+                    "message": f"A lightning bolt arcs toward the {enc[0]} and misses. (roll {roll} vs AC {mdata.get('ac',10)})"}
         dice = max(0, X)
         dmg = sum(random.randint(1, 8) for _ in range(dice)) + dice
-        res = self._spell_damage_encounter(enc, dmg, source="A bolt of lightning lashes down. ")
+        res = self._spell_damage_encounter(enc[0], dmg, source="A bolt of lightning lashes down. ")
         res["spell"] = "Lightning Bolt"
         res["message"] = f"(roll {roll}) " + res["message"]
         return res
@@ -2168,7 +2352,7 @@ class GameEngine:
                     "message": "A wall of roaring flame rises - but there is no one there to be caught in it."}
         dice = max(0, X)
         first = sum(random.randint(1, 6) for _ in range(dice)) + dice
-        res = self._spell_damage_encounter(enc, first, source="A wall of fire crashes through the room. ")
+        res = self._spell_damage_encounter(enc[0], first, source="A wall of fire crashes through the room. ")
         if not res.get("monster_dead"):
             self._apply_buff("Wall of Fire", 5, {"dot": dice, "dice": 6})
             res["message"] += " The flames linger, burning the creature each round."
@@ -2180,7 +2364,7 @@ class GameEngine:
         if not enc:
             return {"success": True, "spell": "Disintegrate",
                     "message": "The disintegrating ray flashes - but there is nothing there to unmake."}
-        res = self._spell_damage_encounter(enc, 9999, no_corpse=True, source="A disintegrating ray lances out. ")
+        res = self._spell_damage_encounter(enc[0], 9999, no_corpse=True, source="A disintegrating ray lances out. ")
         res["spell"] = "Disintegrate"
         res["message"] += " What remains crumbles to gray dust - no corpse, no trace."
         return res
@@ -2190,28 +2374,20 @@ class GameEngine:
         if not enc:
             return {"success": True, "spell": "Kill",
                     "message": "You speak the word of death - but there is no one there to hear it."}
-        res = self._spell_damage_encounter(enc, 9999, source="A cold word of death leaves your lips. ")
+        res = self._spell_damage_encounter(enc[0], 9999, source="A cold word of death leaves your lips. ")
         res["spell"] = "Kill"
         return res
 
     # --- spell control infrastructure (sub-phase 2d, batch 2) ---
-    def _monster_control(self, room_id):
-        if room_id not in self.monster_control:
-            self.monster_control[room_id] = {"sleep": 0, "hold": 0, "web": 0, "confuse": 0}
-        return self.monster_control[room_id]
-
-    def _clear_monster_control(self, room_id):
-        self.monster_control.pop(room_id, None)
-
-    def _encounter_damage_multiplier(self, room_id):
-        """A sleeping target takes 10x damage."""
-        ctrl = self.monster_control.get(room_id, {})
+    def _encounter_damage_multiplier(self, room_id, label):
+        """A sleeping target takes 10x damage (per-actor)."""
+        ctrl = self.monster_control.get(f"{room_id}|{label}", {})
         return 10 if ctrl.get("sleep", 0) > 0 else 1
 
     def _tick_monster_control(self, room_id, monster_name):
         """Decrement control durations on a turn; webbed targets struggle free.
-        Returns a list of message lines."""
-        ctrl = self.monster_control.get(room_id)
+        Returns a list of message lines (per-actor)."""
+        ctrl = self.monster_control.get(f"{room_id}|{monster_name}")
         if not ctrl:
             return []
         lines = []
@@ -2235,18 +2411,19 @@ class GameEngine:
             else:
                 lines.append(f"The {monster_name} strains against the web. (roll {roll})")
         if not any(ctrl.values()):
-            self.monster_control.pop(room_id, None)
+            self.monster_control.pop(f"{room_id}|{monster_name}", None)
         return lines
 
     def _tick_all_monster_controls(self):
-        """Tick every active control state (movement turns)."""
-        for room_id in list(self.monster_control.keys()):
+        """Tick every active control state (movement turns), per-actor."""
+        for key in list(self.monster_control.keys()):
+            room_id, label = key.split("|", 1)
             room = self.world.rooms.get(room_id) or self.world.town_rooms.get(room_id)
-            monster_name = (room or {}).get("encounter", "creature")
-            if monster_name in (None, "None"):
-                self.monster_control.pop(room_id, None)
+            enc = self._normalize_encounter((room or {}).get("encounter"))
+            if label not in enc:
+                self.monster_control.pop(key, None)
                 continue
-            self._tick_monster_control(room_id, monster_name)
+            self._tick_monster_control(room_id, label)
 
     def _spell_sleep(self):
         enc = self._room_encounter()
@@ -2259,7 +2436,7 @@ class GameEngine:
         mdata = bestiary.get(enc, {})
         raw_hp = mdata.get("hp", 10)
         if raw_hp <= 20:
-            self._monster_control(room_id)["sleep"] = 3
+            self._monster_control_for(room_id, enc)["sleep"] = 3
             self.player.save()
             return {"success": True, "spell": "Sleep",
                     "message": f"A heavy mist descends and the {enc} sinks into a deep, untroubled sleep. "
@@ -2271,7 +2448,7 @@ class GameEngine:
             return {"success": True, "spell": "Sleep",
                     "message": f"A heavy mist descends, but the {enc} shakes it off and stays awake. "
                                f"(save roll {roll} vs DC {dc})"}
-        self._monster_control(room_id)["sleep"] = 3
+        self._monster_control_for(room_id, enc)["sleep"] = 3
         self.player.save()
         return {"success": True, "spell": "Sleep",
                 "message": f"The mist takes hold and the {enc} slips into sleep. (save roll {roll} vs DC {dc}; "
@@ -2289,7 +2466,7 @@ class GameEngine:
                     "message": f"The words of holding wash over the {enc} and do nothing - it is no person."}
         pos = self.player.data["position"]
         room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
-        self._monster_control(room_id)["hold"] = 3
+        self._monster_control_for(room_id, enc)["hold"] = 3
         self.player.save()
         return {"success": True, "spell": "Hold Person",
                 "message": f"The {enc} is rooted in place - no block, no attack, no movement. (3 rounds)"}
@@ -2308,7 +2485,7 @@ class GameEngine:
                                f"(roll {roll} vs AC {mdata.get('ac',10)})"}
         pos = self.player.data["position"]
         room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
-        self._monster_control(room_id)["web"] = 1
+        self._monster_control_for(room_id, enc)["web"] = 1
         self.player.save()
         return {"success": True, "spell": "Web",
                 "message": f"Thick webbing erupts and ensnares the {enc}! (roll {roll}) It cannot attack or block "
@@ -2326,8 +2503,8 @@ class GameEngine:
                     "message": f"The words of charm find no purchase in the {enc} - it is no person."}
         pos = self.player.data["position"]
         room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
-        self._clear_room_encounter(room_id)
-        self._clear_monster_control(room_id)
+        self._clear_room_monster(room_id, enc)
+        self._clear_monster_control(room_id, enc)
         self.player.save()
         return {"success": True, "spell": "Charm Person", "pacified": True,
                 "message": f"Your words of charm take hold. The {enc} regards you with sudden warmth, "
@@ -2340,8 +2517,8 @@ class GameEngine:
                     "message": "You offer the words of charm - but there is no one there to hear them."}
         pos = self.player.data["position"]
         room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
-        self._clear_room_encounter(room_id)
-        self._clear_monster_control(room_id)
+        self._clear_room_monster(room_id, enc)
+        self._clear_monster_control(room_id, enc)
         self.player.save()
         return {"success": True, "spell": "Charm Monster", "pacified": True,
                 "message": f"Your words of charm take hold. The {enc} regards you with sudden warmth, "
@@ -2354,7 +2531,7 @@ class GameEngine:
                     "message": "The dissonant chord rings out - but there is nothing there to confuse."}
         pos = self.player.data["position"]
         room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
-        self._monster_control(room_id)["confuse"] = 3
+        self._monster_control_for(room_id, enc)["confuse"] = 3
         self.player.save()
         return {"success": True, "spell": "Confusion",
                 "message": f"A dissonant chord of confusion washes over the {enc}. "
@@ -2810,11 +2987,17 @@ class GameEngine:
         LLM roleplays) + room context. If no beast here, just the buff."""
         self._apply_buff("Speak with Animals", 5, {"speak": "animals"})
         room = self._authoritative_room(self._room_id())
-        monster = (room or {}).get("encounter", "None")
-        b = self.world.generator.bestiary.get(monster, {})
-        if monster == "None" or b.get("kind") != "beast":
+        monsters = self._normalize_encounter((room or {}).get("encounter"))
+        beast = None
+        for monster in monsters:
+            b = self.world.generator.bestiary.get(self._find_monster(monster), {})
+            if b.get("kind") == "beast":
+                beast = (monster, b)
+                break
+        if not beast:
             return {"success": True, "spell": "Speak with Animals", "no_animal": True,
                     "message": "The words settle - but there is no animal here to speak with. (5 turns: the animals here will answer you, if any.)"}
+        monster, b = beast
         ctx = self.get_scene_context()
         return {"success": True, "spell": "Speak with Animals", "needs_target": True,
                 "animal": monster, "kind": b.get("kind", "unknown"),
@@ -2828,10 +3011,13 @@ class GameEngine:
         (the validated identity the LLM roleplays) + room context for truthful
         answers. If no corpse, the reagents fizzle."""
         room = self._authoritative_room(self._room_id())
-        corpse = (room or {}).get("corpse")
-        if not corpse:
+        corpses = [c for c in self._clear_all_corpses(self._room_id()) if c]
+        if not corpses:
             return {"success": True, "spell": "Commune with the Dead",
                     "message": "The incense curls - but there is no corpse here to commune with. (The reagents are spent.)"}
+        # Several corpses: let the unsearched one speak first.
+        unsearched = [c for c in corpses if not c.get("searched")]
+        corpse = (unsearched or corpses)[0]
         monster = corpse.get("monster", "it")
         b = self.world.generator.bestiary.get(monster, {})
         ctx = self.get_scene_context()
@@ -2926,22 +3112,8 @@ class GameEngine:
             self.advance_phases(2)
             return {"success": True, "message": "You curl up in your bedroll for a few hours of uneasy sleep. You feel somewhat rested."}
 
-    def _clear_room_encounter(self, room_id):
-        """Remove the encounter from a room (dungeon or town) and persist."""
-        self._clear_monster_control(room_id)
-        cleared = False
-        if room_id in self.world.rooms:
-            self.world.rooms[room_id]["encounter"] = "None"
-            self.world.save(); cleared = True
-        if room_id in self.world.town_rooms:
-            self.world.town_rooms[room_id]["encounter"] = "None"
-            with open(os.path.join(BASE_DIR, "data", "town_map.json"), "w") as f:
-                json.dump(self.world.town_rooms, f, indent=1)
-            cleared = True
-        return cleared
-
     def resolve_combat_turn(self, monster_name, player_action, player_weapon, monster_action, formula=None):
-        room_id = f"{self.player.data['position']['x']}_{self.player.data['position']['y']}_{self.player.data['position']['z']}"
+        room_id = self._room_id()
         room = self.world.get_room(self.player.data["position"]["x"],
                                    self.player.data["position"]["y"],
                                    self.player.data["position"]["z"])
@@ -2951,20 +3123,21 @@ class GameEngine:
         bestiary = self.world.generator.bestiary
         if not monster_id:
             return {"error": "Monster not found."}
-        if room_id not in self.combat_state:
-            self.combat_state[room_id] = bestiary[monster_id].get("hp", 10)
-        m_hp = self.combat_state[room_id]
+        ckey = f"{room_id}|{monster_name}"
+        if ckey not in self.combat_state:
+            self.combat_state[ckey] = bestiary[monster_id].get("hp", 10)
+        m_hp = self.combat_state[ckey]
         p_hp = self.player.data["hp"]
-        ctrl = self.monster_control.get(room_id, {})
-        dmg_mult = self._encounter_damage_multiplier(room_id)
+        ctrl = self.monster_control.get(ckey, {})
+        dmg_mult = self._encounter_damage_multiplier(room_id, monster_name)
         p_res = {"hit": False, "damage": 0, "message": ""}
-        # Wall of Fire damage-over-time: burns the encounter each combat round
+        # Wall of Fire damage-over-time: burns the target each combat round
         wof = self._get_buff("Wall of Fire")
         if wof:
             w_dice = wof.get("tags", {}).get("dot", 0)
             if w_dice > 0:
                 w_dmg = (sum(random.randint(1, 6) for _ in range(w_dice)) + w_dice) * dmg_mult
-                self.combat_state[room_id] -= w_dmg
+                self.combat_state[ckey] -= w_dmg
                 p_res["message"] = (p_res.get("message") or "") + f" The wall of fire burns the {monster_name} for {w_dmg}."
             wof["turns"] -= 1
             if wof["turns"] <= 0:
@@ -2974,7 +3147,7 @@ class GameEngine:
             p_res = self.resolve_attack(player_weapon, bestiary[monster_id]["ac"], penalty=attack_penalty)
             if p_res["hit"]:
                 dealt = p_res["damage"] * dmg_mult
-                self.combat_state[room_id] -= dealt
+                self.combat_state[ckey] -= dealt
                 p_res["damage"] = dealt
         elif player_action == "mix" and formula:
             spell_res = self.mix_reagents(formula)
@@ -2996,7 +3169,7 @@ class GameEngine:
         elif is_confused:
             if random.randint(1, 6) == 1:
                 self_dmg = random.randint(1, 6) * dmg_mult
-                self.combat_state[room_id] -= self_dmg
+                self.combat_state[ckey] -= self_dmg
                 m_res["message"] = f"The confused {monster_name} lashes out and strikes ITSELF for {self_dmg}!"
             else:
                 m_res = self.resolve_monster_attack(monster_name, penalty=-4)
@@ -3012,14 +3185,18 @@ class GameEngine:
             m_res["message"] = special_msg or "The monster bellows menacingly!"
         elif monster_action == "flee":
             m_res["message"] = "The monster turns and flees into the darkness!"
-            self._clear_room_encounter(room_id)
-        monster_dead = self.combat_state[room_id] <= 0
+            self._clear_room_monster(room_id, monster_name)
+            self._clear_monster_control(room_id, monster_name)
+            self.combat_state.pop(ckey, None)
+        monster_dead = self.combat_state.get(ckey, 0) <= 0
         player_dead = self.player.data["hp"] <= 0
         sleep_kill = (monster_dead and is_sleeping and player_action in ("fight", "mix"))
         virtue_msg = None
         drop_lines = None
         if monster_dead:
-            self._clear_room_encounter(room_id)
+            self._clear_room_monster(room_id, monster_name)
+            self._clear_monster_control(room_id, monster_name)
+            self.combat_state.pop(ckey, None)
             self.player.update_virtue(2)
             # The spoils are stowed inside the corpse - nothing is granted
             # until the player searches it.
@@ -3037,7 +3214,7 @@ class GameEngine:
                 virtue_msg = (virtue_msg or "") + " Last stand logged - Raika will hear of it."
         control_msgs = self._tick_monster_control(room_id, monster_name)
         return {"player_attack": p_res, "monster_attack": m_res, "poison_tick": poison_tick,
-                "monster_hp": self.combat_state[room_id], "monster_dead": monster_dead,
+                "monster_hp": self.combat_state.get(ckey, 0), "monster_dead": monster_dead,
                 "player_dead": player_dead, "virtue_msg": virtue_msg,
                 "drop_lines": drop_lines, "control_msgs": control_msgs}
 
@@ -3102,8 +3279,9 @@ class GameEngine:
         player_dead = False
         poison_tick = None
         if pacified:
-            self._clear_room_encounter(room_id)
-            self.combat_state.pop(room_id, None)
+            self._clear_room_monster(room_id, monster_name)
+            self._clear_monster_control(room_id, monster_name)
+            self.combat_state.pop(f"{room_id}|{monster_name}", None)
             self.player.update_virtue(1)  # a life spared, bloodless
         else:
             # The parley fails - the monster takes a free swing this round.
@@ -3121,12 +3299,46 @@ class GameEngine:
         self.last_parley_verdict = result
         return result
 
-    def talk_to_npc(self):
-        pos = self.player.data["position"]
-        room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
-        npc = NPC_REGISTRY.get(room_id)
-        if not npc:
+    def _npcs_in_room(self, room_id=None):
+        """NPC objects present in a room (current room by default). The union of
+        the legacy placement (an NPC whose registry key IS the room_id) and the
+        new multi-NPC placement (registry keys listed in room['npcs'])."""
+        if room_id is None:
+            room_id = self._room_id()
+        keys = set()
+        if room_id in NPC_REGISTRY:
+            keys.add(room_id)
+        room = self._authoritative_room(room_id)
+        for k in (room or {}).get("npcs") or []:
+            keys.add(k)
+        return [NPC_REGISTRY[k] for k in keys if k in NPC_REGISTRY]
+
+    def talk_to_npc(self, name=None):
+        room_id = self._room_id()
+        npcs = self._npcs_in_room(room_id)
+        if not npcs:
             return {"error": "There is no one here to talk to."}
+        low = (name or "").strip().lower()
+        if not low:
+            if len(npcs) == 1:
+                npc = npcs[0]
+            else:
+                return {"error": "Several people are here - who do you want to talk to?",
+                        "choices": [n.name for n in npcs]}
+        else:
+            exact = [n for n in npcs if n.name.lower() == low]
+            if exact:
+                npc = exact[0]
+            else:
+                partial = [n for n in npcs if low in n.name.lower() or n.name.lower() in low]
+                if len(partial) == 1:
+                    npc = partial[0]
+                elif len(partial) > 1:
+                    return {"error": f"Several {name} here - which one?",
+                            "choices": [n.name for n in partial]}
+                else:
+                    return {"error": f"There is no one called {name} here.",
+                            "choices": [n.name for n in npcs]}
         knowledge = npc.hints.copy()
         result = {"npc_name": npc.name, "description": npc.description,
                   "personality_traits": npc.traits, "knowledge_and_hints": knowledge,
@@ -3183,76 +3395,6 @@ class GameEngine:
         if room_id in getattr(self.world, "town_rooms", {}):
             with open(os.path.join(BASE_DIR, "data", "town_map.json"), "w") as f:
                 json.dump(self.world.town_rooms, f, indent=1)
-
-    def _deposit_corpse(self, room_id, monster_name, loot):
-        """Leave a searchable corpse holding the kill's loot in the room.
-        Returns a one-line flavour message for the combat report."""
-        for store in (self.world.rooms, getattr(self.world, "town_rooms", {})):
-            room = store.get(room_id)
-            if room is not None:
-                room["corpse"] = {"monster": monster_name, "loot": loot,
-                                  "searched": False}
-        self._save_room(room_id)
-        return f"The {monster_name}'s corpse lies here - search it for spoils."
-
-    def _name_is_corpse(self, name, corpse):
-        """True if `name` refers to this corpse (an alias, the monster's own
-        name, or nothing at all - a bare 'search' means the corpse)."""
-        low = (name or "").strip().lower()
-        if not low:
-            return True
-        if any(a in low for a in self.CORPSE_ALIASES):
-            return True
-        monster = (corpse.get("monster") or "").lower()
-        return bool(monster) and (low in monster or monster in low)
-
-    def search_corpse(self, name=None):
-        """Loot the corpse left by a slain monster in the current room: takes
-        its gold and items, then marks it picked clean."""
-        pos = self.player.data["position"]
-        room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
-        room = self._authoritative_room(room_id)
-        corpse = (room or {}).get("corpse")
-        if not corpse:
-            return "There is no corpse here to search."
-        if not self._name_is_corpse(name, corpse):
-            return f"There is no {name} here - only the corpse of the {corpse.get('monster', 'it')}."
-        if corpse.get("searched"):
-            return f"The corpse of the {corpse.get('monster', 'it')} has already been picked clean."
-        loot = corpse.get("loot") or {}
-        gold = int(loot.get("gold", 0) or 0)
-        items = [list(e) for e in (loot.get("items", []) or [])]
-        taken = []
-        notes = []
-        leftovers = []
-        if gold > 0:
-            self.player.update_gold(gold)
-            taken.append(f"{gold} gold")
-        for entry in items:
-            item_name = entry[0]
-            qty = entry[1] if len(entry) > 1 else 1
-            res = self.player.add_item(item_name, qty)
-            if res.get("success"):
-                taken.append(item_name + (f" x{qty}" if qty > 1 else ""))
-            else:
-                leftovers.append(entry)
-                notes.append(res.get("message", f"You cannot carry the {item_name}."))
-        # Whatever would not fit stays behind, so a fuller pack can come back
-        # for it; the corpse is only picked clean once it is empty.
-        corpse["loot"] = {"gold": 0, "items": leftovers}
-        corpse["searched"] = not leftovers
-        self._save_room(room_id)
-        if taken:
-            if len(taken) == 1:
-                head = f"You search the corpse of the {corpse.get('monster', 'it')} and take {taken[0]}."
-            else:
-                head = (f"You search the corpse of the {corpse.get('monster', 'it')} and take "
-                        + ", ".join(taken[:-1]) + " and " + taken[-1] + ".")
-        elif leftovers:
-            head = f"You search the corpse of the {corpse.get('monster', 'it')}, but your hands are too full."
-        else:
-            head = f"You search the corpse of the {corpse.get('monster', 'it')}, but it yields nothing you can carry."
-        return " ".join([head] + notes)
 
     # --- Virtue economy ---------------------------------------------------
     def _virtue_ledger(self):
@@ -4070,8 +4212,7 @@ class GameEngine:
                                       "kind": entry.get("kind", "a working, still active"),
                                       "hint": entry.get("hint")})
 
-            monster = room.get("encounter", "None")
-            if monster and monster != "None":
+            for monster in self._normalize_encounter(room.get("encounter")):
                 mid = self._find_monster(monster)
                 m = self.world.generator.bestiary.get(mid, {})
                 sp = m.get("special", []) or []
@@ -4088,13 +4229,12 @@ class GameEngine:
                               "intensity": "faint",
                               "kind": "a stored treasure, unopened, leaching a little magic"})
 
-            corpse = room.get("corpse")
-            if corpse and not corpse.get("searched"):
-                c_loot = corpse.get("loot") or {}
-                if int(c_loot.get("gold", 0) or 0) > 0 or (c_loot.get("items") or []):
-                    auras.append({"source": f"the corpse of the {corpse.get('monster', 'creature')}",
-                                  "intensity": "faint",
-                                  "kind": "spoils still held within, unclaimed"})
+            corpses = self._clear_all_corpses(rid)
+            if any((not c.get("searched")) and ((int((c.get("loot") or {}).get("gold", 0) or 0) > 0
+                    or (c.get("loot") or {}).get("items") or [])) for c in corpses):
+                auras.append({"source": "the corpse(s) here",
+                              "intensity": "faint",
+                              "kind": "spoils still held within, unclaimed"})
 
             if not room.get("echo_detected") and random.random() < float(MAGIC_DATA.get("echo_chance", 0.08)):
                 room["echo_detected"] = True
@@ -4456,16 +4596,16 @@ class GameEngine:
         elif loot_data_raw:
             active_loot_source = loot_data_raw
             is_locked = False
-        corpse = room.get("corpse")
+        corpses = self._clear_all_corpses(key)
         if container_name:
             if self._resolve_direction(container_name):
                 return self.open_door(container_name)
-            if corpse and self._name_is_corpse(container_name, corpse):
+            if any(self._name_is_corpse(container_name, c) for c in corpses):
                 return self.search_corpse(container_name)
             if not container_visual or container_name.lower() not in container_visual.lower():
                 return f"You don't see a {container_name} here to open."
         if not active_loot_source:
-            if corpse and not corpse.get("searched"):
+            if any(not c.get("searched") for c in corpses):
                 return self.search_corpse()
             if container_visual:
                 return f"The {container_visual} is empty."

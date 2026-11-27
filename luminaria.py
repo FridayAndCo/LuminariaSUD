@@ -307,8 +307,9 @@ class Game:
                 parts.append(res["control_note"])
             if res.get("emerged"):
                 parts.append(self.eng.emergence_flavor())
-            if room.get("encounter", "None") != "None":
-                parts.append(f"A {room['encounter']} is here!")
+            enc = self.eng._normalize_encounter(room.get("encounter"))
+            if enc:
+                parts.append(f"A {', '.join(enc)} is here!")
             if res.get("new_floor"):
                 parts.append("You set foot on a depth you have never walked before. "
                              "Something, somewhere, notices. (Virtue +1)")
@@ -371,13 +372,13 @@ class Game:
         ev = res.get("combat_event")
         fought = False
         if ev == "blocked":
-            monster = self._room().get("encounter", "None")
-            if monster != "None":
-                fought = self._combat(monster)
+            monsters = self.eng._encounter_list()
+            if monsters:
+                fought = self._combat(monsters[0])
         elif ev is None and "error" not in res:
-            monster = self._room().get("encounter", "None")
-            if monster != "None":
-                fought = self._combat(monster)
+            monsters = self.eng._encounter_list()
+            if monsters:
+                fought = self._combat(monsters[0])
         if fought and fought != "dead":
             # repaint the room so the panel reflects the post-fight state
             ui.show_room(self.eng, exits_line=self._exits_line())
@@ -390,16 +391,22 @@ class Game:
 
     def _monster_hp(self, monster):
         mid = self.eng._find_monster(monster)
-        room_id = f"{self.eng.player.data['position']['x']}_{self.eng.player.data['position']['y']}_{self.eng.player.data['position']['z']}"
-        if room_id not in self.eng.combat_state:
+        pos = self.eng.player.data["position"]
+        room_id = f"{pos['x']}_{pos['y']}_{pos['z']}"
+        key = f"{room_id}|{monster}"
+        if key not in self.eng.combat_state:
             best = self.eng.world.generator.bestiary.get(mid, {})
-            self.eng.combat_state[room_id] = best.get("hp", 10)
-        return self.eng.combat_state[room_id], self.eng.world.generator.bestiary.get(mid, {})
+            self.eng.combat_state[key] = best.get("hp", 10)
+        return self.eng.combat_state[key], self.eng.world.generator.bestiary.get(mid, {})
 
     def _combat(self, monster):
         """Turn-based combat sub-loop. Returns 'won', 'fled' or 'dead'."""
         m_hp, m_data = self._monster_hp(monster)
         m_max = m_data.get("hp", 10)
+        all_monsters = self.eng._encounter_list()
+        if len(all_monsters) > 1:
+            ui.warn("Targets: " + " | ".join(f"{i+1}) {m}" for i, m in enumerate(all_monsters)))
+            ui.warn("(type a monster's name or number to switch targets)")
         p = self.eng.player.data
         weapon = p["equipped"].get("weapon")
         w_name = weapon if weapon else "bare hands"
@@ -528,7 +535,15 @@ class Game:
                     ui.warn(qline)
                 for line in (res.get("drop_lines") or []):
                     ui.say(line)
-                return "won"
+                remaining = self.eng._encounter_list()
+                if not remaining:
+                    return "won"
+                # More monsters remain - keep fighting the next one.
+                monster = remaining[0]
+                m_hp, m_data = self._monster_hp(monster)
+                m_max = m_data.get("hp", 10)
+                ui.warn(f"\nAnother turns on you: {monster} (HP {m_hp}/{m_max})")
+                continue
 
     def _parley(self, monster, m_hp, m_max, raw):
         """Mid-fight roleplay: spend 1 insight to talk, bargain, bribe or hide
@@ -740,11 +755,14 @@ class Game:
         (ui.say if res.get("success") else ui.warn)(res.get("message", str(res)))
 
 
-    def cmd_talk(self):
-        """Conversational sub-loop. Free - never costs an insight charge."""
-        res = self.eng.talk_to_npc()
+    def cmd_talk(self, name=None):
+        """Conversational sub-loop. Free - never costs an insight charge.
+        Pass a name to pick a specific NPC among several in the room."""
+        res = self.eng.talk_to_npc(name)
         if "error" in res:
             ui.warn(res["error"])
+            if res.get("choices"):
+                ui.warn("  Who do you want to talk to? " + " | ".join(res["choices"]))
             return
         topics = ", ".join(res["knowledge_and_hints"].keys())
         sheet = (f"NPC: {res['npc_name']}. {res['description']} "
@@ -1431,7 +1449,8 @@ class Game:
         "FREE COMMANDS (no insight cost):\n"
         "  move      n / s / e / w / u / d   (north, south, east, west, up, down)\n"
         "  look      describe the room again\n"
-        "  talk      free-flowing conversation with an NPC here (exit: q)\n"
+        "  talk      free-flowing conversation with an NPC here (talk <name> to\n"
+        "            pick one of several; exit: q)\n"
         "  confer    report your deeds to Lord Raika at the Castle (capped +3, once per sleep)\n"
         "  quest     your current task: quest | quest accept | quest decline |\n"
         "            quest abandon (citizens offer quests to you in 'talk';\n"
@@ -1546,7 +1565,7 @@ class Game:
         elif verb in ("get", "take", "grab"):
             self.cmd_get(arg or "")
         elif verb == "talk":
-            self.cmd_talk()
+            self.cmd_talk(arg or "")
         elif verb == "alms":
             res = self.eng.alms(arg)
             (ui.say if res.get("success") else ui.warn)(res.get("message", str(res)))
@@ -1566,11 +1585,11 @@ class Game:
             # Web hotspot chip: engage the monster occupying this room
             # (combat otherwise auto-starts on entry; this covers reloads
             # or returns where the beast is still standing its ground).
-            monster = self._room().get("encounter", "None")
-            if monster == "None":
+            monsters = self.eng._encounter_list()
+            if not monsters:
                 ui.warn("There is nothing here to fight.")
             else:
-                self._combat(monster)
+                self._combat(monsters[0])
         elif verb in ("drink", "sip"):
             self.cmd_discovery("discovery_drink", "drink")
         elif verb in ("meditate", "pray"):
