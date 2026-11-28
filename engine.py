@@ -160,6 +160,7 @@ INN_ROOM_ID = "-1_-1_1"
 INN_BASE_ID = "-1_-1_0"
 INN_KEY_ITEM = "Inn Key"
 INN_LOCK_TICKS = 50
+TEMPLE_POS = {"x": -1, "y": 1, "z": 0}  # The Temple of Radiance (respawn point)
 
 TRAP_DATA = _load_json("traps.json", {})
 
@@ -1347,16 +1348,48 @@ class GameEngine:
         sat.data["hp"] = 0
         sat.save()
 
-    def revive_satellite(self, slot):
-        """Bring a 'down' satellite back to full health (temple revival)."""
-        sat = self.satellite_by_slot(slot)
-        if not sat or not sat.data.get("down"):
-            return None
+    def _temple_revive(self, sat):
+        """The temple revival wipe - mirrors the Caller's die() respawn: full
+        HP, all status effects cured, inventory cleared to a Cloth Robe, gold
+        floored at 100 (keep if above), satiety reset to full. No cost. Used by
+        both the manual 'revive' command and the 'Caller dies -> everyone is
+        raised at the Temple' case."""
         sat.data["down"] = False
+        sat.data["inventory"] = {"Cloth Robe": 1}
+        sat.data["equipped"] = {"weapon": None, "armor": "Cloth Robe", "shield": None}
+        sat.data["status_effects"] = []
+        sat.data["poison_duration"] = 0
+        sat.data["satiety"] = sat.data["max_satiety"]
+        if sat.data["gold"] < 100:
+            sat.data["gold"] = 100
         sat.refresh_derived_stats()
-        sat.data["hp"] = sat.data["max_hp"]
         sat.save()
-        return sat
+
+    def revive_satellite(self, slot):
+        """'revive <slot>' - the Caller raises a down satellite at the Temple of
+        Radiance (C5). No cost; the fallen suffers the same temple wipe the
+        Caller does on respawn. Returns {'success': bool, 'message': str}."""
+        sat = self.satellite_by_slot(slot)
+        if not sat:
+            return {"success": False, "message": f"{slot} is not in this party."}
+        if not sat.data.get("down"):
+            return {"success": False, "message": f"{slot} is not down."}
+        if self.player.data["position"] != TEMPLE_POS:
+            return {"success": False,
+                    "message": f"You must be at the Temple of Radiance to revive {slot}."}
+        self._temple_revive(sat)
+        return {"success": True, "message": f"{slot} rises at the altar, whole again."}
+
+    def raise_all_down_satellites(self):
+        """The Caller has died: everyone is dragged back to the Temple together,
+        so every down satellite is raised with the same temple wipe. Returns the
+        list of slots raised (empty in single mode)."""
+        raised = []
+        for s in self.satellites:
+            if s.data.get("down"):
+                self._temple_revive(s)
+                raised.append(s.slot)
+        return raised
 
     def transfer(self, slot, item, qty=1, direction="to"):
         """Move an item or 'gold' between the Caller and a satellite.

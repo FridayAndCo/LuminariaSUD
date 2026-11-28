@@ -288,7 +288,7 @@ class Game:
         for r in rows:
             tag = " (you)" if r["you"] else ""
             if r["down"]:
-                ui.warn(f"  {r['slot']}{tag}: DOWN - revive to bring back")
+                ui.warn(f"  {r['slot']}{tag}: DOWN - revive at the Temple to bring back")
             else:
                 lk = r["lockin"]
                 ui.warn(f"  {r['slot']}{tag}: {r['hp']}/{r['max_hp']}"
@@ -308,17 +308,16 @@ class Game:
         (ui.say if ok else ui.warn)(msg)
 
     def _cmd_revive(self, arg):
-        """'revive <slot>' - bring a 'down' satellite back to full (C5)."""
+        """'revive <slot>' - the Caller raises a down satellite at the Temple of
+        Radiance (C5). No cost; the fallen suffers the same temple wipe the
+        Caller does on respawn."""
         parts = (arg or "").split()
         if not parts:
-            ui.warn("Usage: revive <P2|P3|P4>")
+            ui.warn("Usage: revive <P2|P3|P4>  (at the Temple of Radiance)")
             return
         slot = parts[0].upper()
-        sat = self.eng.revive_satellite(slot)
-        if sat is None:
-            ui.warn(f"{slot} is not down (or not in the party).")
-        else:
-            ui.say(f"{slot} is raised to full health - back in the fight.")
+        res = self.eng.revive_satellite(slot)
+        (ui.say if res.get("success") else ui.warn)(res.get("message", str(res)))
 
     def _cmd_transfer(self, arg):
         """'transfer <slot> <item|gold> [qty] [to|from]' - move gear/gold
@@ -342,8 +341,11 @@ class Game:
     def _respawn(self):
         """Death penalty & recovery: the High Priestess drags your soul back to
         the Temple of Radiance, and the wipe of death leaves you fully restored
-        of mind. Insight returns to full on respawn."""
+        of mind. Insight returns to full on respawn. If the Caller dies while a
+        satellite is down, everyone is raised at the Temple together."""
         self.insight = self.insight_max
+        for slot in self.eng.raise_all_down_satellites():
+            ui.say(f"{slot} is raised at the Temple with you - the fallen stand, whole again.")
 
     def _confirm(self, prompt):
         """Y/N gate before spending an insight charge. Default = yes."""
@@ -650,7 +652,7 @@ class Game:
             newly_down = [s for s in res.get("sat_down", []) if s not in self._prev_down]
             self._prev_down = set(res.get("sat_down", []))
             for slot in newly_down:
-                ui.bad(f"{slot} has gone down - 'revive {slot}' to bring them back.")
+                ui.bad(f"{slot} has gone down - raise them at the Temple of Radiance (\u2018revive {slot}\u2019).")
             if res.get("player_dead") or pos_after != pos_before:
                 ui.bad("You have perished - the High Priestess drags your soul back to the Temple of Radiance.")
                 self._respawn()
