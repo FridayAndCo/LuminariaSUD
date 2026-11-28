@@ -34,6 +34,64 @@ os.makedirs(STATE_DIR, exist_ok=True)
 PLAYER_FILE = os.path.join(STATE_DIR, "player_state.json")
 WORLD_FILE = os.path.join(STATE_DIR, "world_map.json")
 
+# ---- play modes: "single" (one character, the classic run) and "multi"
+# (a fixed roster of up to 4 continuously-saved characters: P1 = the Caller,
+# P2..P4 = satellites, all co-located at the Caller's position). The mode
+# re-points the state files so the two experiences never share a save. ----
+MODE = "single"
+MP_STATE_DIR = os.path.join(STATE_DIR, "mp")
+MP_MAX = 4
+MP_SLOTS = ["P1", "P2", "P3", "P4"]
+MP_CONFIG_FILE = os.path.join(MP_STATE_DIR, "config.json")
+_single_player_file = os.path.join(STATE_DIR, "player_state.json")
+_single_world_file = os.path.join(STATE_DIR, "world_map.json")
+_mp_player_file = os.path.join(MP_STATE_DIR, "P1.json")
+_mp_world_file = os.path.join(MP_STATE_DIR, "world_map.json")
+
+
+def mp_slot_file(slot):
+    return os.path.join(MP_STATE_DIR, slot + ".json")
+
+
+def set_mode(mode):
+    """Switch the active play mode and re-point the state files.
+
+    Must be called before the GameEngine is built. "single" uses the classic
+    one-character save; "multi" uses the fixed 4-roster under state/mp/.
+    """
+    global MODE, PLAYER_FILE, WORLD_FILE
+    mode = (mode or "single").lower()
+    if mode == "multi":
+        os.makedirs(MP_STATE_DIR, exist_ok=True)
+        MODE = "multi"
+        PLAYER_FILE = _mp_player_file
+        WORLD_FILE = _mp_world_file
+    else:
+        MODE = "single"
+        PLAYER_FILE = _single_player_file
+        WORLD_FILE = _single_world_file
+    return MODE
+
+
+def load_mp_config():
+    """The multiplayer session config: {'mode','party_size'}. Defaults to a
+    full party of 4 when absent."""
+    cfg = {"mode": "multi", "party_size": MP_MAX}
+    if os.path.exists(MP_CONFIG_FILE):
+        try:
+            with open(MP_CONFIG_FILE, "r") as f:
+                cfg.update(json.load(f))
+        except json.JSONDecodeError:
+            pass
+    cfg["party_size"] = max(1, min(MP_MAX, int(cfg.get("party_size", MP_MAX))))
+    return cfg
+
+
+def save_mp_config(cfg):
+    os.makedirs(MP_STATE_DIR, exist_ok=True)
+    with open(MP_CONFIG_FILE, "w") as f:
+        json.dump(cfg, f, indent=4)
+
 
 def _load_json(name, default):
     path = os.path.join(DATA_DIR, name)
@@ -678,16 +736,20 @@ def default_player_data():
 
 
 class PlayerState:
-    def __init__(self, game_engine=None):
+    def __init__(self, game_engine=None, file=None):
         self.engine = game_engine
+        # `file` lets a satellite load its own continuously-saved slot; when
+        # omitted the classic global PLAYER_FILE is used (the single run, or
+        # the Caller in multi mode, which set_mode already re-pointed).
+        self.file = file if file is not None else PLAYER_FILE
         self.data = default_player_data()
         self.load()
         self.refresh_derived_stats()
 
     def load(self):
-        if os.path.exists(PLAYER_FILE):
+        if os.path.exists(self.file):
             try:
-                with open(PLAYER_FILE, "r") as f:
+                with open(self.file, "r") as f:
                     self.data.update(json.load(f))
             except json.JSONDecodeError:
                 pass
@@ -695,7 +757,10 @@ class PlayerState:
         self.data.setdefault("item_ages", {})
 
     def save(self):
-        with open(PLAYER_FILE, "w") as f:
+        d = os.path.dirname(self.file)
+        if d:
+            os.makedirs(d, exist_ok=True)
+        with open(self.file, "w") as f:
             json.dump(self.data, f, indent=4)
 
     def refresh_derived_stats(self):
@@ -723,10 +788,19 @@ class PlayerState:
             self.save()
         return DEATH_MESSAGE
 
+    def is_down(self):
+        """Multiplayer satellites only: 'down' for the session (C5)."""
+        return bool(self.data.get("down"))
+
     def update_hp(self, amount):
         self.data["hp"] = max(0, min(self.data["max_hp"], self.data["hp"] + int(amount)))
         self.save()
         if self.data["hp"] <= 0:
+            # A satellite that reaches 0 HP is 'down' for the session (C5) -
+            # the engine handles revival; no floor wipe / respawn / refund.
+            if self.data.get("is_satellite") and self.engine:
+                self.engine._sat_on_down(self)
+                return 0
             return self.die()
         return self.data["hp"]
 
@@ -1223,6 +1297,123 @@ class GameEngine:
         self.death_message = None
         self.pending_food_msgs = []
         self.last_parley_verdict = None
+        # ---- multiplayer party: the Caller (self.player) + satellites ----
+        # Satellites are co-located at the Caller's position (C1): they carry
+        # their own HP/gold/gear but NO position. In single mode the list is
+        # empty and every code path below is exactly the classic run.
+        self.satellites = []
+        self.satellites_enabled = False
+
+    # ---- party / satellites (multiplayer) ----
+    @property
+    def party(self):
+        """[Caller, *satellites] - the full co-located party."""
+        return [self.player] + self.satellites
+
+    def active_satellites(self):
+        """Satellites not currently 'down' (C5)."""
+        return [s for s in self.satellites if not s.is_down()]
+
+    def satellite_by_slot(self, slot):
+        for s in self.satellites:
+            if s.slot == slot:
+                return s
+        return None
+
+    def load_satellites(self, party_size):
+        """Build the satellite roster for a multi session. P1 is the Caller
+        (self.player, already loaded); P2..P(party_size-1) become satellites,
+        each from its own continuously-saved slot file."""
+        self.satellites = []
+        if MODE != "multi":
+            self.satellites_enabled = False
+            return self.satellites
+        n = max(1, min(MP_MAX, int(party_size)))
+        self.satellites_enabled = n >= 2
+        for i in range(1, n):  # slots P2..Pn
+            slot = MP_SLOTS[i]
+            sat = PlayerState(self, file=mp_slot_file(slot))
+            sat.slot = slot
+            sat.data.setdefault("is_satellite", True)
+            sat.data.setdefault("down", False)
+            sat.save()
+            self.satellites.append(sat)
+        return self.satellites
+
+    def _sat_on_down(self, sat):
+        """A satellite reaches 0 HP: it is 'down' for the session (C5) - no
+        floor wipe, no respawn, no gold refund. The Caller can revive it."""
+        sat.data["down"] = True
+        sat.data["hp"] = 0
+        sat.save()
+
+    def revive_satellite(self, slot):
+        """Bring a 'down' satellite back to full health (temple revival)."""
+        sat = self.satellite_by_slot(slot)
+        if not sat or not sat.data.get("down"):
+            return None
+        sat.data["down"] = False
+        sat.refresh_derived_stats()
+        sat.data["hp"] = sat.data["max_hp"]
+        sat.save()
+        return sat
+
+    def transfer(self, slot, item, qty=1, direction="to"):
+        """Move an item or 'gold' between the Caller and a satellite.
+
+        direction 'to'   -> Caller hands to the satellite.
+        direction 'from' -> the satellite hands back to the Caller.
+        Only the Caller holds keys / inn-key (per the design); a satellite can
+        carry gear and gold but not unlock things on its own.
+        Returns {'success': bool, 'message': str}.
+        """
+        sat = self.satellite_by_slot(slot)
+        if not sat:
+            return {"success": False, "message": f"{slot} is not in this party."}
+        qty = max(1, int(qty))
+        # an equipped item cannot be handed off (it would desync the slot)
+        if item != "gold":
+            src_p = self.player if direction == "to" else sat
+            if item in src_p.data["equipped"].values():
+                return {"success": False,
+                        "message": f"{item} is equipped - unequip it first."}
+        if item == "gold":
+            if direction == "to":
+                if self.player.data["gold"] < qty:
+                    return {"success": False, "message": f"You do not have {qty} gold."}
+                self.player.update_gold(-qty)
+                sat.update_gold(qty)
+                return {"success": True, "message": f"You hand {qty} gold to {slot}."}
+            else:
+                if sat.data["gold"] < qty:
+                    return {"success": False, "message": f"{slot} does not have {qty} gold."}
+                sat.update_gold(-qty)
+                self.player.update_gold(qty)
+                return {"success": True, "message": f"{slot} hands you {qty} gold."}
+        # item transfer
+        if direction == "to":
+            if self.player.data["inventory"].get(item, 0) < qty:
+                return {"success": False, "message": f"You do not have {qty} x {item}."}
+            rm = self.player.remove_item(item, qty)
+            if isinstance(rm, dict) and not rm.get("success"):
+                return {"success": False, "message": rm.get("message", f"Cannot hand {item}.")}
+            add = sat.add_item(item, qty)
+            if isinstance(add, dict) and not add.get("success"):
+                # refund and report
+                self.player.add_item(item, qty)
+                return {"success": False, "message": add.get("message", f"{slot} cannot carry {item}.")}
+            return {"success": True, "message": f"You hand {qty} x {item} to {slot}."}
+        else:
+            if sat.data["inventory"].get(item, 0) < qty:
+                return {"success": False, "message": f"{slot} does not have {qty} x {item}."}
+            rm = sat.remove_item(item, qty)
+            if isinstance(rm, dict) and not rm.get("success"):
+                return {"success": False, "message": rm.get("message", f"{slot} cannot hand {item}.")}
+            add = self.player.add_item(item, qty)
+            if isinstance(add, dict) and not add.get("success"):
+                sat.add_item(item, qty)
+                return {"success": False, "message": add.get("message", f"You cannot carry {item}.")}
+            return {"success": True, "message": f"{slot} hands you {qty} x {item}."}
 
     def roll_dice(self, sides=20, modifier=0):
         return random.randint(1, int(sides)) + int(modifier)
@@ -1246,7 +1437,9 @@ class GameEngine:
                 t["day"] += 1
                 rolled = True
         self.world.engine_phase = t["phase"]
-        self._age_perishables(int(ticks))
+        # The party shares the Caller's clock; age each member's perishables.
+        for member in self.party:
+            self._age_perishables(int(ticks), member)
         self._inn_tick()
         return rolled
 
@@ -1270,12 +1463,13 @@ class GameEngine:
         self.world.engine_phase = 0
         self._age_perishables(len(TIME_PHASES) * PHASE_TICKS)
 
-    def _age_perishables(self, ticks):
+    def _age_perishables(self, ticks, player=None):
         """Advance food spoilage with the clock; queue flavor for turned items."""
         if ticks <= 0:
             return
-        inv = self.player.data["inventory"]
-        ages = self.player.data.setdefault("item_ages", {})
+        p = player if player is not None else self.player
+        inv = p.data["inventory"]
+        ages = p.data.setdefault("item_ages", {})
         turned = False
         for name, limit in PERISHABLE_FOODS.items():
             if inv.get(name, 0) <= 0:
@@ -1290,7 +1484,7 @@ class GameEngine:
                 self.pending_food_msgs.append(SPOILAGE_FLAVOR.get(
                     name, f"Your {name} has turned. (Spoiled Food)"))
         if turned:
-            self.player.save()
+            p.save()
 
     def take_food_msgs(self):
         msgs, self.pending_food_msgs = self.pending_food_msgs, []
@@ -1321,6 +1515,14 @@ class GameEngine:
         self.turn_count = 0
         self.combat_state = {}
         self.monster_control = {}
+        # multiplayer: a "new run" resets the satellites to fresh characters
+        # (their slot files are continuously saved, so this is a clean slate).
+        for s in self.satellites:
+            s.data = default_player_data()
+            s.data.setdefault("is_satellite", True)
+            s.data.setdefault("down", False)
+            s.refresh_derived_stats()
+            s.save()
         return self.player.data
 
     # --- scene / narration context (was an RpgModule tool) ---
@@ -1760,8 +1962,9 @@ class GameEngine:
         return {"success": True, "message": f"You sold {qty}x {item_name} for {value} gold.",
                 "gold": self.player.data["gold"]}
 
-    def get_stat_bonus(self, stat_name):
-        return self.player.data["stats"].get(stat_name, 10) - 10
+    def get_stat_bonus(self, stat_name, player=None):
+        p = player if player is not None else self.player
+        return p.data["stats"].get(stat_name, 10) - 10
 
     def _find_monster(self, monster_name):
         bestiary = self.world.generator.bestiary
@@ -1965,115 +2168,132 @@ class GameEngine:
         tags = room.get("visual_tags") or []
         return not any(t in self.DARK_ROOM_TAGS for t in tags)
 
-    def calculate_ac(self):
-        poly = self._polymorph_active()
+    def calculate_ac(self, player=None):
+        p = player if player is not None else self.player
+        poly = self._polymorph_active(p)
         if poly:
             return poly.get("ac", 10)
-        armor_bonus = (ARMOR_DATA[self.player.data["equipped"]["armor"]]["ac"]
-                       if self.player.data["equipped"]["armor"] in ARMOR_DATA else 0)
-        shield_bonus = (ARMOR_DATA[self.player.data["equipped"]["shield"]]["ac"]
-                        if self.player.data["equipped"]["shield"] in ARMOR_DATA else 0)
-        dex = self.player.data["stats"].get("DEX", 10)
+        armor_bonus = (ARMOR_DATA[p.data["equipped"]["armor"]]["ac"]
+                       if p.data["equipped"]["armor"] in ARMOR_DATA else 0)
+        shield_bonus = (ARMOR_DATA[p.data["equipped"]["shield"]]["ac"]
+                        if p.data["equipped"]["shield"] in ARMOR_DATA else 0)
+        dex = p.data["stats"].get("DEX", 10)
         buff_ac = 0
-        for b in self.player.data.get("buffs", []):
+        for b in p.data.get("buffs", []):
             buff_ac += b.get("tags", {}).get("ac_bonus", 0)
         return armor_bonus + shield_bonus + dex + buff_ac
 
-    def calculate_attack_bonus(self, weapon_name):
-        cursed = -1 if "Cursed" in self.player.data.get("status_effects", []) else 0
-        poly = self._polymorph_active()
+    def calculate_attack_bonus(self, weapon_name, player=None):
+        p = player if player is not None else self.player
+        cursed = -1 if "Cursed" in p.data.get("status_effects", []) else 0
+        poly = self._polymorph_active(p)
         if poly:
             return poly.get("atk", 0) + cursed
         weapon_stats = WEAPON_DATA.get(weapon_name, {})
         w_type = weapon_stats.get("type", "melee")
         w_mod = weapon_stats.get("mod", 0)
         buff_atk = 0
-        for b in self.player.data.get("buffs", []):
+        for b in p.data.get("buffs", []):
             buff_atk += b.get("tags", {}).get("attack_bonus", 0)
-        return (self.get_stat_bonus("DEX") if w_type == "ranged" else self.get_stat_bonus("STR")) + w_mod + buff_atk + cursed
+        return (self.get_stat_bonus("DEX", p) if w_type == "ranged" else self.get_stat_bonus("STR", p)) + w_mod + buff_atk + cursed
 
-    def resolve_attack(self, attacker_weapon, defender_ac, penalty=0):
-        attack_roll = self.roll_dice(20, self.calculate_attack_bonus(attacker_weapon)) + penalty
+    def resolve_attack(self, attacker_weapon, defender_ac, penalty=0, player=None):
+        p = player if player is not None else self.player
+        attack_roll = self.roll_dice(20, self.calculate_attack_bonus(attacker_weapon, p)) + penalty
         if attack_roll >= defender_ac:
             weapon_stats = WEAPON_DATA.get(attacker_weapon, {"die": 6, "mod": 0})
-            damage = random.randint(1, weapon_stats["die"]) + self.get_stat_bonus("STR") + weapon_stats.get("mod", 0)
+            damage = random.randint(1, weapon_stats["die"]) + self.get_stat_bonus("STR", p) + weapon_stats.get("mod", 0)
             return {"hit": True, "damage": max(1, damage), "roll": attack_roll}
         return {"hit": False, "damage": 0, "roll": attack_roll}
 
-    def _roll_poison_save(self, dc=10):
-        con_bonus = self.get_stat_bonus("CON")
+    def _roll_poison_save(self, dc=10, player=None):
+        p = player if player is not None else self.player
+        con_bonus = self.get_stat_bonus("CON", p)
         roll = self.roll_dice(20, con_bonus)
         success = roll >= dc
-        already_poisoned = "Poisoned" in self.player.data.get("status_effects", [])
+        already_poisoned = "Poisoned" in p.data.get("status_effects", [])
         applied = False
         refreshed = False
         if not success:
             if not already_poisoned:
-                self.player.data.setdefault("status_effects", []).append("Poisoned")
-                self.player.data["poison_duration"] = 3
+                p.data.setdefault("status_effects", []).append("Poisoned")
+                p.data["poison_duration"] = 3
                 applied = True
             else:
-                self.player.data["poison_duration"] = max(int(self.player.data.get("poison_duration", 0)), 2)
+                p.data["poison_duration"] = max(int(p.data.get("poison_duration", 0)), 2)
                 refreshed = True
-        self.player.save()
+        p.save()
         return {"roll": roll, "bonus": con_bonus, "dc": dc, "success": success,
                 "applied": applied, "refreshed": refreshed, "already_poisoned": already_poisoned}
 
-    def resolve_monster_attack(self, monster_name, penalty=0):
+    def resolve_monster_attack(self, monster_name, penalty=0, player=None):
+        p = player if player is not None else self.player
         monster_id = self._find_monster(monster_name)
         monster = self.world.generator.bestiary.get(monster_id, {})
         if not monster:
             return {"hit": False, "damage": 0, "message": "The creature is confused and misses!"}
-        player_ac = self.calculate_ac()
+        player_ac = self.calculate_ac(p)
         attack_bonus = monster.get("atk", monster.get("attack_bonus", 0)) + penalty
         roll = random.randint(1, 20) + attack_bonus
+        who = "you" if p is self.player else p.slot
         if roll >= player_ac:
             dmg_die = monster.get("damage_die", 6)
             dmg_mod = monster.get("damage_mod", 0)
             damage = max(1, random.randint(1, dmg_die) + dmg_mod)
-            result = {"hit": True, "damage": damage, "roll": roll,
-                      "message": f"The {monster_name} hits you for {damage} damage."}
+            result = {"hit": True, "damage": damage, "roll": roll, "target": p,
+                      "message": f"The {monster_name} hits {who} for {damage} damage."}
             if "poison" in monster.get("special", []):
-                poison_save = self._roll_poison_save(dc=monster.get("poison_dc", 10))
+                poison_save = self._roll_poison_save(dc=monster.get("poison_dc", 10), player=p)
                 result["poison_save"] = poison_save
                 if poison_save["applied"] and not poison_save["already_poisoned"]:
-                    result["message"] += (" You feel venom sink into your wound. You fail your CON save "
+                    result["message"] += (f" {who.title()} feel venom sink into your wound. {who.title()} fail your CON save "
                                           f"({poison_save['roll']} vs DC {poison_save['dc']}) and are poisoned.")
                 elif poison_save["applied"] or poison_save["refreshed"]:
-                    result["message"] += (" Fresh venom wracks you. You fail your CON save "
+                    result["message"] += (f" Fresh venom wracks {who}. {who.title()} fail your CON save "
                                           f"({poison_save['roll']} vs DC {poison_save['dc']}) and your poison lingers.")
                 else:
-                    result["message"] += (" You feel venom sink into your wound, but you pass your CON save "
+                    result["message"] += (f" {who.title()} feel venom sink into your wound, but pass your CON save "
                                           f"({poison_save['roll']} vs DC {poison_save['dc']}).")
             return result
-        return {"hit": False, "damage": 0, "roll": roll, "message": f"The {monster_name} misses."}
+        return {"hit": False, "damage": 0, "roll": roll, "target": p,
+                "message": f"The {monster_name} misses."}
 
-    def _clear_poison(self):
-        self.player.data["poison_duration"] = 0
-        self.player.data["status_effects"] = [
-            e for e in self.player.data.get("status_effects", []) if e != "Poisoned"
+    def _clear_poison(self, player=None):
+        p = player if player is not None else self.player
+        p.data["poison_duration"] = 0
+        p.data["status_effects"] = [
+            e for e in p.data.get("status_effects", []) if e != "Poisoned"
         ]
-        self.player.save()
+        p.save()
 
-    def _tick_poison(self):
-        if "Poisoned" not in self.player.data.get("status_effects", []):
+    def _tick_poison(self, player=None):
+        p = player if player is not None else self.player
+        if "Poisoned" not in p.data.get("status_effects", []):
             return None
+        is_sat = p is not self.player
+        who = "you" if not is_sat else p.slot
         damage = 1
-        hp_result = self.player.update_hp(-damage)
-        died = isinstance(hp_result, str)
-        if died:
-            self._clear_poison()
+        hp_result = p.update_hp(-damage)
+        if isinstance(hp_result, str):
+            # the Caller died (satellites route to 'down' and return 0)
+            self._clear_poison(p)
             return {"damage": damage, "remaining": 0, "player_died": True,
-                    "death_message": hp_result, "message": "The poison finishes you."}
-        duration = int(self.player.data.get("poison_duration", 1)) - 1
-        if duration <= 0:
-            self._clear_poison()
+                    "target": p, "death_message": hp_result, "message": "The poison finishes you."}
+        if hp_result <= 0:
+            # a satellite dropped to 0: it is 'down' for the session (C5)
+            self._clear_poison(p)
             return {"damage": damage, "remaining": 0, "player_died": False,
-                    "message": "The poison burns through you and fades. (-1 HP)"}
-        self.player.data["poison_duration"] = duration
-        self.player.save()
-        return {"damage": damage, "remaining": duration, "player_died": False,
-                "message": f"The poison courses through you. (-1 HP, {duration} round(s) left)"}
+                    "sat_down": True, "target": p,
+                    "message": f"The poison finishes {who} - {who} go down."}
+        duration = int(p.data.get("poison_duration", 1)) - 1
+        if duration <= 0:
+            self._clear_poison(p)
+            return {"damage": damage, "remaining": 0, "player_died": False, "target": p,
+                    "message": f"The poison burns through {who} and fades. (-1 HP)"}
+        p.data["poison_duration"] = duration
+        p.save()
+        return {"damage": damage, "remaining": duration, "player_died": False, "target": p,
+                "message": f"The poison courses through {who}. (-1 HP, {duration} round(s) left)"}
 
     def apply_monster_special(self, monster_name):
         monster_id = self._find_monster(monster_name)
@@ -2919,9 +3139,10 @@ class GameEngine:
         pos = self.player.data["position"]
         return f"{pos['x']}_{pos['y']}_{pos['z']}"
 
-    def _polymorph_active(self):
+    def _polymorph_active(self, player=None):
         """Return the active Polymorph buff's creature tag, or None."""
-        for b in self.player.data.get("buffs", []):
+        p = player if player is not None else self.player
+        for b in p.data.get("buffs", []):
             if b.get("name") == "Polymorph" and b.get("turns", 0) > 0:
                 return b.get("tags", {}).get("polymorph")
         return None
@@ -3208,7 +3429,16 @@ class GameEngine:
             self.advance_phases(2)
             return {"success": True, "message": "You curl up in your bedroll for a few hours of uneasy sleep. You feel somewhat rested."}
 
-    def resolve_combat_turn(self, monster_name, player_action, player_weapon, monster_action, formula=None):
+    def _pick_monster_target(self):
+        """C2: a monster action hits ONE party member - the one with the lowest
+        current HP (ties broken by party order: Caller first, then satellites).
+        In a solo run this is just the Caller, so behaviour is unchanged."""
+        members = [self.player] + [s for s in self.satellites if not s.is_down()]
+        if not members:
+            return self.player
+        return min(members, key=lambda m: m.data["hp"])
+
+    def resolve_combat_turn(self, monster_name, player_action, player_weapon, monster_action, formula=None, satellite_actions=None):
         room_id = self._room_id()
         room = self.world.get_room(self.player.data["position"]["x"],
                                    self.player.data["position"]["y"],
@@ -3250,6 +3480,23 @@ class GameEngine:
             p_res["message"] = spell_res.get("message", "The mixture fizzles.")
             p_res["spell"] = spell_res.get("spell")
             p_res["auras"] = spell_res.get("auras")
+        # ---- satellites act (C6: v1 verbs are 'fight' and 'pass') ----
+        sat_results = []
+        sat_actions = satellite_actions or {}
+        for sat in self.satellites:
+            act = sat_actions.get(sat.slot, "pass")
+            if act == "fight" and not sat.is_down():
+                s_res = self.resolve_attack(
+                    sat.data["equipped"].get("weapon"), bestiary[monster_id]["ac"],
+                    penalty=attack_penalty, player=sat)
+                if s_res["hit"]:
+                    dealt = s_res["damage"] * dmg_mult
+                    self.combat_state[ckey] -= dealt
+                    s_res["damage"] = dealt
+                sat_results.append({"slot": sat.slot, "hit": s_res["hit"],
+                                    "damage": s_res["damage"], "roll": s_res.get("roll")})
+            else:
+                sat_results.append({"slot": sat.slot, "hit": False, "damage": 0, "passed": True})
         poison_tick = self._tick_poison()
         m_res = {"hit": False, "damage": 0, "message": ""}
         is_sleeping = ctrl.get("sleep", 0) > 0
@@ -3268,14 +3515,15 @@ class GameEngine:
                 self.combat_state[ckey] -= self_dmg
                 m_res["message"] = f"The confused {monster_name} lashes out and strikes ITSELF for {self_dmg}!"
             else:
-                m_res = self.resolve_monster_attack(monster_name, penalty=-4)
+                m_res = self.resolve_monster_attack(monster_name, penalty=-4,
+                                                    player=self._pick_monster_target())
                 if m_res["hit"]:
-                    self.player.update_hp(-m_res["damage"])
+                    m_res["target"].update_hp(-m_res["damage"])
                 m_res["message"] = (m_res.get("message") or "") + " (confused: -4 to hit)"
         elif monster_action == "fight":
-            m_res = self.resolve_monster_attack(monster_name)
+            m_res = self.resolve_monster_attack(monster_name, player=self._pick_monster_target())
             if m_res["hit"]:
-                self.player.update_hp(-m_res["damage"])
+                m_res["target"].update_hp(-m_res["damage"])
         elif monster_action == "special":
             special_msg = self.apply_monster_special(monster_name)
             m_res["message"] = special_msg or "The monster bellows menacingly!"
@@ -3309,7 +3557,9 @@ class GameEngine:
                 self.player.save()
                 virtue_msg = (virtue_msg or "") + " Last stand logged - Raika will hear of it."
         control_msgs = self._tick_monster_control(room_id, monster_name)
+        sat_down = [s.slot for s in self.satellites if s.is_down()]
         return {"player_attack": p_res, "monster_attack": m_res, "poison_tick": poison_tick,
+                "satellite_attacks": sat_results, "sat_down": sat_down,
                 "monster_hp": self.combat_state.get(ckey, 0), "monster_dead": monster_dead,
                 "player_dead": player_dead, "virtue_msg": virtue_msg,
                 "drop_lines": drop_lines, "control_msgs": control_msgs}

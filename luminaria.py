@@ -191,6 +191,12 @@ class Game:
         self.insight = self.insight_max
         self.dispatch = T.dispatch(self.eng)
         self.last_narration = None
+        self._prev_down = set()
+        # ---- multiplayer: satellite lock-in buffer (C4) ----
+        # Each satellite "locks in" its next-turn action ('fight'/'pass'); the
+        # Caller sees who is ready (roster) and the combat loop drains this into
+        # resolve_combat_turn. No input == pass, so the game never waits.
+        self.sat_lockin = {}
 
     # ---------- narration ----------
     def narrate(self, event_text):
@@ -226,6 +232,112 @@ class Game:
     def _room(self):
         p = self.eng.player.data["position"]
         return self.eng.world.get_room(p["x"], p["y"], p["z"])
+
+    # ---------- multiplayer: satellites ----------
+    def sat_set_lockin(self, slot, action):
+        """A satellite locks in its next-turn action. Returns (ok, message)."""
+        sat = self.eng.satellite_by_slot(slot)
+        if not sat:
+            return False, f"{slot} is not in this party."
+        action = (action or "pass").lower()
+        if action not in ("fight", "pass", "none"):
+            return False, f"{slot}: lock in 'fight' or 'pass'."
+        if action == "none":
+            self.sat_lockin.pop(slot, None)
+            return True, f"{slot}: lock-in cleared (will pass)."
+        self.sat_lockin[slot] = action
+        return True, f"{slot}: locked in to {action}."
+
+    def sat_roster(self):
+        """Caller visibility (C4): the party roster with each satellite's HP,
+        lock-in state, and down state."""
+        rows = [{"slot": "P1", "name": "Caller", "hp": self.eng.player.data["hp"],
+                 "max_hp": self.eng.player.data["max_hp"], "lockin": None,
+                 "down": False, "you": True}]
+        for s in self.eng.satellites:
+            rows.append({"slot": s.slot, "name": s.slot,
+                         "hp": s.data["hp"], "max_hp": s.data["max_hp"],
+                         "lockin": self.sat_lockin.get(s.slot),
+                         "down": s.is_down(), "you": False})
+        return rows
+
+    def sat_drain_lockin(self):
+        """Hand the locked-in actions to the engine, then clear the buffer."""
+        actions = dict(self.sat_lockin)
+        self.sat_lockin = {}
+        return actions
+
+    def _party_line(self):
+        """A one-line party HUD (only in a multi session with satellites)."""
+        if not self.eng.satellites:
+            return ""
+        bits = []
+        for s in self.eng.satellites:
+            if s.is_down():
+                bits.append(f"{s.slot} DOWN")
+            else:
+                lk = self.sat_lockin.get(s.slot)
+                bits.append(f"{s.slot} {s.data['hp']}/{s.data['max_hp']}"
+                            + (f" ({lk})" if lk else ""))
+        return "   ".join(bits)
+
+    def _cmd_sat(self, arg):
+        """'sat' - the party roster (Caller visibility, C4)."""
+        rows = self.sat_roster()
+        ui.warn("PARTY (co-located at the Caller):")
+        for r in rows:
+            tag = " (you)" if r["you"] else ""
+            if r["down"]:
+                ui.warn(f"  {r['slot']}{tag}: DOWN - revive to bring back")
+            else:
+                lk = r["lockin"]
+                ui.warn(f"  {r['slot']}{tag}: {r['hp']}/{r['max_hp']}"
+                        + (f"  locked in: {lk}" if lk else "  (will pass)"))
+        if not self.eng.satellites:
+            ui.warn("  (single-player run - no satellites)")
+
+    def _cmd_lockin(self, arg):
+        """'lockin <slot> <fight|pass>' - a satellite locks in its action."""
+        parts = (arg or "").split()
+        if len(parts) < 2:
+            ui.warn("Usage: lockin <P2|P3|P4> <fight|pass>")
+            return
+        slot = parts[0].upper()
+        action = parts[1].lower()
+        ok, msg = self.sat_set_lockin(slot, action)
+        (ui.say if ok else ui.warn)(msg)
+
+    def _cmd_revive(self, arg):
+        """'revive <slot>' - bring a 'down' satellite back to full (C5)."""
+        parts = (arg or "").split()
+        if not parts:
+            ui.warn("Usage: revive <P2|P3|P4>")
+            return
+        slot = parts[0].upper()
+        sat = self.eng.revive_satellite(slot)
+        if sat is None:
+            ui.warn(f"{slot} is not down (or not in the party).")
+        else:
+            ui.say(f"{slot} is raised to full health - back in the fight.")
+
+    def _cmd_transfer(self, arg):
+        """'transfer <slot> <item|gold> [qty] [to|from]' - move gear/gold
+        between the Caller and a satellite (the design's item/gold transfer)."""
+        parts = (arg or "").split()
+        if len(parts) < 2:
+            ui.warn("Usage: transfer <P2|P3|P4> <item|gold> [qty] [to|from]")
+            return
+        slot = parts[0].upper()
+        item = parts[1]
+        qty = 1
+        direction = "to"
+        for tok in parts[2:]:
+            if tok.isdigit():
+                qty = int(tok)
+            elif tok in ("to", "from"):
+                direction = tok
+        res = self.eng.transfer(slot, item, qty, direction)
+        (ui.say if res.get("success") else ui.warn)(res.get("message", str(res)))
 
     def _respawn(self):
         """Death penalty & recovery: the High Priestess drags your soul back to
@@ -496,8 +608,9 @@ class Game:
             specials = m_data.get("special", [])
             monster_action = "special" if specials and random.random() < 0.25 else "fight"
             pos_before = dict(self.eng.player.data["position"])
+            sat_actions = self.sat_drain_lockin()
             res = self.eng.resolve_combat_turn(monster, player_action, weapon, monster_action,
-                                      formula=cast_formula)
+                                      formula=cast_formula, satellite_actions=sat_actions)
             pos_after = self.eng.player.data["position"]
             pa = res.get("player_attack", {})
             if player_action == "fight":
@@ -513,6 +626,14 @@ class Game:
                     ui.say(pa["message"])
             elif player_action == "none" and not (isinstance(use_res, dict) and use_res.get("success")):
                 pass
+            # ---- satellite results (C6: fight / pass) ----
+            for sr in res.get("satellite_attacks", []):
+                if sr.get("passed"):
+                    continue
+                if sr.get("hit"):
+                    ui.say(f"{sr['slot']} strikes the {monster} for {sr['damage']} damage! (roll {sr.get('roll')})")
+                else:
+                    ui.say(f"{sr['slot']} misses the {monster}. (roll {sr.get('roll')})")
             ma = res.get("monster_attack", {})
             if ma.get("message") and "perished" not in ma["message"]:
                 (ui.bad if ma.get("hit") else ui.say)(ma["message"])
@@ -523,7 +644,13 @@ class Game:
                 ui.say(cm)
             m_hp = res.get("monster_hp", m_hp)
             p = self.eng.player.data
-            ui.warn(f"You: {p['hp']}/{p['max_hp']}   {monster}: {max(0, m_hp)}/{m_max}")
+            party = self._party_line()
+            ui.warn(f"You: {p['hp']}/{p['max_hp']}   {monster}: {max(0, m_hp)}/{m_max}"
+                    + (f"   | {party}" if party else ""))
+            newly_down = [s for s in res.get("sat_down", []) if s not in self._prev_down]
+            self._prev_down = set(res.get("sat_down", []))
+            for slot in newly_down:
+                ui.bad(f"{slot} has gone down - 'revive {slot}' to bring them back.")
             if res.get("player_dead") or pos_after != pos_before:
                 ui.bad("You have perished - the High Priestess drags your soul back to the Temple of Radiance.")
                 self._respawn()
@@ -1579,6 +1706,17 @@ class Game:
             (ui.say if res.get("success") else ui.warn)(res.get("message", str(res)))
         elif verb == "quest":
             self.cmd_quest(arg)
+        # ---- multiplayer: satellites (Caller-only verbs) ----
+        elif verb in ("sat", "satellites", "party"):
+            self._cmd_sat(arg)
+        elif verb in ("lockin", "lock"):
+            self._cmd_lockin(arg)
+        elif verb in ("revive", "raise"):
+            self._cmd_revive(arg)
+        elif verb in ("transfer", "give", "hand"):
+            self._cmd_transfer(arg)
+        elif verb in ("a", "pass"):
+            ui.say("You hold fast and let the moment pass.")
         elif verb == "search":
             self.cmd_search(arg)
         elif verb == "disarm":
@@ -1772,6 +1910,10 @@ class Game:
             "quest_pending": self.eng.quest_pending(),
             "narrate": self.narrate_on,
             "llm_ready": self.llm_ready,
+            # multiplayer: the party roster (C4 Caller visibility). In single
+            # mode this is just the Caller with no satellites.
+            "party": self.sat_roster(),
+            "mode": E.MODE,
             "hud_text": ui.render_hud(self.eng, insight=self.insight,
                                       insight_max=self.insight_max),
         }

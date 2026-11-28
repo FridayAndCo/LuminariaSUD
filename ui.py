@@ -167,6 +167,16 @@ def show_room(engine, narration=None, exits_line=None):
         body += "\nA shrine stands here - try 'meditate', or feed the coin slot ('confess')."
     if exits_line:
         body += f"\nExits: {exits_line}"
+    # ---- multiplayer: the co-located party (satellites) ----
+    sats = getattr(engine, "satellites", None)
+    if sats:
+        bits = []
+        for s in sats:
+            if s.is_down():
+                bits.append(f"{s.slot} DOWN")
+            else:
+                bits.append(f"{s.slot} {s.data['hp']}/{s.data['max_hp']}")
+        body += f"\nParty: {', '.join(bits)}  (co-located at the Caller)"
 
     if _is_api():
         SINK.panel("room", body, title=room)

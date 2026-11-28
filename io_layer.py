@@ -29,6 +29,7 @@ This is Phase 1 of the graphical refactor: no behaviour changes, one seam.
 """
 
 import queue
+import threading
 
 
 class TerminalIO:
@@ -81,12 +82,16 @@ class QueueIO:
         self._prompt_q = queue.Queue()
         self._awaiting = False
         self._prompt_text = None
+        # The chat bus + satellite lock-in append from API threads while the
+        # worker thread is also emitting, so the log is guarded by a lock.
+        self._lock = threading.RLock()
 
     def _append(self, entry):
-        self._id += 1
-        entry["id"] = self._id
-        self.log.append(entry)
-        self._buf.append(entry)
+        with self._lock:
+            self._id += 1
+            entry["id"] = self._id
+            self.log.append(entry)
+            self._buf.append(entry)
         return entry
 
     def begin_command(self):
@@ -120,6 +125,7 @@ class QueueIO:
 
     def poll(self, cursor=0):
         """Return (events_after_cursor, new_cursor)."""
-        events = [e for e in self.log if e["id"] > cursor]
-        new_cursor = self.log[-1]["id"] if self.log else 0
+        with self._lock:
+            events = [e for e in self.log if e["id"] > cursor]
+            new_cursor = self.log[-1]["id"] if self.log else 0
         return events, new_cursor
